@@ -1,0 +1,15 @@
+.print-document{display:none}
+@media print{
+  @page{size:A4;margin:18mm}
+  body{background:#fff!important;color:#111!important}
+  body *{visibility:hidden}
+  .print-document,.print-document *{visibility:visible}
+  .workspace,.overlay{display:none!important}
+  .print-document{display:block!important;position:absolute;inset:0;padding:0;color:#171717;background:white;font:11pt/1.55 Arial,sans-serif}
+  .print-document header{display:flex;justify-content:space-between;margin-bottom:24px;padding-bottom:10px;border-bottom:2px solid #222}
+  .print-document header strong{font-size:14pt}.print-document header small{color:#555}
+  .print-document h1{margin:0 0 22px;font-size:23pt}
+  .print-document section{margin:0 0 18px;break-inside:avoid}
+  .print-document h2{margin:0 0 5px;font-size:12pt}
+  .print-document p{margin:0;white-space:pre-wrap}
+}

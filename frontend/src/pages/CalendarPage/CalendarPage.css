@@ -1,0 +1,26 @@
+.calendar-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,.9fr);gap:14px}
+.calendar-paper,.upcoming{padding:18px;border:1px solid #49315e;border-radius:12px;background:linear-gradient(145deg,#1b1228,#171022)}
+.calendar-controls{display:flex;align-items:center;gap:5px}
+.calendar-controls button{min-width:32px;height:30px;padding:0 8px;border:1px solid #674c78;border-radius:7px;background:#21152f;color:#f6ebff;font-size:10px;font-weight:700}
+.calendar-controls button:hover{border-color:#c17aff;background:#3c2457}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:15px}
+.calendar-grid>b{min-width:0;padding:5px;color:#dfd0ef;text-align:center;font-size:9px}
+.day{min-width:0;min-height:72px;padding:5px;border:1px solid #4d365e;border-radius:5px;color:#f3e7fb;font-size:10px;overflow:hidden}
+.day>span{display:inline-grid;place-items:center;width:20px;height:20px;font-weight:700}
+.day.dim{color:#9883a8}.day.today>span{border-radius:50%;background:#a451ff;box-shadow:0 0 13px #a451ff}
+.calendar-event{display:block;width:100%;min-width:0;margin-top:4px;padding:4px;border:0;border-radius:4px;background:#42276d;color:#e7d3ff;text-align:left;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;font-size:8px;font-weight:700}
+.calendar-event:hover{background:#63408a}
+.upcoming{display:grid;align-content:start;gap:9px}.upcoming h2{margin:0;color:#fff;font-size:17px}.upcoming>p{margin:0;color:#e3d6f2;font-size:11px}
+.upcoming-button{display:flex;width:100%;gap:10px;align-items:center;padding:10px;border:0;border-bottom:1px solid #3a294b;background:transparent;text-align:left}
+.upcoming-button>b{padding:6px;border-radius:6px;background:#c5ff3e;color:#171027;font-size:10px}
+.upcoming-button span{display:grid;gap:4px}.upcoming-button strong{color:#fff;font-size:10px}.upcoming-button small{color:#c2b1d1;font-size:9px}
+@media(max-width:900px){.calendar-layout{grid-template-columns:1fr}}
+@media(max-width:740px){
+  .calendar-paper{overflow:visible;padding:13px}
+  .calendar-grid{width:100%;min-width:0;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .calendar-grid>b{padding:4px 0;font-size:8px}
+  .day{min-height:60px;padding:3px 2px;font-size:9px}
+  .day>span{width:17px;height:17px;font-size:9px}
+  .calendar-event{max-height:30px;padding:2px;white-space:normal;overflow-wrap:anywhere;line-height:1.15;font-size:7px}
+}
+@media(max-width:420px){.calendar-grid{gap:2px}.day{min-height:56px;padding:2px 1px}.calendar-event{font-size:6px}}

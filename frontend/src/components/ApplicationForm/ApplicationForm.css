@@ -1,0 +1,5 @@
+.form-card.extended-form{max-height:calc(100dvh - 42px);overflow-y:auto}
+.form-card textarea{width:100%;min-height:110px;resize:vertical;padding:11px 12px;border:1px solid #806197;border-radius:7px;outline:none;background:#120c1b;color:#f5eaff;font:600 11px/1.5 'DM Sans',Arial,sans-serif}
+.form-card textarea:focus,.form-card input:focus,.form-card select:focus{border-color:#c17aff;box-shadow:0 0 0 3px #bd63ff26}
+.form-card textarea::placeholder{color:#b49fc4}.form-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-pair>label{min-width:0}
+@media(max-width:740px){.form-pair{grid-template-columns:1fr}}

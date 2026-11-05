@@ -1,0 +1,8 @@
+.workspace{min-height:100vh}.main{min-width:0}.content{width:100%;margin:0 auto}
+.welcome{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:16px}
+.welcome>div{position:relative;z-index:1;max-width:75%}.welcome .add-button{position:relative;z-index:2}.welcome p{max-width:620px}
+@media(max-width:740px){.welcome{align-items:flex-start}.welcome>div{max-width:100%}}
+.main>.topbar{position:sticky!important;top:0;z-index:90}
+@media(max-width:740px){.main>.topbar{top:50px;height:48px}}
+
+@media(max-width:740px){.main{margin-left:0;padding-top:98px}.main>.topbar{position:fixed!important;top:50px;right:0;left:0;width:100%;height:48px;z-index:90}}

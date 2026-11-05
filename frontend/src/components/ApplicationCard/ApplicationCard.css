@@ -1,0 +1,3 @@
+.job-card{min-width:0;border:1px solid #563a6e;border-radius:9px;background:linear-gradient(145deg,#2c1c3a,#21152f);box-shadow:0 5px 0 #12091e,0 0 18px #bd61ff12}
+.job-card>b{color:#fff;font-size:12px}.job-card>span{color:#e6d5f4;font-size:10px}.job-card footer{border-color:#473052;color:#e6d5f4;font-size:10px}.card-stage-label{color:#e0caee;font-size:8px;font-weight:700}
+.card-actions{display:flex;flex-wrap:wrap;gap:4px}.card-actions button{font-size:9px}

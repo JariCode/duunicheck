@@ -1,0 +1,18 @@
+.board{display:grid;grid-template-columns:repeat(6,minmax(205px,1fr));gap:11px;overflow-x:auto;padding:0 0 12px}
+.board-column{min-width:0;padding:12px;border:1px solid #49315d;border-radius:10px;background:linear-gradient(160deg,#221531,#181022)}
+.board-column h2{display:flex;align-items:center;gap:7px;color:#f0e0ff;font-size:11px}
+.board-column h2>small{margin-left:auto;color:#aa98b7}
+.board-column h2>i{width:8px;height:8px;border-radius:50%;background:#c576ff}
+.board-column h2>i.blue{background:#6481ff}.board-column h2>i.gold{background:#ffd65d}.board-column h2>i.green{background:#83ff9b}.board-column h2>i.coral{background:#ff5e9b}.board-column h2>i.gray{background:#92869a}
+.job-card{display:grid;gap:8px;margin:8px 0;padding:11px}
+.job-card>div:first-child{display:flex;align-items:center;justify-content:space-between}
+.job-card>div:first-child small{color:#dfd0ef;font-size:9px}
+.job-card>b{color:#fff;font-size:12px}.job-card>span{color:#e6d5f4;font-size:10px}
+.job-card footer{padding-top:8px;border-top:1px solid #473052;color:#e6d5f4;font-size:10px}
+.card-stage-label{display:grid;gap:4px;color:#e0caee;font-size:8px;font-weight:700}
+.card-actions{display:flex;flex-wrap:wrap;gap:4px}
+.card-actions button{min-height:28px;padding:0 7px;border:1px solid #624879;border-radius:6px;background:#261a35;color:#e4ccff;font-size:9px;font-weight:800}
+.card-actions button:hover{background:#3c2457;border-color:#c17aff}
+.add-card{width:100%;padding:8px;border:1px dashed #735091;border-radius:7px;background:#281a3a;color:#dec7ef;font-size:10px}
+.add-card:hover{border-color:#ce88ff;background:#39224f}
+@media(max-width:740px){.board{grid-template-columns:minmax(0,1fr);gap:10px;margin:0;padding:0 0 12px;overflow:visible;scroll-snap-type:none}.board-column{scroll-snap-align:none}}
