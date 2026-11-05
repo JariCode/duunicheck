@@ -55,6 +55,8 @@ export default function BoardPage({ jobs, actions }) {
           const statusColor = stageTone(job.status)
           const left = position(start)
           const right = position(Math.max(end, start + 86400000))
+          const localRange = Math.max(86400000, end - start)
+          const mobilePosition = (value) => Math.max(5, Math.min(95, 5 + ((value - start) / localRange) * 90))
           const events = (job.events || []).filter((event) => event.date && dayValue(event.date) !== null)
           return <article className="timeline-row" key={job.id}>
             <div className="timeline-job">
@@ -68,6 +70,10 @@ export default function BoardPage({ jobs, actions }) {
               {events.map((event, index) => <span className={`timeline-event ${eventTone(event.type, job.status)}`} key={`${event.id || event.date}-${index}`} style={{ left: `${position(dayValue(event.date))}%` }} title={`${dateLabel(event.date)} · ${event.type}${event.note ? ` — ${event.note}` : ''}`} aria-label={`${dateLabel(event.date)} ${event.type}`} />)}
               <time className="timeline-start-date" style={{ left: `${left}%` }}>{dateLabel(job.added)}</time>
               {job.nextDate && <time className="timeline-next-date" style={{ left: `${position(dayValue(job.nextDate))}%` }}>Seuraavaksi · {dateLabel(job.nextDate)}</time>}
+            </div>
+            <div className="timeline-mobile">
+              <div className="timeline-mobile-rail"><span className={`timeline-mobile-line ${statusColor}`} /><span className={`timeline-mobile-point ${statusColor}`} style={{ left: '5%' }} /><span className={`timeline-mobile-point ${statusColor}`} style={{ left: '95%' }} />{events.map((event, index) => <span className={`timeline-mobile-event ${eventTone(event.type, job.status)}`} key={`${event.id || event.date}-${index}`} style={{ left: `${mobilePosition(dayValue(event.date))}%` }} title={`${dateLabel(event.date)} · ${event.type}${event.note ? ` — ${event.note}` : ''}`} />)}</div>
+              <div className="timeline-mobile-dates"><span><small>Alkoi</small><time>{dateLabel(job.added)}</time></span><span><small>{job.nextDate ? 'Seuraavaksi' : 'Tila'}</small><time>{job.nextDate ? `${dateLabel(job.nextDate)} · ${job.next || ''}` : job.status}</time></span></div>
             </div>
           </article>
         }) : <p className="timeline-empty">Lisää hakemus, niin sen eteneminen näkyy tällä aikajanalla.</p>}
