@@ -13,6 +13,17 @@ export const apiLimiter = rateLimit({
   message: { error: 'Liikaa pyyntöjä. Yritä hetken kuluttua uudelleen.' },
 })
 
+// Webhooks are not authenticated with a Clerk user session, so limit them by
+// the source IP. The request body remains untouched for Svix verification.
+export const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: (req) => ipKeyGenerator(req.ip),
+  message: { error: 'Webhook-pyyntöjä tuli liian monta. Yritä hetken kuluttua uudelleen.' },
+})
+
 export const fileUploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   limit: 30,

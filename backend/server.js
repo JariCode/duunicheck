@@ -4,7 +4,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import mongoose from 'mongoose'
 import { clerkMiddleware } from '@clerk/express'
-import { apiLimiter, requireUser } from './middleware/security.js'
+import { apiLimiter, requireUser, webhookLimiter } from './middleware/security.js'
 import { Application } from './models/Application.js'
 import { Conversation } from './models/Conversation.js'
 import { ConversationMessage } from './models/ConversationMessage.js'
@@ -47,7 +47,7 @@ app.use(cors({
 }))
 // Verify Clerk/Svix signatures against the untouched request bytes before the
 // global JSON parser handles the application's normal API requests.
-app.use('/api/webhooks/clerk', clerkWebhook)
+app.use('/api/webhooks/clerk', webhookLimiter, clerkWebhook)
 // The application update request includes its event history; keep a firm cap
 // while allowing realistic histories and CV text in the same payload.
 app.use(express.json({ limit: '1mb', strict: true, type: 'application/json' }))

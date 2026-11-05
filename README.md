@@ -1,69 +1,123 @@
 # DuuniCheck
 
-DuuniCheck kokoaa työnhaun hakemukset, niiden vaiheet, muistutukset ja työnhaun materiaalit yhteen paikkaan.
+DuuniCheck auttaa pitämään työnhaun hakemukset, tapahtumat, muistutukset, CV-versiot ja hakemuspohjat järjestyksessä. Sovelluksessa on myös hakemuskohtainen AI-chat.
 
-## Frontendin ominaisuudet
+## Ominaisuudet
 
-- Yleiskatsaus hakemuksiin, vastausaikaan, haastatteluosuuteen ja kuukausittaisiin lähetyksiin
-- Hakemusten lisääminen, muokkaaminen, poistaminen ja vaiheiden seuranta
-- Päivämäärällinen tapahtumahistoria hakemuskohtaisesti
-- Oma CV-kirjasto, jossa CV-versioita voi muokata ja tulostaa tai tallentaa PDF:nä
-- Erilliset hakemuspohjat, joista voi tehdä hakemuskohtaisen muokatun version
-- Hakemukselle voi valita CV-version ja pohjan; CV:tä ei kopioida jokaiselle hakemukselle
-- Hakemustekstin tulostus tai tallennus PDF:nä
-- Hakemuskohtaiset muistutukset ja kalenterinäkymä
-- Oma AI-chatin käyttöliittymä. Käyttäjä valitsee käytettävät tiedot ja hyväksyy ehdotetut muutokset ennen tallennusta
-- Mobiiliresponsiiviset sivut, kiinteä mobiiliyläpalkki, pystysuuntainen etenemisnäkymä ja näytölle mahtuva kalenteriviikko
+- Yleiskatsaus hakemuksiin, lähetyksiin, haastatteluihin, hylkäyksiin ja vastausaikoihin
+- Hakemusten lisäys, muokkaus, poisto, tilan vaihto ja päivämäärällinen tapahtumahistoria
+- Etenemisen aikajana ja muistutuksilla täydennetty kalenteri
+- CV-kirjasto, CV-versioiden muokkaus ja tulostus sekä hakemuspohjat
+- Hakemuskohtaiset muistiinpanot ja CV- tai hakukirjetiedostojen liittäminen
+- AI-chatin palvelinpuolella tallennettu keskusteluhistoria
+- Clerk-kirjautuminen ja MongoDB Atlas -tallennus käyttäjäkohtaisella tietojen rajauksella
+- Mobiiliresponsiivinen käyttöliittymä
 
-## Nykyinen toteutusraja
+AI-avustaja voi hakea valitun hakemuksen tietoja DuuniCheckin omasta tietokannasta. Tietokantahakuja ei välitetä OpenAI:lle. AI-ehdotuksia varten palvelin käyttää vain käyttäjän viestiä ja erikseen valittuja kontekstitietoja. Ehdotus ei muuta hakemusta ennen käyttäjän hyväksyntää. OpenAI-avain tarvitaan vain tätä ehdotustoimintoa varten.
 
-Frontendin hakemukset, CV:t ja hakemuspohjat ovat toistaiseksi selaimen muistissa. Sivun päivitys palauttaa demotiedot. Clerk-kirjautuminen, pysyvä tallennus ja hakemusten API-kutsut lisätään myöhemmin.
+## Vaatimukset
 
-Backendin aloituspohja tarjoaa GET /api/health -reitin oletusportissa 5000. Frontendin .env.example käyttää VITE_API_URL-arvoa http://localhost:5000. Nykyinen käyttöliittymä käyttää vielä demodataa eikä kutsu backendin API:a. Kun API integroidaan, frontend käyttää tätä URL-arvoa. Backendin selaimesta tehtäviä pyyntöjä varten CLIENT_URL asetetaan vastaamaan frontendin paikallista osoitetta (tavallisesti http://localhost:5173).
+- Node.js ja npm
+- MongoDB Atlas -tietokanta tai muu MongoDB, joka tukee transaktioita
+- Clerk-sovellus kirjautumista varten
+- OpenAI API -avain vain AI-ehdotuksia varten
 
-AI-chatin käyttöliittymä ei vielä lähetä viestejä AI-palveluun. Valmis toteutus tarvitsee backendin, joka voi hakea työpaikkailmoituksen sisällön, välittää vain käyttäjän valitseman CV:n ja hakemuspohjan sekä palauttaa ehdotuksen erillisenä versiona. Hakemusta muutetaan vasta käyttäjän hyväksynnällä.
+## Paikallinen käyttöönotto
 
-## Ympäristömuuttujat
+Tee frontendille ja backendille omat paikalliset `.env`-tiedostot esimerkkien pohjalta. Täytä salaisuudet suoraan omalla koneellasi tai palvelimen asetuksissa. Älä kopioi oikeita avaimia README-tiedostoon, lähdekoodiin tai versionhallintaan. `.env`-tiedostot on rajattu pois Gitistä.
 
-Kopioi frontend/.env.example frontend/.env-tiedostoksi ja lisää Clerk-julkaisijavain. VITE_-muuttujat päätyvät selaimelle, joten niiden joukkoon ei saa lisätä salaisuuksia. Clerk secret -avain ja AI-palvelun avain kuuluvat vain backendin ympäristöön.
+### Backend
 
-Frontend käyttää näitä muuttujia:
+Kopioi `backend/.env.example` nimelle `backend/.env` ja täytä tarvittavat asetukset:
 
-- VITE_CLERK_PUBLISHABLE_KEY
-- VITE_CLERK_TELEMETRY_DISABLED
-- VITE_API_URL
-- VITE_CLERK_PRODUCTION_URL
-- VITE_SUPPORT_EMAIL
+- `PORT`: backendin portti, oletuksena 5000
+- `TRUST_PROXY`: `0` paikallisesti; `1` vain yhden luotetun välityspalvelimen takana
+- `MONGODB_URI`: MongoDB-yhteysosoite
+- `CLERK_SECRET_KEY` ja `CLERK_PUBLISHABLE_KEY`: Clerk-palvelimen avainpari
+- `ALLOWED_ORIGIN`: frontendin sallittu alkuperä; useampi alkuperä pilkuilla erotettuna
+- `CLERK_WEBHOOK_SIGNING_SECRET`: Clerkissä määritetyn webhookin allekirjoitusavain
+- `OPENAI_API_KEY`: valinnainen avain AI-ehdotuksia varten
+- `OPENAI_MODEL`: käytettävä OpenAI-malli
+- `CLIENT_URL`: vanhentunut `ALLOWED_ORIGIN`-asetuksen alias; käytä uutta nimeä
+- `CLERK_TELEMETRY_DISABLED`: telemetrian asetuksen yhteensopivuusmuuttuja
 
-Backendin muuttujat ja esimerkkiasetukset ovat backend-kansiossa. Backendin paikallista .env-tiedostoa ei lueta tässä frontend-projektin vaiheessa.
+Käynnistä backend:
 
-## Käynnistä frontend
+```powershell
+cd backend
+npm install
+npm run dev
+```
 
-Avaa terminaali frontend-kansiossa:
+Backend vastaa oletuksena osoitteessa `http://localhost:5000`. Terveystarkistus on `GET /api/health`.
 
-    npm install
-    npm run dev
+### Frontend
+
+Kopioi `frontend/.env.example` nimelle `frontend/.env` ja aseta Clerk-julkaisijavain. Frontendin asetukset ovat:
+
+- `VITE_CLERK_PUBLISHABLE_KEY`: Clerk-julkaisijavain
+- `VITE_CLERK_TELEMETRY_DISABLED`: Clerk-telemetrian asetus
+- `VITE_API_URL`: backendin osoite, paikallisesti tavallisesti `http://localhost:5000`
+- `VITE_CLERK_PRODUCTION_URL`: tuotantoympäristön Clerk-osoite tarvittaessa
+- `VITE_SUPPORT_EMAIL`: käyttöliittymässä näytettävä tukiosoite tarvittaessa
+
+`VITE_`-asetukset näkyvät selaimessa. Älä laita niihin salaisia avaimia.
+
+Käynnistä frontend toisessa terminaalissa:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Vite näyttää paikallisen osoitteen käynnistyksen yhteydessä, tavallisesti `http://localhost:5173`.
+
+## Clerk-webhook ja tietojen poisto
+
+Määritä Clerkissä webhook osoittamaan backendin reittiin `/api/webhooks/clerk` ja tilaa käyttäjän poistotapahtuma `user.deleted`. Aseta webhookin allekirjoitusavain backendin `CLERK_WEBHOOK_SIGNING_SECRET`-muuttujaan. Allekirjoitus tarkistetaan alkuperäisestä pyynnön rungosta. Vahvistettu poistotapahtuma poistaa käyttäjän ja hänen DuuniCheck-tietonsa tietokannasta transaktiona.
+
+## Tietoturvan periaatteet
+
+- Kirjautuminen tarkistetaan backendissä Clerk-istunnosta; käyttäjätunnusta ei luoteta clientin pyynnössä.
+- Tietokantakyselyt rajataan kirjautuneen käyttäjän omistamiin tietoihin.
+- API-, AI-, tiedostolataus- ja webhook-reiteillä on pyyntörajoitukset.
+- Webhookin allekirjoitus tarkistetaan ennen tapahtuman käsittelyä.
+- Tiedostotyyppejä, kokoa ja syötteitä tarkistetaan palvelimella; pyyntöjen rungolla on kokoraja.
+- `.env`-tiedostot eivät kuulu versionhallintaan. Tuotantoavaimet asetetaan käyttöönottoympäristön salaisuuksiksi.
 
 ## Tarkistukset
 
-    npm run lint
-    npm run build
+Frontendin linttaus ja tuotantokäännös:
+
+```powershell
+cd frontend
+npm run lint
+npm run build
+```
 
 ## Projektin rakenne
 
-    frontend/src/
-      components/        uudelleenkäytettävät osat; jokaisella oma kansio ja JSX/CSS
-      pages/             sovelluksen sivut; jokaisella oma kansio ja sivukohtainen CSS
-      styles/            nykyisen visuaalisen teeman yhteensopivuuskerros
-      App.jsx            sivujen ja sovellustilan runko
-      index.css          yhteiset perusasetukset, fontti, värit ja scrollbarit
-      utils.js           demodata ja pienet yhteiset apufunktiot
-    backend/
-      server.js          Express-aloituspohja ja health-reitti
+```text
+frontend/
+  src/
+    components/    uudelleenkäytettävät käyttöliittymäkomponentit
+    pages/         sovelluksen sivut
+    styles/        teeman tyylit
+    App.jsx        sivunäkymien ja sovellustilan runko
+    api.js         backend-pyynnöt
+    index.css      yhteiset perustyylit
+backend/
+  middleware/     kirjautuminen ja pyyntörajoitukset
+  models/          MongoDB-mallit
+  routes/          sovelluksen API-reitit ja Clerk-webhook
+  utils/           syötteiden käsittely ja yhteiset apufunktiot
+  server.js        Express-palvelin ja middleware-asetukset
+```
 
 ## Teknologiat
 
 - React ja Vite
-- Clerk React (kirjautuminen tulossa)
-- Express ja MongoDB Atlas (pysyvä tallennus tulossa)
-- OpenAI-yhteys (AI-chatin backend-toteutuksessa)
+- Express ja MongoDB/Mongoose
+- Clerk
+- OpenAI API valinnaisiin AI-ehdotuksiin
