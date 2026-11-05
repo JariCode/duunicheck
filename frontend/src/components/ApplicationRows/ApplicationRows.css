@@ -10,7 +10,7 @@
 .company-icon{display:grid;flex:0 0 auto;place-items:center;width:29px;height:29px;border-radius:6px;font:700 12px 'DM Sans',Arial,sans-serif}
 .company-icon.blue{background:#292969;color:#a9a8ff}.company-icon.coral{background:#54213e;color:#ff9cb8}.company-icon.mint{background:#174939;color:#9cf6c9}.company-icon.yellow{background:#55401d;color:#ffe58c}
 .status-picker{width:100%;min-width:0;height:31px;padding:0 8px;border:1px solid #58476b;border-radius:7px;background:#251b31;color:#f4eaff;font-size:10px;font-weight:800}
-.status-picker.purple{background:#42276d;border-color:#8d5bd4;color:#e0c5ff}.status-picker.blue{background:#202e68;border-color:#536bea;color:#c4ceff}.status-picker.gold{background:#57401c;border-color:#b58a31;color:#ffdf8c}.status-picker.green{background:#173c2c;border-color:#368959;color:#aff1bf}.status-picker.coral{background:#54203d;border-color:#c63e70;color:#ffb4cb}.status-picker.gray{background:#302839;border-color:#5e5266;color:#c9bccd}
+.status-picker.applications{background:#18384f;border-color:#3787ff;color:#c5e6ff}.status-picker.sent{background:#34204e;border-color:#9d60e0;color:#e4ceff}.status-picker.interviews{background:#1b3c2c;border-color:#39b86e;color:#c9ffcf}.status-picker.rejected{background:#4a1d32;border-color:#e73169;color:#ffc5d9}
 .added,.response-date,.next-step{min-width:0;overflow:hidden;color:#dfd0ef;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.mobile-response-date{display:none}
 .row-actions{display:flex;justify-content:flex-end;gap:5px;min-width:0}
 .row-actions button,.card-actions button{min-height:29px;padding:0 8px;border:1px solid #624879;border-radius:6px;background:#261a35;color:#e4ccff;font-size:9px;font-weight:800;white-space:nowrap}

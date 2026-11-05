@@ -3,7 +3,7 @@ export const normalizeStage = (status) => ({ 'Odottaa vastausta': 'Lähetetty', 
 export const sentTypes = ['Lähetetty', 'Hakemus jätetty']
 export const responseTypes = ['Vastaus saatu', 'Haastattelu', 'Haastattelu sovittu', 'Haastattelu pidetty', 'Tarjous', 'Hylätty']
 export const firstResponseDate = (events = []) => events.filter((event) => responseTypes.includes(event.type) && event.date).map((event) => event.date).sort()[0] || ''
-export const tone = (status) => ({ Kiinnostava: 'purple', Lähetetty: 'blue', 'Haastattelu sovittu': 'green', Hylätty: 'gray' }[normalizeStage(status)] || 'blue')
+export const tone = (status) => ({ Kiinnostava: 'applications', Lähetetty: 'sent', 'Haastattelu sovittu': 'interviews', Hylätty: 'rejected' }[normalizeStage(status)] || 'applications')
 export const today = () => { const value = new Date(); return new Date(value.getTime() - value.getTimezoneOffset() * 60000).toISOString().slice(0, 10) }
 export const daysFromToday = (days) => { const value = new Date(); value.setDate(value.getDate() + days); return new Date(value.getTime() - value.getTimezoneOffset() * 60000).toISOString().slice(0, 10) }
 export const makeEvent = (type, date, note = '') => ({ id: Date.now() + Math.random(), type, date, note })

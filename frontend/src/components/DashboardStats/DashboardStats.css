@@ -2,12 +2,12 @@
 .live-chart-group{display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:end;gap:6px;height:100%;min-width:0}
 .live-bars{display:flex;align-items:end;justify-content:center;gap:3px;width:100%;height:100%;border-bottom:1px solid #493354}
 .live-bars i{display:block;width:min(18px,20%);min-height:0;border-radius:5px 5px 0 0;box-shadow:0 0 13px #0003}
-.live-bars .bar-applications{background:linear-gradient(180deg,#c5ff3e,#70ca3e)}
-.live-bars .bar-sent{background:linear-gradient(180deg,#ff87ad,#ff3d70)}
-.live-bars .bar-interviews{background:linear-gradient(180deg,#27d9eb,#3787ff)}
-.live-bars .bar-rejected{background:linear-gradient(180deg,#bd72ff,#7349ed)}
+.live-bars .bar-applications{background:linear-gradient(180deg,#27d9eb,#3787ff)}
+.live-bars .bar-sent{background:linear-gradient(180deg,#bd72ff,#7349ed)}
+.live-bars .bar-interviews{background:linear-gradient(180deg,#a3f878,#39b86e)}
+.live-bars .bar-rejected{background:linear-gradient(180deg,#ff6294,#e73169)}
 .live-chart-group>span{color:#dfd0ef;font-size:10px;font-weight:700;text-transform:capitalize}.live-chart-group>small{color:#a995b9;font-size:8px;white-space:nowrap}
-.legend .legend-applications{background:#a5ea42;box-shadow:0 0 9px #a5ea42}.legend .legend-sent{background:#ff4d82;box-shadow:0 0 9px #ff4d82}.legend .legend-interviews{background:#27cde9;box-shadow:0 0 9px #27cde9}.legend .legend-rejected{background:#a95fff;box-shadow:0 0 9px #a95fff}
+.legend .legend-applications{background:#3787ff;box-shadow:0 0 9px #3787ff}.legend .legend-sent{background:#9d60e0;box-shadow:0 0 9px #9d60e0}.legend .legend-interviews{background:#39b86e;box-shadow:0 0 9px #39b86e}.legend .legend-rejected{background:#e73169;box-shadow:0 0 9px #e73169}
 .response-stat{display:flex;align-items:baseline;gap:9px;margin:22px 0 3px;color:#caff45;font-size:46px;font-weight:850;letter-spacing:-.06em}
 .response-stat small{color:#dfd0ef;font-size:11px;font-weight:650;letter-spacing:0}.conversion-note{margin:0 0 15px;color:#dfd0ef;font-size:10px;font-weight:650}
 .upcoming-mini{display:grid;gap:6px;margin-top:13px;padding-top:11px;border-top:1px solid #493354}.upcoming-mini>b{color:#fff;font-size:11px}
