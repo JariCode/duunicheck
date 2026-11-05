@@ -8,7 +8,7 @@ const applicationEventSchema = new mongoose.Schema({
 }, { _id: false, strict: 'throw' })
 
 const applicationSchema = new mongoose.Schema({
-  ownerId: { type: String, required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   company: { type: String, required: true, maxlength: 160 },
   role: { type: String, required: true, maxlength: 160 },
   place: { type: String, maxlength: 160, default: '' },
@@ -22,28 +22,6 @@ const applicationSchema = new mongoose.Schema({
   added: { type: String, default: '' },
   events: { type: [applicationEventSchema], default: [] },
 }, { timestamps: true, strict: 'throw', versionKey: false })
-
-const cvSchema = new mongoose.Schema({
-  ownerId: { type: String, required: true, index: true },
-  name: { type: String, required: true, maxlength: 120 },
-  title: { type: String, maxlength: 160, default: '' },
-  summary: { type: String, maxlength: 5000, default: '' },
-  skills: { type: String, maxlength: 5000, default: '' },
-  experience: { type: String, maxlength: 12000, default: '' },
-  education: { type: String, maxlength: 8000, default: '' },
-}, { timestamps: true, strict: 'throw', versionKey: false })
-
-const templateSchema = new mongoose.Schema({
-  ownerId: { type: String, required: true, index: true },
-  name: { type: String, required: true, maxlength: 120 },
-  body: { type: String, required: true, maxlength: 20000 },
-}, { timestamps: true, strict: 'throw', versionKey: false })
+applicationSchema.index({ userId: 1, updatedAt: -1 })
 
 export const Application = mongoose.models.Application || mongoose.model('Application', applicationSchema)
-export const Cv = mongoose.models.Cv || mongoose.model('Cv', cvSchema)
-export const Template = mongoose.models.Template || mongoose.model('Template', templateSchema)
-
-export function serialize(document) {
-  const value = document.toObject({ versionKey: false })
-  return { ...value, id: String(value._id), _id: undefined, ownerId: undefined }
-}
