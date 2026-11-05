@@ -15,6 +15,8 @@ const applicationSchema = new mongoose.Schema({
   link: { type: String, maxlength: 2048, default: '' },
   cvId: { type: String, maxlength: 100, default: '' },
   templateId: { type: String, maxlength: 100, default: '' },
+  cvFileId: { type: String, maxlength: 24, default: '' },
+  applicationFileIds: { type: [String], default: [], validate: (ids) => ids.length <= 10 },
   applicationText: { type: String, maxlength: 20000, default: '' },
   notes: { type: String, maxlength: 8000, default: '' },
   status: { type: String, required: true, enum: ['Kiinnostava', 'Lähetetty', 'Haastattelu sovittu', 'Hylätty'] },

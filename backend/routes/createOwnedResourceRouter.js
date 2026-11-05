@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { serialize } from '../models/serialize.js'
 import { mongoIdParam, parseBody } from '../utils/sanitize.js'
 
-export function createOwnedResourceRouter({ Model, schema, deleteWithCascade }) {
+export function createOwnedResourceRouter({ Model, schema, deleteWithCascade, validateData }) {
   const router = Router()
 
   router.get('/', async (req, res) => {
@@ -19,6 +19,10 @@ export function createOwnedResourceRouter({ Model, schema, deleteWithCascade }) 
       error: 'Hakemuksen tietoja ei voitu tallentaa. Tarkista merkityt kentät.',
       details: result.error.issues.flatMap((issue) => issue.code === 'unrecognized_keys' ? issue.keys.map((field) => ({ field, message: 'Tuntematon kenttä.' })) : [{ field: issue.path.join('.'), message: issue.message, code: issue.code }]),
     })
+    if (validateData) {
+      const validationError = await validateData(result.data, req.dbUserId)
+      if (validationError) return res.status(400).json({ error: validationError })
+    }
     const document = await Model.create({ ...result.data, userId: req.dbUserId })
     return res.status(201).json(serialize(document))
   })
@@ -30,6 +34,10 @@ export function createOwnedResourceRouter({ Model, schema, deleteWithCascade }) 
       error: 'Tietoja ei voitu tallentaa. Tarkista merkityt kentät.',
       details: result.error.issues.flatMap((issue) => issue.code === 'unrecognized_keys' ? issue.keys.map((field) => ({ field, message: 'Tuntematon kenttä.' })) : [{ field: issue.path.join('.'), message: issue.message, code: issue.code }]),
     })
+    if (validateData) {
+      const validationError = await validateData(result.data, req.dbUserId)
+      if (validationError) return res.status(400).json({ error: validationError })
+    }
     const document = await Model.findOneAndUpdate({ _id: req.params.id, userId: req.dbUserId }, { $set: result.data }, { returnDocument: 'after', runValidators: true, strict: 'throw' })
     if (!document) return res.status(404).json({ error: 'Tietoa ei löytynyt.' })
     return res.json(serialize(document))

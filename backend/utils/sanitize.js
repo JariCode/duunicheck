@@ -21,6 +21,8 @@ export const applicationSchema = z.object({
   link: httpUrl,
   cvId: optionalText(100),
   templateId: optionalText(100),
+  cvFileId: z.string().regex(/^[a-f\d]{24}$/i).or(z.literal('')).optional().default(''),
+  applicationFileIds: z.array(z.string().regex(/^[a-f\d]{24}$/i)).max(10).optional().default([]),
   applicationText: optionalText(20000),
   notes: optionalText(8000),
   status: z.enum(['Kiinnostava', 'Lähetetty', 'Haastattelu sovittu', 'Hylätty']),

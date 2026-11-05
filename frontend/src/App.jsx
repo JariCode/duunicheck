@@ -18,7 +18,7 @@ import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
 
 const pages = { home: 'Yleiskatsaus', jobs: 'Hakemukset', board: 'Eteneminen', calendar: 'Kalenteri', materials: 'CV & pohjat', assistant: 'AI-chat' }
-const blankForm = () => ({ company: '', role: '', place: '', link: '', cvId: '', templateId: '', applicationText: '', notes: '', status: 'Kiinnostava', added: today(), respondedAt: '', next: '', nextDate: '' })
+const blankForm = () => ({ company: '', role: '', place: '', link: '', cvId: '', templateId: '', cvFileId: '', applicationFileIds: [], applicationText: '', notes: '', status: 'Kiinnostava', added: today(), respondedAt: '', next: '', nextDate: '' })
 
 export default function App() {
   const { getToken, isLoaded } = useAuth()
@@ -85,11 +85,11 @@ export default function App() {
   }
   function openEdit(job) {
     setEditingId(job.id)
-    setForm({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
+    setForm({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', cvFileId: job.cvFileId || '', applicationFileIds: job.applicationFileIds || [], applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
     setShowForm(true)
   }
   function apiApplication(job) {
-    const fields = ['company', 'role', 'place', 'link', 'cvId', 'templateId', 'applicationText', 'notes', 'status', 'respondedAt', 'next', 'nextDate', 'added']
+    const fields = ['company', 'role', 'place', 'link', 'cvId', 'templateId', 'cvFileId', 'applicationFileIds', 'applicationText', 'notes', 'status', 'respondedAt', 'next', 'nextDate', 'added']
     const data = Object.fromEntries(fields.map((field) => [field, job[field] ?? '']))
     data.events = Array.isArray(job.events) ? job.events.map(({ id, type, date, note }) => ({ id, type, date, note: note ?? '' })) : []
     return data
@@ -230,8 +230,8 @@ export default function App() {
         {section === 'assistant' && <AssistantPage key={assistantJobId} jobs={jobs} cvs={cvs} templates={templates} initialJobId={assistantJobId} />}
       </div>
     </main>
-    {showForm && <ApplicationForm form={form} setForm={setForm} cvs={cvs} templates={templates} editing={editingId !== null} onClose={() => setShowForm(false)} onSubmit={saveJob} />}
-    {selectedJob && <ApplicationDetails job={selectedJob} cvs={cvs} onClose={() => setSelectedJobId(null)} onAddEvent={addEvent} onAssistant={openAssistant} onPrint={setPrintDocument} />}
+    {showForm && <ApplicationForm form={form} setForm={setForm} cvs={cvs} templates={templates} files={materialFiles} editing={editingId !== null} onClose={() => setShowForm(false)} onSubmit={saveJob} />}
+    {selectedJob && <ApplicationDetails job={selectedJob} cvs={cvs} files={materialFiles} onDownloadFile={downloadFile} onClose={() => setSelectedJobId(null)} onAddEvent={addEvent} onAssistant={openAssistant} onPrint={setPrintDocument} />}
     <ConfirmDialog open={Boolean(pendingDeleteJob)} title="Poistetaanko hakemus?" description={pendingDeleteJob ? `${pendingDeleteJob.company} · ${pendingDeleteJob.role} ja sen keskustelu poistetaan pysyvästi.` : ''} busy={deletingJob} onConfirm={confirmDeleteJob} onCancel={() => setPendingDeleteJob(null)} />
     <PrintSheet document={printDocument} />
   </div>
