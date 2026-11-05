@@ -219,7 +219,7 @@ export default function App() {
     <Sidebar active={section} onNavigate={(key) => { setSection(key); setNavOpen(false) }} count={jobs.length} isOpen={navOpen} onClose={() => setNavOpen(false)} onToggle={() => setNavOpen((open) => !open)} />
     <main className="main">
       <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton userProfileProps={{ appearance: clerkAppearance }} /></div></header>
-      <div className="content">
+      <div className={`content${section === 'assistant' ? ' assistant-content' : ''}`}>
         {apiError && <div className="api-error" role="alert">{apiError}</div>}
         <section className="welcome"><div><span className="eyebrow">{section === 'home' ? 'TYÖNHAKU · YLEISKATSAUS' : 'DUUNICHECK · TYÖPÖYTÄ'}</span><h1>{section === 'home' ? 'Työnhaun tilanne' : pageTitle}</h1><p>{welcomeText[section]}</p></div>{['home', 'jobs', 'board'].includes(section) && <button className="add-button" onClick={openNew}>＋ Lisää hakemus</button>}</section>
         {section === 'home' && <DashboardPage jobs={sortedJobs} actions={{ ...actions, onSeeAll: () => setSection('jobs') }} />}
