@@ -22,6 +22,7 @@ export const applicationSchema = z.object({
   cvId: optionalText(100),
   templateId: optionalText(100),
   applicationText: optionalText(20000),
+  notes: optionalText(8000),
   status: z.enum(['Kiinnostava', 'Lähetetty', 'Haastattelu sovittu', 'Hylätty']),
   respondedAt: date,
   next: optionalText(200),

@@ -56,3 +56,6 @@ span.flatpickr-weekday { color: #c2b1d1; font-weight: 700; }
 .flatpickr-day.startRange, .flatpickr-day.endRange { border-color: #c5ff3e; background: #c5ff3e; color: #140d1d; font-weight: 800; }
 .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay, .flatpickr-day.flatpickr-disabled { color: #73647f; }
 .flatpickr-day.flatpickr-disabled:hover { border-color: transparent; background: transparent; }
+.flatpickr-calendar .flatpickr-current-month .numInputWrapper span.arrowUp:after{border-bottom-color:#c5ff3e!important}
+.flatpickr-calendar .flatpickr-current-month .numInputWrapper span.arrowDown:after{border-top-color:#c5ff3e!important}
+.flatpickr-calendar .flatpickr-current-month .numInputWrapper span:hover:after{border-bottom-color:#ffffff!important;border-top-color:#ffffff!important}

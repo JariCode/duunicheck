@@ -18,7 +18,7 @@ import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
 
 const pages = { home: 'Yleiskatsaus', jobs: 'Hakemukset', board: 'Eteneminen', calendar: 'Kalenteri', materials: 'CV & pohjat', assistant: 'AI-chat' }
-const blankForm = () => ({ company: '', role: '', place: '', link: '', cvId: '', templateId: '', applicationText: '', status: 'Kiinnostava', added: today(), respondedAt: '', next: '', nextDate: '' })
+const blankForm = () => ({ company: '', role: '', place: '', link: '', cvId: '', templateId: '', applicationText: '', notes: '', status: 'Kiinnostava', added: today(), respondedAt: '', next: '', nextDate: '' })
 
 export default function App() {
   const { getToken, isLoaded } = useAuth()
@@ -57,7 +57,7 @@ export default function App() {
       apiRequest(getToken, '/files'),
     ]).then(([loadedJobs, loadedCvs, loadedTemplates, loadedFiles]) => {
       if (!active) return
-      setJobs(loadedJobs.map((job) => ({ ...job, status: normalizeStage(job.status), respondedAt: job.respondedAt || firstResponseDate(job.events), initial: job.company?.[0]?.toUpperCase() || '?', color: 'blue' })))
+      setJobs(loadedJobs.map((job) => ({ ...job, applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), respondedAt: job.respondedAt || firstResponseDate(job.events), initial: job.company?.[0]?.toUpperCase() || '?', color: 'blue' })))
       setCvs(loadedCvs)
       setTemplates(loadedTemplates)
       setMaterialFiles(loadedFiles)
@@ -85,11 +85,11 @@ export default function App() {
   }
   function openEdit(job) {
     setEditingId(job.id)
-    setForm({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', applicationText: job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
+    setForm({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
     setShowForm(true)
   }
   function apiApplication(job) {
-    const fields = ['company', 'role', 'place', 'link', 'cvId', 'templateId', 'applicationText', 'status', 'respondedAt', 'next', 'nextDate', 'added']
+    const fields = ['company', 'role', 'place', 'link', 'cvId', 'templateId', 'applicationText', 'notes', 'status', 'respondedAt', 'next', 'nextDate', 'added']
     const data = Object.fromEntries(fields.map((field) => [field, job[field] ?? '']))
     data.events = Array.isArray(job.events) ? job.events.map(({ id, type, date, note }) => ({ id, type, date, note: note ?? '' })) : []
     return data

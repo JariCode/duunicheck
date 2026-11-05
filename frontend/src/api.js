@@ -1,5 +1,5 @@
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
-const fieldLabels = { company: 'Yritys', role: 'Tehtävä', place: 'Sijainti', link: 'Ilmoituksen linkki', cvId: 'CV', templateId: 'Hakemuspohja', applicationText: 'Hakemusteksti', status: 'Hakemuksen vaihe', respondedAt: 'Vastauspäivä', next: 'Seuraava tehtävä', nextDate: 'Muistutuspäivä', added: 'Lähetyspäivä', events: 'Tapahtumahistoria' }
+const fieldLabels = { company: 'Yritys', role: 'Tehtävä', place: 'Sijainti', link: 'Ilmoituksen linkki', cvId: 'CV', templateId: 'Hakemuspohja', applicationText: 'Hakemusteksti', notes: 'Muistiinpanot', status: 'Hakemuksen vaihe', respondedAt: 'Vastauspäivä', next: 'Seuraava tehtävä', nextDate: 'Muistutuspäivä', added: 'Lähetyspäivä', events: 'Tapahtumahistoria' }
 
 function describeInvalidFields(details = []) {
   const labels = [...new Set(details.map((detail) => {

@@ -16,6 +16,7 @@ const applicationSchema = new mongoose.Schema({
   cvId: { type: String, maxlength: 100, default: '' },
   templateId: { type: String, maxlength: 100, default: '' },
   applicationText: { type: String, maxlength: 20000, default: '' },
+  notes: { type: String, maxlength: 8000, default: '' },
   status: { type: String, required: true, enum: ['Kiinnostava', 'Lähetetty', 'Haastattelu sovittu', 'Hylätty'] },
   respondedAt: { type: String, default: '' },
   next: { type: String, maxlength: 200, default: '' },

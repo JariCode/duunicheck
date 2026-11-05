@@ -36,7 +36,7 @@ assistant.post('/suggest', aiLimiter, async (req, res) => {
     context.includePosting && postingText && `Käyttäjän toimittama tai linkistä luettu työpaikkailmoituksen teksti:\n${postingText}`,
     cv && `Käyttäjän valitsema CV:\n${cv.title}\n${cv.summary}\n${cv.skills}\n${cv.experience}\n${cv.education}`,
     template && `Käyttäjän valitsema hakemuspohja:\n${template.body}`,
-    context.includeApplication && `Hakemuksen nykyinen teksti:\n${application.applicationText}`,
+    context.includeApplication && `Hakemuksen muistiinpanot:\n${application.notes || application.applicationText || ''}`,
   ].filter(Boolean).join('\n\n')
 
   try {
