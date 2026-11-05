@@ -2,30 +2,26 @@ import './MaterialsPage.css'
 import { useState } from 'react'
 function emptyCv() { return { name: '', title: '', summary: '', skills: '', experience: '', education: '' } }
 function emptyTemplate() { return { name: '', body: '' } }
-export default function MaterialsPage({ cvs, setCvs, templates, setTemplates, onPrint }) {
+export default function MaterialsPage({ cvs, templates, onPrint, onSaveCv, onDeleteCv, onSaveTemplate, onDeleteTemplate, onError }) {
   const [cvForm, setCvForm] = useState(null)
   const [templateForm, setTemplateForm] = useState(null)
-  const saveCv = (event) => {
+  const saveCv = async (event) => {
     event.preventDefault()
-    const cv = { ...cvForm, name: cvForm.name.trim(), id: cvForm.id || 'cv-' + Date.now() }
-    setCvs((all) => cvForm.id ? all.map((item) => item.id === cv.id ? cv : item) : [cv, ...all])
-    setCvForm(null)
+    try { await onSaveCv({ ...cvForm, name: cvForm.name.trim() }); setCvForm(null) } catch (error) { onError(error.message) }
   }
-  const saveTemplate = (event) => {
+  const saveTemplate = async (event) => {
     event.preventDefault()
-    const template = { ...templateForm, name: templateForm.name.trim(), id: templateForm.id || 'template-' + Date.now() }
-    setTemplates((all) => templateForm.id ? all.map((item) => item.id === template.id ? template : item) : [template, ...all])
-    setTemplateForm(null)
+    try { await onSaveTemplate({ ...templateForm, name: templateForm.name.trim() }); setTemplateForm(null) } catch (error) { onError(error.message) }
   }
   const printCv = (cv) => onPrint({ title: cv.name, blocks: [{ title: cv.title, body: cv.summary }, { title: 'Osaaminen', body: cv.skills }, { title: 'Työkokemus', body: cv.experience }, { title: 'Koulutus', body: cv.education }] })
   return <div className="materials-page">
     <section className="materials-intro"><div><span className="eyebrow">OMA MATERIAALIKIRJASTO</span><h2>CV:t ja hakemuspohjat</h2><p>Ylläpidä omia CV-versioita ja yleisiä pohjia. Valitse sopiva CV hakemukselle; hakemuksen teksti tallentuu sen omana muokattuna versiona.</p></div><button className="add-button" onClick={() => setCvForm(emptyCv())}>＋ Lisää CV</button></section>
     <section className="materials-section"><div className="materials-heading"><div><h3>Omat CV:t</h3><p>Muokkaa yhtä CV:tä ja päivitä sitä uudelleen käytettäväksi.</p></div></div>
-      <div className="material-grid">{cvs.map((cv) => <article className="material-card" key={cv.id}><span className="material-type">CV-VERSIO</span><h4>{cv.name}</h4><b>{cv.title}</b><p>{cv.summary}</p><small>Osaaminen: {cv.skills}</small><div className="material-actions"><button onClick={() => setCvForm({ ...cv })}>Muokkaa / päivitä</button><button onClick={() => printCv(cv)}>Tulosta / tallenna PDF</button><button className="delete-material" onClick={() => setCvs((all) => all.filter((item) => item.id !== cv.id))}>Poista</button></div></article>)}
+      <div className="material-grid">{cvs.map((cv) => <article className="material-card" key={cv.id}><span className="material-type">CV-VERSIO</span><h4>{cv.name}</h4><b>{cv.title}</b><p>{cv.summary}</p><small>Osaaminen: {cv.skills}</small><div className="material-actions"><button onClick={() => setCvForm({ ...cv })}>Muokkaa / päivitä</button><button onClick={() => printCv(cv)}>Tulosta / tallenna PDF</button><button className="delete-material" onClick={() => onDeleteCv(cv.id).catch((error) => onError(error.message))}>Poista</button></div></article>)}
       {!cvs.length && <p className="empty">CV-kirjastossa ei ole vielä CV:tä. Lisää CV tai sen tiedot tähän.</p>}</div>
     </section>
     <section className="materials-section"><div className="materials-heading"><div><h3>Hakemuspohjat</h3><p>Pohjasta kopioidaan teksti hakemukseen. Muokattu teksti pysyy hakemuskohtaisena.</p></div><button className="materials-secondary" onClick={() => setTemplateForm(emptyTemplate())}>＋ Lisää pohja</button></div>
-      <div className="material-grid">{templates.map((template) => <article className="material-card template-card" key={template.id}><span className="material-type">HAKEMUSPOHJA</span><h4>{template.name}</h4><p className="template-preview">{template.body}</p><div className="material-actions"><button onClick={() => setTemplateForm({ ...template })}>Muokkaa pohjaa</button><button onClick={() => onPrint({ title: template.name, blocks: [{ title: 'Hakemuspohja', body: template.body }] })}>Tulosta / tallenna PDF</button><button className="delete-material" onClick={() => setTemplates((all) => all.filter((item) => item.id !== template.id))}>Poista</button></div></article>)}
+      <div className="material-grid">{templates.map((template) => <article className="material-card template-card" key={template.id}><span className="material-type">HAKEMUSPOHJA</span><h4>{template.name}</h4><p className="template-preview">{template.body}</p><div className="material-actions"><button onClick={() => setTemplateForm({ ...template })}>Muokkaa pohjaa</button><button onClick={() => onPrint({ title: template.name, blocks: [{ title: 'Hakemuspohja', body: template.body }] })}>Tulosta / tallenna PDF</button><button className="delete-material" onClick={() => onDeleteTemplate(template.id).catch((error) => onError(error.message))}>Poista</button></div></article>)}
       {!templates.length && <p className="empty">Lisää hakemuspohja, niin voit käyttää sitä hakemuksissa.</p>}</div>
     </section>
     <p className="materials-note">Selaindemossa muutokset säilyvät vain sivun auki ollessa. CV-tiedostojen lataus ja pysyvä versiohistoria kytketään tallennukseen backend-vaiheessa.</p>
