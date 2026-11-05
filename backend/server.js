@@ -22,7 +22,7 @@ import { files } from './routes/files.js'
 
 const app = express()
 const PORT = Number(process.env.PORT || 5000)
-const origins = (process.env.ALLOWED_ORIGIN || process.env.CLIENT_URL || '')
+const origins = (process.env.ALLOWED_ORIGIN || '')
   .split(',').map((origin) => origin.trim()).filter(Boolean)
 const trustProxy = process.env.TRUST_PROXY || '0'
 

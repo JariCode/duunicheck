@@ -38,7 +38,6 @@ Kopioi `backend/.env.example` nimelle `backend/.env` ja täytä tarvittavat aset
 - `CLERK_WEBHOOK_SIGNING_SECRET`: Clerkissä määritetyn webhookin allekirjoitusavain
 - `OPENAI_API_KEY`: valinnainen avain AI-ehdotuksia varten
 - `OPENAI_MODEL`: käytettävä OpenAI-malli
-- `CLIENT_URL`: vanhentunut `ALLOWED_ORIGIN`-asetuksen alias; käytä uutta nimeä
 - `CLERK_TELEMETRY_DISABLED`: telemetrian asetuksen yhteensopivuusmuuttuja
 
 Käynnistä backend:
