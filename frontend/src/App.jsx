@@ -2,7 +2,7 @@ import './styles/app-theme.css'
 import './App.css'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth, UserButton } from '@clerk/clerk-react'
-import { apiRequest } from './api'
+import { apiRequest, downloadMaterialFile, uploadMaterialFile } from './api'
 import { clerkAppearance } from './clerkAppearance'
 import Sidebar from './components/Sidebar/Sidebar'
 import ApplicationForm from './components/ApplicationForm/ApplicationForm'
@@ -27,6 +27,7 @@ export default function App() {
   const [jobs, setJobs] = useState([])
   const [cvs, setCvs] = useState([])
   const [templates, setTemplates] = useState([])
+  const [materialFiles, setMaterialFiles] = useState([])
   const [dataLoading, setDataLoading] = useState(true)
   const [apiError, setApiError] = useState('')
   const [term, setTerm] = useState('')
@@ -53,11 +54,13 @@ export default function App() {
       apiRequest(getToken, '/applications'),
       apiRequest(getToken, '/cvs'),
       apiRequest(getToken, '/templates'),
-    ]).then(([loadedJobs, loadedCvs, loadedTemplates]) => {
+      apiRequest(getToken, '/files'),
+    ]).then(([loadedJobs, loadedCvs, loadedTemplates, loadedFiles]) => {
       if (!active) return
       setJobs(loadedJobs.map((job) => ({ ...job, status: normalizeStage(job.status), respondedAt: job.respondedAt || firstResponseDate(job.events), initial: job.company?.[0]?.toUpperCase() || '?', color: 'blue' })))
       setCvs(loadedCvs)
       setTemplates(loadedTemplates)
+      setMaterialFiles(loadedFiles)
       setApiError('')
     }).catch((error) => { if (active) setApiError(error.message) })
       .finally(() => { if (active) setDataLoading(false) })
@@ -110,6 +113,18 @@ export default function App() {
     await apiRequest(getToken, `${path}/${id}`, { method: 'DELETE' })
     const setter = kind === 'cv' ? setCvs : setTemplates
     setter((all) => all.filter((entry) => entry.id !== id))
+  }  async function saveMaterialFile(category, file) {
+    const saved = await uploadMaterialFile(getToken, category, file)
+    setMaterialFiles((all) => [saved, ...all])
+    setApiError('')
+    return saved
+  }
+  async function removeMaterialFile(id) {
+    await apiRequest(getToken, `/files/${id}`, { method: 'DELETE' })
+    setMaterialFiles((all) => all.filter((file) => file.id !== id))
+  }
+  async function downloadFile(file) {
+    try { await downloadMaterialFile(getToken, file) } catch (error) { setApiError(error.message) }
   }
   async function updateStatus(id, status) {
     const job = jobs.find((item) => item.id === id)
@@ -211,7 +226,7 @@ export default function App() {
         {section === 'jobs' && <ApplicationsPage jobs={matches} actions={actions} term={term} setTerm={setTerm} stage={stage} setStage={setStage} stages={stages} />}
         {section === 'board' && <BoardPage jobs={jobs} actions={actions} />}
         {section === 'calendar' && <CalendarPage jobs={jobs} onDetails={actions.onDetails} />}
-        {section === 'materials' && <MaterialsPage cvs={cvs} templates={templates} onPrint={setPrintDocument} onSaveCv={(item) => saveMaterial('cv', item)} onDeleteCv={(id) => deleteMaterial('cv', id)} onSaveTemplate={(item) => saveMaterial('template', item)} onDeleteTemplate={(id) => deleteMaterial('template', id)} onError={setApiError} />}
+        {section === 'materials' && <MaterialsPage cvs={cvs} templates={templates} files={materialFiles} onPrint={setPrintDocument} onSaveCv={(item) => saveMaterial('cv', item)} onDeleteCv={(id) => deleteMaterial('cv', id)} onSaveTemplate={(item) => saveMaterial('template', item)} onDeleteTemplate={(id) => deleteMaterial('template', id)} onUploadFile={saveMaterialFile} onDeleteFile={removeMaterialFile} onDownloadFile={downloadFile} onError={setApiError} />}
         {section === 'assistant' && <AssistantPage key={assistantJobId} jobs={jobs} cvs={cvs} templates={templates} initialJobId={assistantJobId} />}
       </div>
     </main>

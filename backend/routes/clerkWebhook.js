@@ -7,6 +7,7 @@ import { ConversationMessage } from '../models/ConversationMessage.js'
 import { Cv } from '../models/Cv.js'
 import { Template } from '../models/Template.js'
 import { User } from '../models/User.js'
+import { FileAsset } from '../models/FileAsset.js'
 
 async function removeUserAndData(clerkId) {
   const session = await mongoose.startSession()
@@ -19,6 +20,7 @@ async function removeUserAndData(clerkId) {
       await Application.deleteMany({ userId }, { session })
       await Cv.deleteMany({ userId }, { session })
       await Template.deleteMany({ userId }, { session })
+      await FileAsset.deleteMany({ userId }, { session })
       await ConversationMessage.deleteMany({ userId }, { session })
       await Conversation.deleteMany({ userId }, { session })
       await User.deleteOne({ _id: userId }, { session })

@@ -8,6 +8,10 @@ const cvSchema = new mongoose.Schema({
   skills: { type: String, maxlength: 5000, default: '' },
   experience: { type: String, maxlength: 12000, default: '' },
   education: { type: String, maxlength: 8000, default: '' },
+  linkedin: { type: String, maxlength: 2048, default: '' },
+  github: { type: String, maxlength: 2048, default: '' },
+  portfolio: { type: String, maxlength: 2048, default: '' },
+  website: { type: String, maxlength: 2048, default: '' },
 }, { timestamps: true, strict: 'throw', versionKey: false })
 cvSchema.index({ userId: 1, updatedAt: -1 })
 

@@ -12,18 +12,49 @@ function describeInvalidFields(details = []) {
   return labels.length ? ` Tarkista: ${labels.join(', ')}.` : ''
 }
 
-export async function apiRequest(getToken, path, { method = 'GET', body } = {}) {
+async function authToken(getToken) {
   const token = await getToken()
   if (!token) throw new Error('Kirjautumisistunto puuttuu. Kirjaudu uudelleen sisään.')
+  return token
+}
+
+async function requestError(response) {
+  const payload = await response.json().catch(() => ({}))
+  const fieldHint = describeInvalidFields(payload.details)
+  return new Error((payload.error || `Pyyntö epäonnistui (${response.status}).`) + fieldHint)
+}
+
+export async function apiRequest(getToken, path, { method = 'GET', body } = {}) {
+  const token = await authToken(getToken)
   const response = await fetch(`${API_URL}/api${path}`, {
     method,
     headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
-  if (!response.ok) {
-    const payload = await response.json().catch(() => ({}))
-    const fieldHint = describeInvalidFields(payload.details)
-    throw new Error((payload.error || `Pyyntö epäonnistui (${response.status}).`) + fieldHint)
-  }
+  if (!response.ok) throw await requestError(response)
   return response.status === 204 ? null : response.json()
+}
+
+export async function uploadMaterialFile(getToken, category, file) {
+  const token = await authToken(getToken)
+  const body = new FormData()
+  body.append('category', category)
+  body.append('file', file)
+  const response = await fetch(`${API_URL}/api/files`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body })
+  if (!response.ok) throw await requestError(response)
+  return response.json()
+}
+
+export async function downloadMaterialFile(getToken, file) {
+  const token = await authToken(getToken)
+  const response = await fetch(`${API_URL}/api/files/${encodeURIComponent(file.id)}/download`, { headers: { Authorization: `Bearer ${token}` } })
+  if (!response.ok) throw await requestError(response)
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = file.name
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

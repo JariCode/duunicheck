@@ -13,6 +13,15 @@ export const apiLimiter = rateLimit({
   message: { error: 'Liikaa pyyntöjä. Yritä hetken kuluttua uudelleen.' },
 })
 
+export const fileUploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: userOrIp,
+  message: { error: 'Tiedostojen tuntikohtainen latausraja tuli vastaan.' },
+})
+
 export const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   limit: 20,

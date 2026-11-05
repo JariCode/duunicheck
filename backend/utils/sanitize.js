@@ -37,6 +37,10 @@ export const cvSchema = z.object({
   skills: optionalText(5000),
   experience: optionalText(12000),
   education: optionalText(8000),
+  linkedin: httpUrl,
+  github: httpUrl,
+  portfolio: httpUrl,
+  website: httpUrl,
 }).strict()
 
 export const templateSchema = z.object({
