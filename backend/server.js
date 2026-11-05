@@ -57,6 +57,11 @@ app.get('/api/health', (_req, res) => {
   const databaseReady = mongoose.connection.readyState === 1
   return res.status(databaseReady ? 200 : 503).json({ status: databaseReady ? 'ok' : 'unavailable' })
 })
+// CHANGED: responses contain private user data, so never let browsers or proxies cache them.
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 app.use('/api', apiLimiter, requireUser)
 app.use('/api/conversations', conversations)
 app.use('/api/applications', applications)

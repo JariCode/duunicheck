@@ -1,0 +1,19 @@
+# Security headers for the static frontend (requires Apache mod_headers).
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+  # CSP in REPORT-ONLY mode first: the browser only logs violations in the
+  # DevTools console and blocks nothing. Test sign-in, file upload/download and
+  # the AI chat, fix any missing sources, then rename the header to
+  # "Content-Security-Policy" to enforce it.
+  #
+  # TODO before use:
+  #  1. Replace https://BACKEND-URL.example with your real backend origin
+  #     (the VITE_API_URL value, e.g. your Render URL).
+  #  2. Clerk test keys use *.clerk.accounts.dev. For production Clerk keys,
+  #     replace that with your Clerk Frontend API domain (e.g. https://clerk.yourdomain.fi).
+  Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://BACKEND-URL.example https://*.clerk.accounts.dev https://clerk-telemetry.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+</IfModule>

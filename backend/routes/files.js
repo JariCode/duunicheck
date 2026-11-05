@@ -6,6 +6,8 @@ import { fileUploadLimiter } from '../middleware/security.js'
 
 const router = Router()
 const maxFileSize = 10 * 1024 * 1024
+// CHANGED: total storage allowed per user across all uploaded files.
+const maxUserStorage = 50 * 1024 * 1024
 const allowedTypes = {
   '.pdf': 'application/pdf',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -61,6 +63,14 @@ router.post('/', fileUploadLimiter, (req, res, next) => {
       if (validated.error) return res.status(400).json({ error: validated.error })
       const count = await FileAsset.countDocuments({ userId: req.dbUserId })
       if (count >= 500) return res.status(413).json({ error: 'Tiedostokirjaston 500 tiedoston raja tuli vastaan.' })
+      // CHANGED: per-user total storage quota.
+      const [usage] = await FileAsset.aggregate([
+        { $match: { userId: req.dbUserId } },
+        { $group: { _id: null, total: { $sum: '$size' } } },
+      ])
+      if ((usage?.total || 0) + req.file.buffer.length > maxUserStorage) {
+        return res.status(413).json({ error: 'Tiedostokirjaston 50 Mt:n tallennustila tuli täyteen. Poista vanhoja tiedostoja ja yritä uudelleen.' })
+      }
       const file = await FileAsset.create({
         userId: req.dbUserId,
         category,
@@ -78,7 +88,8 @@ router.post('/', fileUploadLimiter, (req, res, next) => {
 
 router.get('/:id/download', async (req, res) => {
   if (!mongoIdParam(req.params.id)) return res.status(400).json({ error: 'Virheellinen tiedostotunniste.' })
-  const file = await FileAsset.findOne({ _id: req.params.id, userId: req.dbUserId }).select('+data name mimeType')
+  // CHANGED: select size too, so Content-Length is a real value.
+  const file = await FileAsset.findOne({ _id: req.params.id, userId: req.dbUserId }).select('+data name mimeType size')
   if (!file) return res.status(404).json({ error: 'Tiedostoa ei löytynyt.' })
   const asciiName = file.name.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_')
   res.set({
