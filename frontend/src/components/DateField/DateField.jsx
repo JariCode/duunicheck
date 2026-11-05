@@ -19,6 +19,9 @@ export default function DateField({ value, onChange, placeholder = 'pp.kk.vvvv',
       allowInput: true,
       disableMobile: true,
       defaultDate: value || undefined,
+      onReady: (_dates, _dateString, instance) => {
+        if (ariaLabel) instance.altInput?.setAttribute('aria-label', ariaLabel)
+      },
       onChange: (_dates, dateString) => onChange(dateString),
       onClose: (_dates, dateString) => {
         if (dateString !== value) onChange(dateString)
@@ -38,5 +41,5 @@ export default function DateField({ value, onChange, placeholder = 'pp.kk.vvvv',
     }
   }, [value])
 
-  return <input ref={inputRef} className={className} type="text" placeholder={placeholder} required={required} aria-label={ariaLabel} autoComplete="off" />
+  return <input ref={inputRef} className={className} type="hidden" placeholder={placeholder} required={required} aria-label={ariaLabel} autoComplete="off" />
 }
