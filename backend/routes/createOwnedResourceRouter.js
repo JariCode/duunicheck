@@ -15,7 +15,10 @@ export function createOwnedResourceRouter({ Model, schema, deleteWithCascade }) 
 
   router.post('/', async (req, res) => {
     const result = parseBody(schema, req.body)
-    if (!result.success) return res.status(400).json({ error: 'Tarkista syötetyt tiedot.', details: result.error.issues.map(({ path: field }) => field.join('.')) })
+    if (!result.success) return res.status(400).json({
+      error: 'Hakemuksen tietoja ei voitu tallentaa. Tarkista merkityt kentät.',
+      details: result.error.issues.flatMap((issue) => issue.code === 'unrecognized_keys' ? issue.keys.map((field) => ({ field, message: 'Tuntematon kenttä.' })) : [{ field: issue.path.join('.'), message: issue.message, code: issue.code }]),
+    })
     const document = await Model.create({ ...result.data, userId: req.dbUserId })
     return res.status(201).json(serialize(document))
   })
@@ -23,7 +26,10 @@ export function createOwnedResourceRouter({ Model, schema, deleteWithCascade }) 
   router.put('/:id', async (req, res) => {
     if (!mongoIdParam(req.params.id)) return res.status(400).json({ error: 'Virheellinen tunniste.' })
     const result = parseBody(schema, req.body)
-    if (!result.success) return res.status(400).json({ error: 'Tarkista syötetyt tiedot.', details: result.error.issues.map(({ path: field }) => field.join('.')) })
+    if (!result.success) return res.status(400).json({
+      error: 'Tietoja ei voitu tallentaa. Tarkista merkityt kentät.',
+      details: result.error.issues.flatMap((issue) => issue.code === 'unrecognized_keys' ? issue.keys.map((field) => ({ field, message: 'Tuntematon kenttä.' })) : [{ field: issue.path.join('.'), message: issue.message, code: issue.code }]),
+    })
     const document = await Model.findOneAndUpdate({ _id: req.params.id, userId: req.dbUserId }, { $set: result.data }, { returnDocument: 'after', runValidators: true, strict: 'throw' })
     if (!document) return res.status(404).json({ error: 'Tietoa ei löytynyt.' })
     return res.json(serialize(document))

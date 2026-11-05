@@ -1,5 +1,5 @@
 .job-rows{width:100%;min-width:0;overflow:hidden}
-.rows-label,.job-row{display:grid;grid-template-columns:minmax(150px,1.55fr) minmax(120px,1.1fr) minmax(76px,.62fr) minmax(145px,1.15fr) minmax(200px,1.5fr);align-items:center;gap:8px;min-width:0}
+.rows-label,.job-row{display:grid;grid-template-columns:minmax(145px,1.45fr) minmax(120px,1.05fr) minmax(88px,.7fr) minmax(110px,.9fr) minmax(140px,1.1fr) minmax(190px,1.45fr);align-items:center;gap:8px;min-width:0}
 .rows-label{min-height:30px;border-bottom:1px solid #674c78;color:#d0bbdf;font:700 9px 'DM Sans',Arial,sans-serif}
 .job-row{min-height:66px;border-bottom:1px solid #4a345b}
 .job-row>*{min-width:0}
@@ -11,11 +11,11 @@
 .company-icon.blue{background:#292969;color:#a9a8ff}.company-icon.coral{background:#54213e;color:#ff9cb8}.company-icon.mint{background:#174939;color:#9cf6c9}.company-icon.yellow{background:#55401d;color:#ffe58c}
 .status-picker{width:100%;min-width:0;height:31px;padding:0 8px;border:1px solid #58476b;border-radius:7px;background:#251b31;color:#f4eaff;font-size:10px;font-weight:800}
 .status-picker.purple{background:#42276d;border-color:#8d5bd4;color:#e0c5ff}.status-picker.blue{background:#202e68;border-color:#536bea;color:#c4ceff}.status-picker.gold{background:#57401c;border-color:#b58a31;color:#ffdf8c}.status-picker.green{background:#173c2c;border-color:#368959;color:#aff1bf}.status-picker.coral{background:#54203d;border-color:#c63e70;color:#ffb4cb}.status-picker.gray{background:#302839;border-color:#5e5266;color:#c9bccd}
-.added,.next-step{min-width:0;overflow:hidden;color:#dfd0ef;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.added,.response-date,.next-step{min-width:0;overflow:hidden;color:#dfd0ef;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.mobile-response-date{display:none}
 .row-actions{display:flex;justify-content:flex-end;gap:5px;min-width:0}
 .row-actions button,.card-actions button{min-height:29px;padding:0 8px;border:1px solid #624879;border-radius:6px;background:#261a35;color:#e4ccff;font-size:9px;font-weight:800;white-space:nowrap}
 .row-actions button:hover,.card-actions button:hover{background:#3c2457;border-color:#c17aff}
 .row-actions .delete-action{border-color:#843650;color:#ff9cb5}.row-actions .delete-action:hover{background:#511e37}
-@media(max-width:1180px){.rows-label,.job-row{grid-template-columns:minmax(135px,1.4fr) minmax(115px,1fr) minmax(180px,1.2fr) minmax(185px,1.4fr)}.rows-label span:nth-child(3),.job-row>.added{display:none}}
-@media(max-width:900px){.rows-label,.job-row{grid-template-columns:minmax(130px,1.3fr) minmax(112px,1fr) minmax(180px,1.3fr)}.rows-label span:nth-child(4),.job-row>.next-step{display:none}}
-@media(max-width:740px){.rows-label{display:none}.job-row{grid-template-columns:minmax(0,1fr) 125px;gap:7px 9px;padding:12px 2px}.job-row>.company{grid-column:1;grid-row:1}.job-row>span:nth-child(2){grid-column:2;grid-row:1}.job-row>.added{display:none}.job-row>.next-step{display:block;grid-column:1;grid-row:2;white-space:normal;font-size:9px}.job-row>.row-actions{grid-column:2;grid-row:2;justify-content:flex-end;gap:4px}.row-actions button{min-height:29px;padding:0 6px;font-size:8px}}
+@media(max-width:1180px){.rows-label,.job-row{grid-template-columns:minmax(130px,1.35fr) minmax(112px,1fr) minmax(105px,.9fr) minmax(125px,1fr) minmax(175px,1.4fr)}.rows-label span:nth-child(3),.job-row>.added{display:none}}
+@media(max-width:900px){.rows-label,.job-row{grid-template-columns:minmax(130px,1.3fr) minmax(112px,1fr) minmax(100px,.9fr) minmax(180px,1.3fr)}.rows-label span:nth-child(3),.job-row>.added,.rows-label span:nth-child(5),.job-row>.next-step{display:none}}
+@media(max-width:740px){.rows-label{display:none}.job-row{grid-template-columns:minmax(0,1fr) 125px;gap:7px 9px;padding:12px 2px}.job-row>.company{grid-column:1;grid-row:1}.job-row>span:nth-child(2){grid-column:2;grid-row:1}.job-row>.added,.job-row>.response-date{display:none}.job-row>.next-step{display:block;grid-column:1;grid-row:2;white-space:normal;font-size:9px}.mobile-response-date{display:block;margin-top:3px;color:#c2b1d1;font-size:8px}.job-row>.row-actions{grid-column:2;grid-row:2;justify-content:flex-end;gap:4px}.row-actions button{min-height:29px;padding:0 6px;font-size:8px}}

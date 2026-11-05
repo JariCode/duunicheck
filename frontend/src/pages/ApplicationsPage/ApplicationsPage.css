@@ -1,4 +1,4 @@
-.list-paper{overflow:visible}.list-tools{position:sticky;top:83px;z-index:5;display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid #493354;background:#1b1228}
+.list-paper{overflow:visible}.list-tools{position:static;top:auto;z-index:auto;display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid #493354;background:#1b1228}
 .search-field{display:flex;flex:1;align-items:center;gap:7px;max-width:350px;height:34px;padding:0 9px;border:1px solid #72578a;border-radius:6px;background:#1a1027;color:#f2defe}.search-field>span{font-size:17px}.search-field input{width:100%;border:0;outline:0;background:transparent;color:#fff5ff}.search-field input::placeholder{color:#b7a3c9}
 .list-tools select{height:34px;padding:0 10px;border:1px solid #72578a;border-radius:6px;background:#21152f;color:#f6ebff;font-size:10px}
 @media(max-width:740px){.list-tools{flex-wrap:wrap;padding:10px}.search-field{flex:1 1 100%;max-width:none}.list-tools select{flex:1;min-width:0;height:36px}.list-paper .job-rows{padding:0 10px}}

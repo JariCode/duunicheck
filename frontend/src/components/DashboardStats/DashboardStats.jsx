@@ -5,7 +5,7 @@ function Metric({ label, value, foot, stamp }) { return <article className="metr
 export default function DashboardStats({ jobs, onOpenJob }) {
   const sent = jobs.filter((job) => job.events.some((event) => sentTypes.includes(event.type)))
   const responses = jobs.filter((job) => job.events.some((event) => responseTypes.includes(event.type)))
-  const interviews = jobs.filter((job) => job.events.some((event) => event.type.toLowerCase().includes('haastattelu')) || job.status === 'Haastattelu')
+  const interviews = jobs.filter((job) => job.events.some((event) => event.type.toLowerCase().includes('haastattelu')) || job.status === 'Haastattelu sovittu')
   const durations = sent.map((job) => {
     const sentEvent = job.events.filter((event) => sentTypes.includes(event.type)).sort((a, b) => a.date.localeCompare(b.date))[0]
     const response = job.events.filter((event) => responseTypes.includes(event.type)).sort((a, b) => a.date.localeCompare(b.date))[0]
