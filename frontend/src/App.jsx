@@ -1,6 +1,6 @@
 import './styles/app-theme.css'
 import './App.css'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth, UserButton } from '@clerk/clerk-react'
 import { apiRequest, downloadMaterialFile, uploadMaterialFile } from './api'
 import { clerkAppearance } from './clerkAppearance'
@@ -18,11 +18,49 @@ import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
 
 const pages = { home: 'Yleiskatsaus', jobs: 'Hakemukset', board: 'Eteneminen', calendar: 'Kalenteri', materials: 'CV & pohjat', assistant: 'AI-chat' }
+const pageKeys = new Set(Object.keys(pages))
+function readWorkspaceRoute() {
+  const params = new URLSearchParams(window.location.search)
+  const requestedSection = params.get('view')
+  return {
+    section: pageKeys.has(requestedSection) ? requestedSection : 'home',
+    assistantJobId: params.get('application') || '',
+    selectedJobId: params.get('details') || '',
+    formMode: params.get('form') || '',
+  }
+}
+function writeWorkspaceRoute(updates, replace = false) {
+  const current = readWorkspaceRoute()
+  const route = { ...current, ...updates }
+  const url = new URL(window.location.href)
+  for (const key of ['view', 'application', 'details', 'form']) url.searchParams.delete(key)
+  if (route.section !== 'home') url.searchParams.set('view', route.section)
+  if (route.assistantJobId) url.searchParams.set('application', route.assistantJobId)
+  if (route.selectedJobId) url.searchParams.set('details', route.selectedJobId)
+  if (route.formMode) url.searchParams.set('form', route.formMode)
+  const nextUrl = `${url.pathname}${url.search}${url.hash}`
+  window.history[replace ? 'replaceState' : 'pushState']({}, '', nextUrl)
+}
 const blankForm = () => ({ company: '', role: '', place: '', link: '', cvId: '', templateId: '', cvFileId: '', applicationFileIds: [], applicationText: '', notes: '', status: 'Kiinnostava', added: today(), respondedAt: '', next: '', nextDate: '' })
+const formForJob = (job) => ({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', cvFileId: job.cvFileId || '', applicationFileIds: job.applicationFileIds || [], applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
+function normalizeRejectedEvents(events, status, respondedAt) {
+  const result = events.filter((event) => event.type !== 'Hakemus lisätty' && !(event.type === 'Kiinnostava' && event.note?.trim() === 'Hakemus lisätty'))
+  if (status !== 'Hylätty') return result
+  const rejectionIndex = result.findIndex((event) => event.type === 'Hylätty')
+  const receivedIndex = result.findIndex((event) => event.type === 'Vastaus saatu')
+  if (rejectionIndex < 0 && receivedIndex >= 0) {
+    result[receivedIndex] = { ...result[receivedIndex], type: 'Hylätty', date: respondedAt || result[receivedIndex].date }
+  } else if (rejectionIndex >= 0) {
+    const rejectionDate = respondedAt || (receivedIndex >= 0 ? result[receivedIndex].date : result[rejectionIndex].date)
+    result[rejectionIndex] = { ...result[rejectionIndex], date: rejectionDate }
+    if (receivedIndex >= 0 && receivedIndex !== rejectionIndex && result[receivedIndex].date === rejectionDate) result.splice(receivedIndex, 1)
+  }
+  return result
+}
 
 export default function App() {
   const { getToken, isLoaded } = useAuth()
-  const [section, setSection] = useState('home')
+  const [section, setSection] = useState(() => readWorkspaceRoute().section)
   const [navOpen, setNavOpen] = useState(false)
   const [jobs, setJobs] = useState([])
   const [cvs, setCvs] = useState([])
@@ -32,10 +70,11 @@ export default function App() {
   const [apiError, setApiError] = useState('')
   const [term, setTerm] = useState('')
   const [stage, setStage] = useState('Kaikki vaiheet')
-  const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState(null)
-  const [selectedJobId, setSelectedJobId] = useState(null)
-  const [assistantJobId, setAssistantJobId] = useState('')
+  const [showForm, setShowForm] = useState(() => Boolean(readWorkspaceRoute().formMode))
+  const [editingId, setEditingId] = useState(() => readWorkspaceRoute().formMode.startsWith('edit:') ? readWorkspaceRoute().formMode.slice(5) : null)
+  const restoredEditId = useRef('')
+  const [selectedJobId, setSelectedJobId] = useState(() => readWorkspaceRoute().selectedJobId)
+  const [assistantJobId, setAssistantJobId] = useState(() => readWorkspaceRoute().assistantJobId)
   const [form, setForm] = useState(blankForm)
   const [printDocument, setPrintDocument] = useState(null)
   const [pendingDeleteJob, setPendingDeleteJob] = useState(null)
@@ -48,6 +87,45 @@ export default function App() {
   const selectedJob = jobs.find((job) => job.id === selectedJobId)
 
   useEffect(() => {
+    const restoreRoute = () => {
+      const route = readWorkspaceRoute()
+      setSection(route.section)
+      setAssistantJobId(route.assistantJobId)
+      setSelectedJobId(route.selectedJobId)
+      setShowForm(Boolean(route.formMode))
+      setEditingId(route.formMode.startsWith('edit:') ? route.formMode.slice(5) : null)
+      setForm(blankForm())
+      restoredEditId.current = ''
+    }
+    window.addEventListener('popstate', restoreRoute)
+    return () => window.removeEventListener('popstate', restoreRoute)
+  }, [])
+
+  useEffect(() => {
+    if (!showForm || editingId === null) return
+    const id = String(editingId)
+    if (restoredEditId.current === id) return
+    const job = jobs.find((item) => String(item.id) === id)
+    if (!job) return
+    setForm(formForJob(job))
+    restoredEditId.current = id
+  }, [jobs, showForm, editingId])
+
+  function navigateSection(nextSection) {
+    setSection(nextSection)
+    setShowForm(false)
+    setEditingId(null)
+    setSelectedJobId('')
+    writeWorkspaceRoute({ section: nextSection, selectedJobId: '', formMode: '' })
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingId(null)
+    writeWorkspaceRoute({ formMode: '' }, true)
+  }
+
+  useEffect(() => {
     if (!isLoaded) return
     let active = true
     Promise.all([
@@ -57,7 +135,12 @@ export default function App() {
       apiRequest(getToken, '/files'),
     ]).then(([loadedJobs, loadedCvs, loadedTemplates, loadedFiles]) => {
       if (!active) return
-      setJobs(loadedJobs.map((job) => ({ ...job, applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), respondedAt: job.respondedAt || firstResponseDate(job.events), initial: job.company?.[0]?.toUpperCase() || '?', color: 'blue' })))
+      setJobs(loadedJobs.map((job) => {
+        const status = normalizeStage(job.status)
+        const respondedAt = job.respondedAt || firstResponseDate(job.events)
+        const events = normalizeRejectedEvents(job.events || [], status, respondedAt)
+        return { ...job, applicationText: '', notes: job.notes || job.applicationText || '', status, respondedAt, events, initial: job.company?.[0]?.toUpperCase() || '?', color: 'blue' }
+      }))
       setCvs(loadedCvs)
       setTemplates(loadedTemplates)
       setMaterialFiles(loadedFiles)
@@ -82,15 +165,20 @@ export default function App() {
     setEditingId(null)
     setForm(blankForm())
     setShowForm(true)
+    restoredEditId.current = ''
+    writeWorkspaceRoute({ formMode: 'new' })
   }
   function openEdit(job) {
     setEditingId(job.id)
-    setForm({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', cvFileId: job.cvFileId || '', applicationFileIds: job.applicationFileIds || [], applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
+    setForm(formForJob(job))
     setShowForm(true)
+    restoredEditId.current = String(job.id)
+    writeWorkspaceRoute({ formMode: `edit:${job.id}` })
   }
   function apiApplication(job) {
     const fields = ['company', 'role', 'place', 'link', 'cvId', 'templateId', 'cvFileId', 'applicationFileIds', 'applicationText', 'notes', 'status', 'respondedAt', 'next', 'nextDate', 'added']
     const data = Object.fromEntries(fields.map((field) => [field, job[field] ?? '']))
+    data.applicationFileIds = Array.isArray(job.applicationFileIds) ? job.applicationFileIds : []
     data.events = Array.isArray(job.events) ? job.events.map(({ id, type, date, note }) => ({ id, type, date, note: note ?? '' })) : []
     return data
   }
@@ -131,7 +219,10 @@ export default function App() {
     if (!job || job.status === status) return
     try {
       const changedDate = today()
-      const saved = await apiRequest(getToken, '/applications/' + id, { method: 'PUT', body: apiApplication({ ...job, status, ...(status === 'Lähetetty' ? { added: changedDate } : {}), respondedAt: ['Haastattelu sovittu', 'Hylätty'].includes(status) ? (job.respondedAt || changedDate) : job.respondedAt, events: [...job.events, makeEvent(status, changedDate)] }) })
+      const respondedAt = ['Haastattelu sovittu', 'Hylätty'].includes(status) ? (job.respondedAt || changedDate) : job.respondedAt
+      const statusEvent = makeEvent(status, status === 'Hylätty' ? respondedAt : changedDate)
+      const events = normalizeRejectedEvents([...job.events, statusEvent], status, respondedAt)
+      const saved = await apiRequest(getToken, '/applications/' + id, { method: 'PUT', body: apiApplication({ ...job, status, ...(status === 'Lähetetty' ? { added: changedDate } : {}), respondedAt, events }) })
       setJobs((all) => all.map((item) => item.id === id ? { ...saved, status: normalizeStage(saved.status), initial: saved.company[0]?.toUpperCase() || '?', color: item.color } : item))
       setApiError('')
     } catch (error) { setApiError(error.message) }
@@ -140,12 +231,37 @@ export default function App() {
     const statusForEvent = ({ 'Hakemus jätetty': 'Lähetetty', 'Lähetetty': 'Lähetetty', 'Haastattelu sovittu': 'Haastattelu sovittu', 'Haastattelu pidetty': 'Haastattelu sovittu', 'Hylätty': 'Hylätty' })[event.type]
     const sentEvent = ['Hakemus jätetty', 'Lähetetty'].includes(event.type)
     const responseDate = responseTypes.includes(event.type) ? [job.respondedAt, event.date].filter(Boolean).sort()[0] : job.respondedAt
-    const updated = { ...job, ...(sentEvent ? { added: event.date } : {}), respondedAt: responseDate, events: [...job.events, makeEvent(event.type, event.date, event.note)], ...(statusForEvent ? { status: statusForEvent } : {}) }
+    const status = statusForEvent || job.status
+    const events = normalizeRejectedEvents([...job.events, makeEvent(event.type, event.date, event.note)], status, responseDate)
+    const updated = { ...job, ...(sentEvent ? { added: event.date } : {}), respondedAt: responseDate, events, status }
     try {
       const saved = await apiRequest(getToken, '/applications/' + job.id, { method: 'PUT', body: apiApplication(updated) })
       setJobs((all) => all.map((item) => item.id === job.id ? { ...saved, status: normalizeStage(saved.status), initial: saved.company[0]?.toUpperCase() || '?', color: item.color } : item))
       setApiError('')
-    } catch (error) { setApiError(error.message) }
+      return { ok: true }
+    } catch (error) { setApiError(error.message); return { ok: false, error: error.message } }
+  }
+  async function saveEventChanges(job, events) {
+    const statusForEvent = (type) => ({ 'Hakemus jätetty': 'Lähetetty', 'Lähetetty': 'Lähetetty', 'Haastattelu sovittu': 'Haastattelu sovittu', 'Haastattelu pidetty': 'Haastattelu sovittu', 'Haastattelu': 'Haastattelu sovittu', 'Hylätty': 'Hylätty' })[type]
+    const statusEvents = events.filter((event) => statusForEvent(event.type)).sort((a, b) => a.date.localeCompare(b.date))
+    const status = statusEvents.length ? statusForEvent(statusEvents.at(-1).type) : 'Kiinnostava'
+    const sentDates = events.filter((event) => ['Lähetetty', 'Hakemus jätetty'].includes(event.type)).map((event) => event.date).filter(Boolean).sort()
+    const respondedAt = firstResponseDate(events)
+    const normalizedEvents = normalizeRejectedEvents(events, status, respondedAt)
+    const updated = { ...job, status, ...(sentDates.length ? { added: sentDates[0] } : {}), respondedAt, events: normalizedEvents }
+    try {
+      const saved = await apiRequest(getToken, `/applications/${job.id}`, { method: 'PUT', body: apiApplication(updated) })
+      setJobs((all) => all.map((item) => item.id === job.id ? { ...saved, status: normalizeStage(saved.status), initial: saved.company[0]?.toUpperCase() || '?', color: item.color } : item))
+      setApiError('')
+      return { ok: true }
+    } catch (error) { setApiError(error.message); return { ok: false, error: error.message } }
+  }
+  async function updateEvent(job, eventId, changes) {
+    const events = job.events.map((item) => String(item.id) === String(eventId) ? { ...item, ...changes } : item)
+    return saveEventChanges(job, events)
+  }
+  async function removeEvent(job, eventId) {
+    return saveEventChanges(job, job.events.filter((item) => String(item.id) !== String(eventId)))
   }
   async function deleteJob(job) {
     setPendingDeleteJob(job)
@@ -156,7 +272,8 @@ export default function App() {
     try {
       await apiRequest(getToken, `/applications/${pendingDeleteJob.id}`, { method: 'DELETE' })
       setJobs((all) => all.filter((item) => item.id !== pendingDeleteJob.id))
-      setSelectedJobId(null)
+      setSelectedJobId('')
+      writeWorkspaceRoute({ selectedJobId: '' }, true)
       setApiError('')
       setPendingDeleteJob(null)
     } catch (error) { setApiError(error.message); setPendingDeleteJob(null) }
@@ -180,12 +297,13 @@ export default function App() {
           if (responseIndex >= 0 && clean.respondedAt !== previousResponseDate) events[responseIndex] = { ...events[responseIndex], date: clean.respondedAt }
           else if (responseIndex < 0) events.push(makeEvent('Vastaus saatu', clean.respondedAt))
         } else if (responseIndex >= 0) clean.respondedAt = previousResponseDate || events[responseIndex].date
-        if (previous.status !== clean.status && clean.status !== 'Lähetetty') events.push(makeEvent(clean.status, today()))
+        if (previous.status !== clean.status && clean.status !== 'Lähetetty') events.push(makeEvent(clean.status, clean.status === 'Hylätty' ? (clean.respondedAt || today()) : today()))
+        events = normalizeRejectedEvents(events, clean.status, clean.respondedAt)
         const saved = await apiRequest(getToken, '/applications/' + editingId, { method: 'PUT', body: apiApplication({ ...previous, ...clean, status: clean.status, events }) })
         setJobs((all) => all.map((job) => job.id === editingId ? { ...saved, status: normalizeStage(saved.status), initial: clean.company[0].toUpperCase(), color: job.color } : job))
       } else {
-        const initialEvent = clean.status === 'Lähetetty' ? makeEvent('Lähetetty', clean.added) : responseTypes.includes(clean.status) ? makeEvent(clean.status, clean.respondedAt) : makeEvent('Hakemus lisätty', today())
-        const initialEvents = [initialEvent]
+        const initialEvent = clean.status === 'Lähetetty' ? makeEvent('Lähetetty', clean.added) : responseTypes.includes(clean.status) ? makeEvent(clean.status, clean.respondedAt) : null
+        const initialEvents = initialEvent ? [initialEvent] : []
         if (clean.respondedAt && !responseTypes.includes(clean.status)) initialEvents.push(makeEvent('Vastaus saatu', clean.respondedAt))
         const created = await apiRequest(getToken, '/applications', { method: 'POST', body: apiApplication({ ...clean, events: initialEvents }) })
         setJobs((all) => [{ ...created, status: normalizeStage(created.status), initial: clean.company[0].toUpperCase(), color: 'coral' }, ...all])
@@ -197,14 +315,16 @@ export default function App() {
     }
     setShowForm(false)
     setEditingId(null)
-    setSection('jobs')
+    navigateSection('jobs')
   }
   function openAssistant(job) {
-    setAssistantJobId(job ? String(job.id) : '')
-    setSelectedJobId(null)
+    const nextJobId = job ? String(job.id) : ''
+    setAssistantJobId(nextJobId)
+    setSelectedJobId('')
     setSection('assistant')
+    writeWorkspaceRoute({ section: 'assistant', assistantJobId: nextJobId, selectedJobId: '' })
   }
-  const actions = { onStatus: updateStatus, onEdit: openEdit, onDelete: deleteJob, onDetails: (job) => setSelectedJobId(job.id), onAdd: openNew }
+  const actions = { onStatus: updateStatus, onEdit: openEdit, onDelete: deleteJob, onDetails: (job) => { setSelectedJobId(String(job.id)); writeWorkspaceRoute({ selectedJobId: String(job.id) }) }, onAdd: openNew }
   const welcomeText = {
     home: 'Hakemukset, vaiheet ja seuraavat askeleet.',
     jobs: 'Kaikki haut ja niiden omat materiaalit samassa paikassa.',
@@ -216,22 +336,22 @@ export default function App() {
 
   if (dataLoading) return <div className="auth-loading">Ladataan käyttäjän tietoja…</div>
   return <div className="workspace">
-    <Sidebar active={section} onNavigate={(key) => { setSection(key); setNavOpen(false) }} count={jobs.length} isOpen={navOpen} onClose={() => setNavOpen(false)} onToggle={() => setNavOpen((open) => !open)} />
+    <Sidebar active={section} onNavigate={(key) => { navigateSection(key); setNavOpen(false) }} count={jobs.length} isOpen={navOpen} onClose={() => setNavOpen(false)} onToggle={() => setNavOpen((open) => !open)} />
     <main className="main">
       <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton userProfileProps={{ appearance: clerkAppearance }} /></div></header>
       <div className={`content${section === 'assistant' ? ' assistant-content' : ''}`}>
         {apiError && <div className="api-error" role="alert">{apiError}</div>}
         <section className="welcome"><div><span className="eyebrow">{section === 'home' ? 'TYÖNHAKU · YLEISKATSAUS' : 'DUUNICHECK · TYÖPÖYTÄ'}</span><h1>{section === 'home' ? 'Työnhaun tilanne' : pageTitle}</h1><p>{welcomeText[section]}</p></div>{['home', 'jobs', 'board'].includes(section) && <button className="add-button" onClick={openNew}>＋ Lisää hakemus</button>}</section>
-        {section === 'home' && <DashboardPage jobs={sortedJobs} actions={{ ...actions, onSeeAll: () => setSection('jobs') }} />}
+        {section === 'home' && <DashboardPage jobs={sortedJobs} actions={{ ...actions, onSeeAll: () => navigateSection('jobs') }} />}
         {section === 'jobs' && <ApplicationsPage jobs={matches} actions={actions} term={term} setTerm={setTerm} stage={stage} setStage={setStage} stages={stages} />}
         {section === 'board' && <BoardPage jobs={jobs} actions={actions} />}
         {section === 'calendar' && <CalendarPage jobs={jobs} onDetails={actions.onDetails} />}
         {section === 'materials' && <MaterialsPage cvs={cvs} templates={templates} files={materialFiles} onPrint={setPrintDocument} onSaveCv={(item) => saveMaterial('cv', item)} onDeleteCv={(id) => deleteMaterial('cv', id)} onSaveTemplate={(item) => saveMaterial('template', item)} onDeleteTemplate={(id) => deleteMaterial('template', id)} onUploadFile={saveMaterialFile} onDeleteFile={removeMaterialFile} onDownloadFile={downloadFile} onError={setApiError} />}
-        {section === 'assistant' && <AssistantPage key={assistantJobId} jobs={jobs} cvs={cvs} templates={templates} initialJobId={assistantJobId} />}
+        {section === 'assistant' && <AssistantPage key={assistantJobId} jobs={jobs} cvs={cvs} templates={templates} initialJobId={assistantJobId} onSelectJob={(id) => { setAssistantJobId(id); writeWorkspaceRoute({ assistantJobId: id }, true) }} />}
       </div>
     </main>
-    {showForm && <ApplicationForm form={form} setForm={setForm} cvs={cvs} templates={templates} files={materialFiles} editing={editingId !== null} onClose={() => setShowForm(false)} onSubmit={saveJob} />}
-    {selectedJob && <ApplicationDetails job={selectedJob} cvs={cvs} files={materialFiles} onDownloadFile={downloadFile} onClose={() => setSelectedJobId(null)} onAddEvent={addEvent} onAssistant={openAssistant} onPrint={setPrintDocument} />}
+    {showForm && <ApplicationForm form={form} setForm={setForm} cvs={cvs} templates={templates} files={materialFiles} editing={editingId !== null} onClose={closeForm} onSubmit={saveJob} />}
+    {selectedJob && <ApplicationDetails job={selectedJob} cvs={cvs} files={materialFiles} onDownloadFile={downloadFile} onClose={() => { setSelectedJobId(''); writeWorkspaceRoute({ selectedJobId: '' }, true) }} onAddEvent={addEvent} onUpdateEvent={updateEvent} onDeleteEvent={removeEvent} onAssistant={openAssistant} onPrint={setPrintDocument} />}
     <ConfirmDialog open={Boolean(pendingDeleteJob)} title="Poistetaanko hakemus?" description={pendingDeleteJob ? `${pendingDeleteJob.company} · ${pendingDeleteJob.role} ja sen keskustelu poistetaan pysyvästi.` : ''} busy={deletingJob} onConfirm={confirmDeleteJob} onCancel={() => setPendingDeleteJob(null)} />
     <PrintSheet document={printDocument} />
   </div>

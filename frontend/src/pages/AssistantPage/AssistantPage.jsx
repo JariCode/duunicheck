@@ -10,7 +10,7 @@ function isApplicationInfoQuestion(value) {
   return asksForFacts || asksAboutTheSelectedApplication || asksForApplicationDetails
 }
 
-export default function AssistantPage({ jobs, cvs, templates, initialJobId }) {
+export default function AssistantPage({ jobs, cvs, templates, initialJobId, onSelectJob }) {
   const { getToken } = useAuth()
   const [jobId, setJobId] = useState(initialJobId || '')
   const [context, setContext] = useState({ posting: false, cv: false, template: false, application: false, allowSuggestions: false })
@@ -23,6 +23,7 @@ export default function AssistantPage({ jobs, cvs, templates, initialJobId }) {
   const [applicationPickerOpen, setApplicationPickerOpen] = useState(false)
   const applicationPickerRef = useRef(null)
   const applicationPickerTriggerRef = useRef(null)
+  const chatMessagesRef = useRef(null)
   const historyLoading = Boolean(jobId && loadedForJobId !== jobId)
   const visibleMessages = Boolean(jobId) && loadedForJobId === jobId ? messages : []
   const job = jobs.find((item) => String(item.id) === String(jobId))
@@ -40,6 +41,7 @@ export default function AssistantPage({ jobs, cvs, templates, initialJobId }) {
 
   function chooseJob(value) {
     setJobId(String(value))
+    onSelectJob?.(String(value))
     setLoadedForJobId('')
     setError('')
     setDraft('')
@@ -64,6 +66,15 @@ export default function AssistantPage({ jobs, cvs, templates, initialJobId }) {
     })
     return () => { active = false }
   }, [getToken, jobId])
+
+  useEffect(() => {
+    if (historyLoading || !chatMessagesRef.current) return undefined
+    const chat = chatMessagesRef.current
+    const scrollToLatest = () => { chat.scrollTop = chat.scrollHeight }
+    scrollToLatest()
+    const frame = window.requestAnimationFrame(scrollToLatest)
+    return () => window.cancelAnimationFrame(frame)
+  }, [historyLoading, jobId, messages])
 
   async function sendMessage() {
     const selectedMessage = draft.trim()
@@ -95,10 +106,10 @@ export default function AssistantPage({ jobs, cvs, templates, initialJobId }) {
   }
   return <div className="assistant-page">
     <div className="assistant-layout"><section className="paper assistant-chat"><div className="chat-header"><div><span className="chat-avatar">AI</span><span><b>DuuniCheck-työpari</b><small>Yksityinen, hakemuskohtainen tallennettu keskustelu</small></span></div><span className="connection-state">Hakemustiedot haetaan omasta tietokannasta. AI auttaa ehdotuksissa.</span></div>
-      <div className="chat-messages"><article className="assistant-message"><b>Työpari</b><p>Voin ehdottaa hakemukseen kohdennettuja muutoksia valitsemiesi tietojen pohjalta. Ehdotus ei tallennu hakemukseen ennen kuin hyväksyt sen itse.</p><small>Työpaikkailmoituksen lukemiseen liitä sen teksti sivupaneelin kenttään.</small></article>{historyLoading && <p className="permission-empty">Ladataan keskusteluhistoriaa…</p>}{visibleMessages.map((message, index) => <article className={message.role === 'user' ? 'user-message' : 'assistant-message'} key={message.id || index}><b>{message.role === 'user' ? 'Sinun pyyntösi' : 'Työpari · ehdotus'}</b><p>{message.content}</p>{message.role === 'assistant' && <small>Voit kopioida ehdotuksen ja hyväksyä muokkauksen itse hakemuksessa.</small>}</article>)}</div>
+      <div className="chat-messages" ref={chatMessagesRef}><article className="assistant-message"><b>Työpari</b><p>Voin ehdottaa hakemukseen kohdennettuja muutoksia valitsemiesi tietojen pohjalta. Ehdotus ei tallennu hakemukseen ennen kuin hyväksyt sen itse.</p><small>Työpaikkailmoituksen lukemiseen liitä sen teksti sivupaneelin kenttään.</small></article>{historyLoading && <p className="permission-empty">Ladataan keskusteluhistoriaa…</p>}{visibleMessages.map((message, index) => <article className={message.role === 'user' ? 'user-message' : 'assistant-message'} key={message.id || index}><b>{message.role === 'user' ? 'Sinun pyyntösi' : 'Työpari · ehdotus'}</b><p>{message.content}</p>{message.role === 'assistant' && <small>Voit kopioida ehdotuksen ja hyväksyä muokkauksen itse hakemuksessa.</small>}</article>)}</div>
       {error && <p className="assistant-error" role="alert">{error}</p>}<label className="chat-composer">Viesti työparille<textarea rows="3" maxLength="4000" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void sendMessage() } }} placeholder="Kirjoita viesti työparille…" /></label><button className="add-button chat-send" onClick={sendMessage} disabled={!job || (!context.allowSuggestions && !isApplicationInfoQuestion(draft)) || !draft.trim() || sending || historyLoading}>{sending ? 'Lähetetään…' : 'Lähetä viesti'}</button>
     </section>
-    <aside className="paper assistant-permissions"><h3>Valitse keskustelun konteksti</h3><div className="application-picker" ref={applicationPickerRef} onKeyDown={(event) => { if (event.key === 'Escape') { setApplicationPickerOpen(false); applicationPickerTriggerRef.current?.focus() } }}><span className="application-picker-label">Hakemus</span><button ref={applicationPickerTriggerRef} type="button" className="application-picker-trigger" aria-haspopup="listbox" aria-expanded={applicationPickerOpen} onClick={() => setApplicationPickerOpen((open) => !open)} onKeyDown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); setApplicationPickerOpen(true) } }}>{job ? `${job.company} · ${job.role}` : 'Valitse hakemus'}<span aria-hidden="true">⌄</span></button>{applicationPickerOpen && <div className="application-picker-options" role="listbox" aria-label="Valitse hakemus">{jobs.map((item) => <button type="button" role="option" aria-selected={String(item.id) === String(jobId)} className={String(item.id) === String(jobId) ? 'is-selected' : ''} key={item.id} onClick={() => chooseJob(item.id)}>{item.company} · {item.role}</button>)}</div>}</div>
+    <aside className="paper assistant-permissions"><h3>Valitse keskustelun konteksti</h3><div className="application-picker" ref={applicationPickerRef} onKeyDown={(event) => { if (event.key === 'Escape') { setApplicationPickerOpen(false); applicationPickerTriggerRef.current?.focus() } }}><span className="application-picker-label">Hakemus</span><button ref={applicationPickerTriggerRef} type="button" className="application-picker-trigger" aria-haspopup="listbox" aria-expanded={applicationPickerOpen} onClick={() => setApplicationPickerOpen((open) => !open)} onKeyDown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); setApplicationPickerOpen(true) } }}>{job ? `${job.company} · ${job.role}` : 'Valitse hakemus'}<span aria-hidden="true">⌄</span></button>{applicationPickerOpen && <div className="application-picker-options" role="listbox" aria-label="Valitse hakemus"><button type="button" role="option" aria-selected={!jobId} className={!jobId ? 'is-selected' : ''} onClick={() => chooseJob('')}>Valitse hakemus</button>{jobs.map((item) => <button type="button" role="option" aria-selected={String(item.id) === String(jobId)} className={String(item.id) === String(jobId) ? 'is-selected' : ''} key={item.id} onClick={() => chooseJob(item.id)}>{item.company} · {item.role}</button>)}</div>}</div>
       {job && <div className="permission-list"><small>AI käyttää tietoa vain, kun kytket sen erikseen:</small><label><input type="checkbox" checked={context.posting} onChange={() => toggle('posting')} /> Työpaikkailmoitus {job.link ? '· luetaan tallennetusta HTTPS-linkistä' : '· linkkiä ei ole tallennettu'}</label>{context.posting && <textarea className="posting-context" rows="5" maxLength="16000" value={postingText} onChange={(event) => setPostingText(event.target.value)} placeholder="Voit liittää ilmoituksen tekstin tähän, jos linkin automaattinen luku ei onnistu." />}<label><input type="checkbox" checked={context.cv} onChange={() => toggle('cv')} /> Valittu CV {cv ? '· ' + cv.name : '· valitse CV hakemukselle'}</label><label><input type="checkbox" checked={context.template} onChange={() => toggle('template')} /> Hakemuspohja {template ? '· ' + template.name : '· ei valittua pohjaa'}</label><label><input type="checkbox" checked={context.application} onChange={() => toggle('application')} /> Tämän hakemuksen muistiinpanot</label><hr/><label className="approval-choice"><input type="checkbox" checked={context.allowSuggestions} onChange={() => toggle('allowSuggestions')} /> AI saa ehdottaa muutoksia tähän hakemukseen. Mitään ei tallenneta ennen hyväksyntääni.</label></div>}
       {!job && <p className="permission-empty">Valitse hakemus, niin voit kysyä sen tiedoista tai pyytää AI:lta ehdotuksia.</p>}<p className="privacy-note">Hakemuksen tiedot luetaan DuuniCheckin tietokannasta, eikä niitä lähetetä OpenAI:lle tietokantakysymyksissä. AI-ehdotuksiin lähetetään vain viesti ja erikseen valitsemasi lisätiedot. Keskustelut tallennetaan hakemuksen yhteyteen.</p>
     </aside></div>
