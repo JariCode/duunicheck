@@ -64,6 +64,10 @@ export const assistantSchema = z.object({
   }).strict(),
 }).strict()
 
+export const localAnswerSchema = z.object({
+  message: text(4000).min(1),
+}).strict()
+
 export function parseBody(schema, body) {
   return schema.safeParse(body)
 }

@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import OpenAI from 'openai'
-import mongoose from 'mongoose'
 import { aiLimiter } from '../middleware/security.js'
 import { Application } from '../models/Application.js'
 import { Conversation } from '../models/Conversation.js'
@@ -65,22 +64,24 @@ assistant.post('/suggest', aiLimiter, async (req, res) => {
 
   const suggestion = response.output_text
   try {
-    const session = await mongoose.startSession()
+    const conversationFilter = { userId: req.dbUserId, applicationId: application._id }
+    let conversation
     try {
-      await session.withTransaction(async () => {
-        const conversation = await Conversation.findOneAndUpdate(
-          { userId: req.dbUserId, applicationId: application._id },
-          { $setOnInsert: { userId: req.dbUserId, applicationId: application._id } },
-          { upsert: true, returnDocument: 'after', runValidators: true, session },
-        )
-        await ConversationMessage.create([
-          { userId: req.dbUserId, conversationId: conversation._id, role: 'user', content: message },
-          { userId: req.dbUserId, conversationId: conversation._id, role: 'assistant', content: suggestion },
-        ], { session })
-      })
-    } finally {
-      await session.endSession()
+      conversation = await Conversation.findOneAndUpdate(
+        conversationFilter,
+        { $setOnInsert: conversationFilter },
+        { upsert: true, returnDocument: 'after', runValidators: true },
+      )
+    } catch (error) {
+      // A concurrent first message may win the unique user/application index.
+      if (error?.code !== 11000) throw error
+      conversation = await Conversation.findOne(conversationFilter)
+      if (!conversation) throw error
     }
+    await ConversationMessage.insertMany([
+      { userId: req.dbUserId, conversationId: conversation._id, role: 'user', content: message },
+      { userId: req.dbUserId, conversationId: conversation._id, role: 'assistant', content: suggestion },
+    ])
     return res.json({ suggestion })
   } catch (error) {
     console.error('Assistant conversation persistence failed', {
