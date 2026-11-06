@@ -19,11 +19,11 @@
 </IfModule>
 
 # Route application paths to the frontend entry point when no static file exists.
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ /index.html [L]
+# FallbackResource resolves relative to this .htaccess file's own directory, so
+# it works unchanged whether the app is deployed at the domain root or in a
+# subfolder (e.g. /duunicheck/), unlike an absolute RewriteRule target.
+<IfModule mod_dir.c>
+  FallbackResource index.html
 </IfModule>
 
 # Browsers and install prompts expect the web app manifest with this MIME type.

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSignUp } from '@clerk/react'
+import { withBasePath } from '../../utils/basePath.js'
 import './CustomSignUp.css'
+
+const appBasePath = import.meta.env.BASE_URL
+const signUpSsoCallbackPath = withBasePath('sign-up/sso-callback')
 
 function errorText(error) {
   const first = error?.errors?.[0] || error
@@ -40,7 +44,7 @@ export default function CustomSignUp({ inviteTicket = '', continueSso = false })
   useEffect(() => {
     if (!continueSso || !isReady || signUp?.status !== 'complete') return
     void signUp.finalize({
-      navigate: ({ decorateUrl }) => window.location.assign(decorateUrl('/')),
+      navigate: ({ decorateUrl }) => window.location.assign(decorateUrl(appBasePath)),
     }).then(({ error }) => {
       if (error) setMessage(errorText(error))
     }).catch((error) => setMessage(errorText(error)))
@@ -61,7 +65,7 @@ export default function CustomSignUp({ inviteTicket = '', continueSso = false })
   async function finishSignUp() {
     if (signUp.status !== 'complete') return
     const { error } = await signUp.finalize({
-      navigate: ({ decorateUrl }) => window.location.assign(decorateUrl('/')),
+      navigate: ({ decorateUrl }) => window.location.assign(decorateUrl(appBasePath)),
     })
     if (error) throw error
   }
@@ -213,8 +217,8 @@ export default function CustomSignUp({ inviteTicket = '', continueSso = false })
     try {
       const { error } = await signUp.sso({
         strategy: 'oauth_google',
-        redirectUrl: '/',
-        redirectCallbackUrl: '/sign-up/sso-callback',
+        redirectUrl: appBasePath,
+        redirectCallbackUrl: signUpSsoCallbackPath,
         legalAccepted: true,
       })
       if (error) throw error
@@ -235,7 +239,7 @@ export default function CustomSignUp({ inviteTicket = '', continueSso = false })
       <form onSubmit={submitSignUp}>
         {!inviteTicket && <label>Sähköpostiosoite<input type="email" autoComplete="email" autoCapitalize="none" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
         {!inviteTicket && <label>Salasana<input type="password" autoComplete="new-password" minLength="8" required value={password} onChange={(event) => setPassword(event.target.value)} /></label>}
-        <label className="custom-signup-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} /><span>Olen lukenut ja hyväksyn <a href="/kayttoehdot">käyttöehdot</a> ja <a href="/tietosuojaseloste">tietosuojaselosteen</a>.</span></label>
+        <label className="custom-signup-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} /><span>Olen lukenut ja hyväksyn <a href={withBasePath('kayttoehdot')}>käyttöehdot</a> ja <a href={withBasePath('tietosuojaseloste')}>tietosuojaselosteen</a>.</span></label>
         <button className="custom-signup-submit" type="submit" disabled={!isReady || busy}>{busy ? 'Luodaan tiliä…' : inviteTicket ? 'Hyväksy kutsu' : 'Luo tili'}</button>
       </form>
     </> : currentView === 'details' ? <>
@@ -244,7 +248,7 @@ export default function CustomSignUp({ inviteTicket = '', continueSso = false })
       <form onSubmit={submitDetails}>
         {currentMissingFields.includes('first_name') && <label>Etunimi<input autoComplete="given-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label>}
         {currentMissingFields.includes('last_name') && <label>Sukunimi<input autoComplete="family-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} /></label>}
-        {currentMissingFields.includes('legal_accepted') && <label className="custom-signup-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} /><span>Olen lukenut ja hyväksyn <a href="/kayttoehdot">käyttöehdot</a> ja <a href="/tietosuojaseloste">tietosuojaselosteen</a>.</span></label>}
+        {currentMissingFields.includes('legal_accepted') && <label className="custom-signup-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} /><span>Olen lukenut ja hyväksyn <a href={withBasePath('kayttoehdot')}>käyttöehdot</a> ja <a href={withBasePath('tietosuojaseloste')}>tietosuojaselosteen</a>.</span></label>}
         <button className="custom-signup-submit" type="submit" disabled={!isReady || busy || (currentMissingFields.includes('legal_accepted') && !accepted)}>{busy ? 'Tallennetaan…' : 'Jatka'}</button>
       </form>
     </> : <>

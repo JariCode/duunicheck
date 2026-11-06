@@ -4,6 +4,7 @@ import App from './App.jsx'
 import AuthLanding from './components/AuthLanding/AuthLanding.jsx'
 import LegalModalHost from './components/Legal/LegalModalHost.jsx'
 import { clerkAppearance } from './clerkAppearance'
+import { withBasePath } from './utils/basePath.js'
 import './components/AuthLanding/clerk-theme.css'
 import './components/AuthLanding/clerk-overrides.css'
 import './styles/user-themes.css'
@@ -18,7 +19,7 @@ export default function Root() {
   if (!publishableKey || publishableKey.includes('replace_with')) {
     return <main className="auth-loading">Lisää Clerk publishable key frontendin .env-tiedostoon kirjautumisen ottamiseksi käyttöön.</main>
   }
-  return <ClerkProvider publishableKey={publishableKey} localization={clerkLocalization} appearance={clerkAppearance} signInUrl="/sign-in" signUpUrl="/sign-up" signInFallbackRedirectUrl="/" signUpFallbackRedirectUrl="/">
+  return <ClerkProvider publishableKey={publishableKey} localization={clerkLocalization} appearance={clerkAppearance} signInUrl={withBasePath('sign-in')} signUpUrl={withBasePath('sign-up')} signInFallbackRedirectUrl={import.meta.env.BASE_URL} signUpFallbackRedirectUrl={import.meta.env.BASE_URL}>
     <LegalModalHost />
     <ClerkLoading><div className="auth-loading">Ladataan DuuniCheckiä…</div></ClerkLoading>
     <Show when="signed-out"><AuthLanding /></Show>
