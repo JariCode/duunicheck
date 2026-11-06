@@ -592,3 +592,70 @@
   .theme-control{gap:5px;font-size:10px}
   .theme-control select{min-width:84px;height:36px;padding-inline:8px 26px;font-size:12px}
 }
+
+/* Complete light-theme contrast pass for text that used dark-theme colors. */
+.workspace[data-theme="light"] .live-chart-group>span,
+.workspace[data-theme="light"] .live-chart-group>small,
+.workspace[data-theme="light"] .response-stat small,
+.workspace[data-theme="light"] .upcoming-mini>b,
+.workspace[data-theme="light"] .upcoming-mini>button,
+.workspace[data-theme="light"] .upcoming-mini>small,
+.workspace[data-theme="light"] .chat-header small,
+.workspace[data-theme="light"] .assistant-message small,
+.workspace[data-theme="light"] .user-message small,
+.workspace[data-theme="light"] .chat-composer,
+.workspace[data-theme="light"] .application-picker-label,
+.workspace[data-theme="light"] .calendar-event strong,
+.workspace[data-theme="light"] .calendar-event small,
+.workspace[data-theme="light"] .calendar-more,
+.workspace[data-theme="light"] .upcoming-button strong,
+.workspace[data-theme="light"] .upcoming-button small,
+.workspace[data-theme="light"] .detail-card .form-heading p,
+.workspace[data-theme="light"] .detail-copy p,
+.workspace[data-theme="light"] .event-delete-confirm>span,
+.workspace[data-theme="light"] .timeline-job-title b,
+.workspace[data-theme="light"] .timeline-job-title small,
+.workspace[data-theme="light"] .timeline-mobile-dates small,
+.workspace[data-theme="light"] .timeline-mobile-dates time,
+.workspace[data-theme="light"] .timeline-add,
+.workspace[data-theme="light"] .material-card .material-actions button,
+.workspace[data-theme="light"] .template-placeholder-help,
+.workspace[data-theme="light"] .file-dropzone p,
+.workspace[data-theme="light"] .uploaded-file-info p{color:#493d57}
+.workspace[data-theme="light"] .response-stat{color:#547c00}
+.workspace[data-theme="light"] .upcoming-mini>button time{color:#526f00}
+.workspace[data-theme="light"] .application-picker-trigger>span{color:#65429b}
+.workspace[data-theme="light"] .chat-send:disabled{border-color:#c7b8d5;background:#e8e1ef;color:#51445f}
+.workspace[data-theme="light"] .assistant-error,.workspace[data-theme="light"] .event-error{border-color:#d9a1b2;background:#fff0f4;color:#70253f}
+.workspace[data-theme="light"] .event-delete-confirm{border-color:#d9a1b2;background:#fff0f4}
+.workspace[data-theme="light"] .event-delete-confirm>span{color:#70253f}
+.workspace[data-theme="light"] .live-bars .bar-applications{background:linear-gradient(180deg,#51bbd0,#4084cf)}
+.workspace[data-theme="light"] .live-bars .bar-sent{background:linear-gradient(180deg,#a65dd2,#8251bd)}
+.workspace[data-theme="light"] .live-bars .bar-interviews{background:linear-gradient(180deg,#63aa4e,#398c59)}
+.workspace[data-theme="light"] .live-bars .bar-rejected{background:linear-gradient(180deg,#d85b79,#c64264)}
+.workspace[data-theme="light"] .legend{color:#51445f}
+.workspace[data-theme="light"] .legend i{box-shadow:none}
+.workspace[data-theme="light"] .list-tools{border-color:#d8cde3;background:#f8f4fb;color:#493d57}
+.workspace[data-theme="light"] .response-date,.workspace[data-theme="light"] .mobile-response-date{color:#5e5369}
+.workspace[data-theme="light"] .materials-intro{border-color:#d7c1fb;background:linear-gradient(115deg,#e6f7ff,#f0e8fc 58%,#fde8f0);box-shadow:0 8px 25px #32204812}
+.workspace[data-theme="light"] .materials-intro h2{color:#302440}
+.workspace[data-theme="light"] .materials-intro p{color:#51465f}
+.workspace[data-theme="light"] .file-library-heading>span{border-color:#cdbede;background:#fffaff;color:#51445f}
+.workspace[data-theme="light"] .file-dropzone small,.workspace[data-theme="light"] .uploaded-file-info small,.workspace[data-theme="light"] .cv-photo-control>small,.workspace[data-theme="light"] .cv-photo-file-name,.workspace[data-theme="light"] .cv-list-empty,.workspace[data-theme="light"] .cv-list-editor legend small{color:#5e5369}
+.workspace[data-theme="light"] .cv-social-links a{border-color:#cbbdd8;background:#fbf9fd;color:#493263}
+.workspace[data-theme="light"] .cv-social-links a:hover{border-color:#9679b4;background:#f0eaf6;color:#352643}
+.workspace[data-theme="light"] .cv-list-add,.workspace[data-theme="light"] .cv-list-add-form button{color:#443651}
+.workspace[data-theme="light"] .calendar-grid>b,.workspace[data-theme="light"] .day.dim{color:#655970}
+.workspace[data-theme="light"] .calendar-event{border-color:#cdbde0;background:#e8dcff;color:#503378}
+.workspace[data-theme="light"] .calendar-event strong,.workspace[data-theme="light"] .calendar-event small{color:#493d57}
+.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day.prevMonthDay,.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day.nextMonthDay{color:#766a82}
+.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day.today{border-color:#7045be;color:#57348f}
+.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day:hover{background:#eee5f8;border-color:#eee5f8;color:#372b47}
+.workspace[data-theme="light"] .detail-status{border-color:#cdbede;background:#f6f0fa;color:#43334f}
+.workspace[data-theme="light"] .detail-status.applications{border-color:#aac8f7;background:#dcecff;color:#234c78}
+.workspace[data-theme="light"] .detail-status.sent{border-color:#c7a8ee;background:#eadcff;color:#4e2d74}
+.workspace[data-theme="light"] .detail-status.interviews{border-color:#b7dca9;background:#e1f6d9;color:#315d30}
+.workspace[data-theme="light"] .detail-status.rejected{border-color:#efb0c1;background:#ffe0e9;color:#812947}
+.workspace[data-theme="light"] .history li:before{border-color:#fffaff}
+.workspace[data-theme="light"] .nav-link small,.workspace[data-theme="light"] .nav-link.current small{color:#4e6b00}
+.workspace[data-theme="light"] .day.dim{color:#655970}
