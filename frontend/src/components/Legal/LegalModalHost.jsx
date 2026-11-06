@@ -18,7 +18,11 @@ export default function LegalModalHost() {
     }
     const observer = new MutationObserver(updateTheme)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-duunicheck-theme'] })
-    return () => observer.disconnect()
+    const initialSync = requestAnimationFrame(updateTheme)
+    return () => {
+      cancelAnimationFrame(initialSync)
+      observer.disconnect()
+    }
   }, [isLoaded, isSignedIn])
 
   const close = useCallback(() => {
