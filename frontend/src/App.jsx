@@ -3,7 +3,7 @@ import './App.css'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth, UserButton } from '@clerk/clerk-react'
 import { apiRequest, downloadMaterialFile, uploadMaterialFile } from './api'
-import { clerkAppearance } from './clerkAppearance'
+import { clerkProfileAppearance } from './clerkAppearance'
 import Sidebar from './components/Sidebar/Sidebar'
 import ApplicationForm from './components/ApplicationForm/ApplicationForm'
 import ApplicationDetails from './components/ApplicationDetails/ApplicationDetails'
@@ -69,6 +69,7 @@ export default function App() {
   const [dataLoading, setDataLoading] = useState(true)
   const [apiError, setApiError] = useState('')
   const [theme, setTheme] = useState('default')
+  const profileAppearance = useMemo(() => clerkProfileAppearance(theme), [theme])
   const [savingTheme, setSavingTheme] = useState(false)
   const [term, setTerm] = useState('')
   const [stage, setStage] = useState('Kaikki vaiheet')
@@ -365,7 +366,7 @@ export default function App() {
   return <div className="workspace" data-theme={theme}>
     <Sidebar active={section} onNavigate={(key) => { navigateSection(key); setNavOpen(false) }} count={jobs.length} isOpen={navOpen} onClose={() => setNavOpen(false)} onToggle={() => setNavOpen((open) => !open)} />
     <main className="main">
-      <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><label className="theme-control"><span>Teema</span><select aria-label="Väriteema" value={theme} onChange={changeTheme} disabled={savingTheme}><option value="default">Oletus</option><option value="dark">Tumma</option><option value="light">Vaalea</option></select></label><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton userProfileProps={{ appearance: clerkAppearance }} /></div></header>
+      <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><label className="theme-control"><span>Teema</span><select aria-label="Väriteema" value={theme} onChange={changeTheme} disabled={savingTheme}><option value="default">Oletus</option><option value="dark">Tumma</option><option value="light">Vaalea</option></select></label><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton appearance={profileAppearance} userProfileProps={{ appearance: profileAppearance }} /></div></header>
       <div className={`content${section === 'assistant' ? ' assistant-content' : ''}`}>
         {apiError && <div className="api-error" role="alert">{apiError}</div>}
         <section className="welcome"><div><span className="eyebrow">{section === 'home' ? 'TYÖNHAKU · YLEISKATSAUS' : 'DUUNICHECK · TYÖPÖYTÄ'}</span><h1>{section === 'home' ? 'Työnhaun tilanne' : pageTitle}</h1><p>{welcomeText[section]}</p></div>{['home', 'jobs', 'board'].includes(section) && <button className="add-button" onClick={openNew}>＋ Lisää hakemus</button>}</section>

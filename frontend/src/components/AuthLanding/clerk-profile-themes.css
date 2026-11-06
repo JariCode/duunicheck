@@ -1,0 +1,177 @@
+/* Loaded theme is set only inside the signed-in application. These rules
+   therefore theme the in-app account profile without changing auth screens. */
+html[data-duunicheck-theme="default"] {
+  --clerk-profile-bg: #1b1228;
+  --clerk-profile-panel: #160f21;
+  --clerk-profile-input: #10091b;
+  --clerk-profile-text: #f8f3ff;
+  --clerk-profile-muted: #c2b1d1;
+  --clerk-profile-border: #65487b;
+  --clerk-profile-primary: #caff45;
+  --clerk-profile-primary-text: #171022;
+  --clerk-profile-hover: #2b1b3c;
+  --clerk-profile-shadow: #0009;
+}
+
+html[data-duunicheck-theme="dark"] {
+  --clerk-profile-bg: #081722;
+  --clerk-profile-panel: #102532;
+  --clerk-profile-input: #060f16;
+  --clerk-profile-text: #eaf6fb;
+  --clerk-profile-muted: #a9c1cb;
+  --clerk-profile-border: #254858;
+  --clerk-profile-primary: #64f1cf;
+  --clerk-profile-primary-text: #08201f;
+  --clerk-profile-hover: #173644;
+  --clerk-profile-shadow: #0009;
+}
+
+html[data-duunicheck-theme="light"] {
+  --clerk-profile-bg: #fffaff;
+  --clerk-profile-panel: #f4eef9;
+  --clerk-profile-input: #ffffff;
+  --clerk-profile-text: #302440;
+  --clerk-profile-muted: #62556f;
+  --clerk-profile-border: #cdbede;
+  --clerk-profile-primary: #7045be;
+  --clerk-profile-primary-text: #ffffff;
+  --clerk-profile-hover: #eee5f8;
+  --clerk-profile-shadow: #32204835;
+}
+
+html[data-duunicheck-theme] .cl-modalBackdrop {
+  background: color-mix(in srgb, var(--clerk-profile-text) 52%, transparent) !important;
+  backdrop-filter: blur(7px);
+}
+
+html[data-duunicheck-theme] .cl-modalContent,
+html[data-duunicheck-theme] .duuni-clerk-popover,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard,
+html[data-duunicheck-theme] .duuni-clerk-profile-root,
+html[data-duunicheck-theme] .duuni-clerk-profile-page,
+html[data-duunicheck-theme] .duuni-clerk-profile-nav,
+html[data-duunicheck-theme] .duuni-clerk-profile-section,
+html[data-duunicheck-theme] .cl-userProfile-root,
+html[data-duunicheck-theme] .cl-userProfilePage,
+html[data-duunicheck-theme] .cl-userProfileNavbar,
+html[data-duunicheck-theme] .cl-userProfilePageScrollBox {
+  border-color: var(--clerk-profile-border) !important;
+  background: var(--clerk-profile-bg) !important;
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-modalContent {
+  border: 1px solid var(--clerk-profile-border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 25px 80px var(--clerk-profile-shadow) !important;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-popover,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard {
+  border: 1px solid var(--clerk-profile-border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 45px var(--clerk-profile-shadow) !important;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-popover-footer,
+html[data-duunicheck-theme] .cl-userButtonPopoverFooter {
+  border-color: var(--clerk-profile-border) !important;
+  background: var(--clerk-profile-panel) !important;
+  color: var(--clerk-profile-muted) !important;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-menu-button,
+html[data-duunicheck-theme] .cl-userButtonPopoverActionButton {
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-menu-button:hover,
+html[data-duunicheck-theme] .cl-userButtonPopoverActionButton:hover {
+  background: var(--clerk-profile-hover) !important;
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-menu-text,
+html[data-duunicheck-theme] .cl-userButtonPopoverActionButtonText,
+html[data-duunicheck-theme] .cl-userPreviewMainIdentifier,
+html[data-duunicheck-theme] .cl-userPreviewSecondaryIdentifier {
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-profile-title,
+html[data-duunicheck-theme] .duuni-clerk-profile-subtitle,
+html[data-duunicheck-theme] .cl-userProfileSectionTitle,
+html[data-duunicheck-theme] .cl-userProfileSectionSubtitle,
+html[data-duunicheck-theme] .cl-userProfilePage h1,
+html[data-duunicheck-theme] .cl-userProfilePage h2,
+html[data-duunicheck-theme] .cl-userProfilePage h3,
+html[data-duunicheck-theme] .cl-userProfilePage p,
+html[data-duunicheck-theme] .cl-userProfilePage label,
+html[data-duunicheck-theme] .cl-userProfilePage span {
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-navbarButton {
+  color: var(--clerk-profile-muted) !important;
+}
+
+html[data-duunicheck-theme] .cl-navbarButton[data-active="true"],
+html[data-duunicheck-theme] .cl-navbarButton:hover,
+html[data-duunicheck-theme] .cl-userProfilePage button:not(.cl-userProfilePrimaryButton):hover {
+  background: var(--clerk-profile-hover) !important;
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-identityPreview,
+html[data-duunicheck-theme] .cl-profileSection,
+html[data-duunicheck-theme] .cl-profileSectionContent,
+html[data-duunicheck-theme] .cl-cardBox {
+  border-color: var(--clerk-profile-border) !important;
+  background: var(--clerk-profile-panel) !important;
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-identityPreviewText,
+html[data-duunicheck-theme] .cl-userPreviewMainIdentifier,
+html[data-duunicheck-theme] .cl-userPreviewSecondaryIdentifier,
+html[data-duunicheck-theme] .cl-formFieldLabel,
+html[data-duunicheck-theme] .cl-formFieldHintText,
+html[data-duunicheck-theme] .cl-formFieldSuccessText {
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-userProfilePage input,
+html[data-duunicheck-theme] .cl-userProfilePage select,
+html[data-duunicheck-theme] .cl-userProfilePage textarea,
+html[data-duunicheck-theme] .cl-formFieldInput,
+html[data-duunicheck-theme] .cl-otpCodeFieldInput {
+  border-color: var(--clerk-profile-border) !important;
+  background: var(--clerk-profile-input) !important;
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-userProfilePage input::placeholder,
+html[data-duunicheck-theme] .cl-userProfilePage textarea::placeholder {
+  color: var(--clerk-profile-muted) !important;
+  opacity: 1;
+}
+
+html[data-duunicheck-theme] .duuni-clerk-primary,
+html[data-duunicheck-theme] .cl-userProfilePrimaryButton,
+html[data-duunicheck-theme] .cl-profileSectionPrimaryButton,
+html[data-duunicheck-theme] .cl-formButtonPrimary {
+  border-color: var(--clerk-profile-primary) !important;
+  background: var(--clerk-profile-primary) !important;
+  color: var(--clerk-profile-primary-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-userProfilePage a,
+html[data-duunicheck-theme] .cl-backLink,
+html[data-duunicheck-theme] .cl-identityPreviewEditButton {
+  color: var(--clerk-profile-primary) !important;
+}
+
+html[data-duunicheck-theme] .cl-userProfilePage hr,
+html[data-duunicheck-theme] .cl-profileSection hr {
+  border-color: var(--clerk-profile-border) !important;
+}

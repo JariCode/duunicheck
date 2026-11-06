@@ -47,3 +47,49 @@ export const clerkAppearance = {
     userProfilePrimaryButton: 'duuni-clerk-primary',
   },
 }
+
+const profileThemeVariables = {
+  default: {
+    colorPrimary: '#caff45',
+    colorText: '#f8f3ff',
+    colorTextSecondary: '#c2b1d1',
+    colorBackground: '#1b1228',
+    colorInputBackground: '#10091b',
+    colorInputText: '#f8f3ff',
+    colorNeutral: '#c2b1d1',
+    colorDanger: '#ff759c',
+    colorSuccess: '#caff45',
+    colorWarning: '#ffbe48',
+  },
+  dark: {
+    colorPrimary: '#64f1cf',
+    colorText: '#eaf6fb',
+    colorTextSecondary: '#a9c1cb',
+    colorBackground: '#081722',
+    colorInputBackground: '#060f16',
+    colorInputText: '#eaf6fb',
+    colorNeutral: '#a9c1cb',
+    colorDanger: '#ff789c',
+    colorSuccess: '#64f1cf',
+    colorWarning: '#ffd27a',
+  },
+  light: {
+    colorPrimary: '#7045be',
+    colorText: '#302440',
+    colorTextSecondary: '#62556f',
+    colorBackground: '#fffaff',
+    colorInputBackground: '#ffffff',
+    colorInputText: '#302440',
+    colorNeutral: '#62556f',
+    colorDanger: '#a52d50',
+    colorSuccess: '#315d30',
+    colorWarning: '#805315',
+  },
+}
+
+export function clerkProfileAppearance(theme) {
+  return {
+    ...clerkAppearance,
+    variables: { ...clerkAppearance.variables, ...(profileThemeVariables[theme] || profileThemeVariables.default) },
+  }
+}
