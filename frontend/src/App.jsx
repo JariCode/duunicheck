@@ -42,7 +42,7 @@ function writeWorkspaceRoute(updates, replace = false) {
   window.history[replace ? 'replaceState' : 'pushState']({}, '', nextUrl)
 }
 const blankForm = () => ({ company: '', role: '', place: '', link: '', cvId: '', templateId: '', cvFileId: '', applicationFileIds: [], applicationText: '', notes: '', status: 'Kiinnostava', added: today(), respondedAt: '', next: '', nextDate: '' })
-const formForJob = (job) => ({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', cvFileId: job.cvFileId || '', applicationFileIds: job.applicationFileIds || [], applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
+const formForJob = (job) => ({ company: job.company, role: job.role, place: job.place || '', link: job.link || '', cvId: job.cvId || '', templateId: job.templateId || '', cvFileId: job.cvId ? '' : job.cvFileId || '', applicationFileIds: job.templateId ? [] : job.applicationFileIds || [], applicationText: '', notes: job.notes || job.applicationText || '', status: normalizeStage(job.status), added: job.added || today(), respondedAt: job.respondedAt || firstResponseDate(job.events), next: job.next || '', nextDate: job.nextDate || '' })
 function normalizeRejectedEvents(events, status, respondedAt) {
   const result = events.filter((event) => event.type !== 'Hakemus lisätty' && !(event.type === 'Kiinnostava' && event.note?.trim() === 'Hakemus lisätty'))
   if (status !== 'Hylätty') return result

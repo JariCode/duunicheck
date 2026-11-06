@@ -32,6 +32,8 @@ export const applicationSchema = z.object({
   added: date,
   events: z.array(eventSchema).max(300).optional().default([]),
 }).strict()
+  .refine((data) => !(data.cvId && data.cvFileId), { message: 'Valitse joko sovelluksen CV tai ladattu CV-tiedosto.', path: ['cvFileId'] })
+  .refine((data) => !(data.templateId && data.applicationFileIds.length), { message: 'Valitse joko sovelluksen hakemuspohja tai ladattu hakukirjetiedosto.', path: ['applicationFileIds'] })
 
 export const cvSchema = z.object({
   name: text(120).min(1),

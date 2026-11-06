@@ -3,6 +3,8 @@ import { Conversation } from '../models/Conversation.js'
 import { ConversationMessage } from '../models/ConversationMessage.js'
 import { applicationSchema } from '../utils/sanitize.js'
 import { FileAsset } from '../models/FileAsset.js'
+import { Cv } from '../models/Cv.js'
+import { Template } from '../models/Template.js'
 import { createOwnedResourceRouter } from './createOwnedResourceRouter.js'
 
 async function deleteApplicationAndConversation({ id, userId, session }) {
@@ -20,7 +22,15 @@ export const applications = createOwnedResourceRouter({
   Model: Application,
   schema: applicationSchema,
   deleteWithCascade: deleteApplicationAndConversation,
-  validateData: async ({ cvFileId, applicationFileIds }, userId) => {
+  validateData: async ({ cvId, templateId, cvFileId, applicationFileIds }, userId) => {
+    if (cvId) {
+      const cv = await Cv.findOne({ _id: cvId, userId }).select('_id').lean().catch(() => null)
+      if (!cv) return 'Valittua CV-versiota ei löydy tältä käyttäjätililtä.'
+    }
+    if (templateId) {
+      const template = await Template.findOne({ _id: templateId, userId }).select('_id').lean().catch(() => null)
+      if (!template) return 'Valittua hakemuspohjaa ei löydy tältä käyttäjätililtä.'
+    }
     const ids = [...new Set([cvFileId, ...applicationFileIds].filter(Boolean))]
     if (!ids.length) return null
     const files = await FileAsset.find({ _id: { $in: ids }, userId }).select('_id category').lean()
