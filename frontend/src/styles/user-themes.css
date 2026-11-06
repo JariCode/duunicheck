@@ -2,6 +2,19 @@
 .theme-control select{height:30px;padding:0 25px 0 9px;border:1px solid #674c78;border-radius:7px;background:#21152f;color:#f6ebff;font:700 9px 'DM Sans',Arial,sans-serif;cursor:pointer}
 .theme-control select:disabled{opacity:.65;cursor:wait}
 
+@media(max-width:740px){
+  .theme-control{gap:4px}
+  .theme-control span{display:none}
+  .theme-control select{width:clamp(90px,31vw,120px);min-width:0;padding:0 5px;height:29px;font-size:8px}
+}
+
+.workspace[data-theme="default"] .mobile-nav-toggle{border-color:#725091;background:#241632;color:#caff45}
+.workspace[data-theme="default"] .sidebar.menu-open nav{border-color:#604178;background:#120a1d;box-shadow:0 15px 45px #000b}
+.workspace[data-theme="default"] .sidebar.menu-open .nav-link{color:#d3dcff}
+.workspace[data-theme="default"] .sidebar.menu-open .nav-link:hover{background:#ffffff18}
+.workspace[data-theme="default"] .sidebar.menu-open .nav-link.current{background:#d7fb55;color:#172542}
+.workspace[data-theme="default"] .mobile-nav-backdrop{background:#07040bbd}
+
 .workspace[data-theme="dark"]{min-height:100vh;background:#07131d;color:#eaf6fb}
 .workspace[data-theme="dark"] .main{background:radial-gradient(ellipse at 75% 0,#123b4c 0,transparent 34%),radial-gradient(ellipse at 14% 75%,#10294a 0,transparent 42%),#081722}
 .workspace[data-theme="dark"] .sidebar{background:#061019;border-color:#1b3947;color:#eaf6fb}
@@ -23,6 +36,12 @@
 .workspace[data-theme="dark"] .top-avatar{background:#17475a;color:#d8ffff}
 .workspace[data-theme="dark"] .theme-control{color:#a8c4ce}
 .workspace[data-theme="dark"] .theme-control select{border-color:#326273;background:#102733;color:#e8fbff}
+.workspace[data-theme="dark"] .mobile-nav-toggle{border-color:#326273;background:#102733;color:#64f1cf}
+.workspace[data-theme="dark"] .sidebar.menu-open nav{border-color:#2b5260;background:#0b1d28;box-shadow:0 15px 45px #000b}
+.workspace[data-theme="dark"] .sidebar.menu-open .nav-link{color:#b9d2dc}
+.workspace[data-theme="dark"] .sidebar.menu-open .nav-link:hover{background:#ffffff0d}
+.workspace[data-theme="dark"] .sidebar.menu-open .nav-link.current{background:#64f1cf;color:#08201f}
+.workspace[data-theme="dark"] .mobile-nav-backdrop{background:#020a10bd}
 .workspace[data-theme="dark"] .welcome{border-color:#6bf5de99;background:radial-gradient(circle at 83% 48%,#ffc65b 0 4%,transparent 4.4%),radial-gradient(circle at 82% 48%,#54e7c155 0 18%,transparent 18.5%),radial-gradient(circle at 82% 48%,#389eff55 0 31%,transparent 31.5%),linear-gradient(112deg,#15477c 0%,#087b86 49%,#25a77d 100%);box-shadow:0 12px 50px #128c9850,0 0 0 1px #9bfff11e inset}
 .workspace[data-theme="dark"] .welcome .eyebrow{color:#a4ffe3}
 .workspace[data-theme="dark"] .welcome h1,.workspace[data-theme="dark"] .welcome p{color:#f2ffff}
@@ -108,6 +127,12 @@
 .workspace[data-theme="light"] .top-avatar{background:#e6ddfa;color:#553b86}
 .workspace[data-theme="light"] .theme-control{color:#70617e}
 .workspace[data-theme="light"] .theme-control select{border-color:#c9b9dd;background:#fffaff;color:#3a2a51}
+.workspace[data-theme="light"] .mobile-nav-toggle{border-color:#c9b9dd;background:#fffaff;color:#6940bd}
+.workspace[data-theme="light"] .sidebar.menu-open nav{border-color:#cdbede;background:#fffaff;box-shadow:0 15px 45px #32204826}
+.workspace[data-theme="light"] .sidebar.menu-open .nav-link{color:#554764}
+.workspace[data-theme="light"] .sidebar.menu-open .nav-link:hover{background:#f1eafd}
+.workspace[data-theme="light"] .sidebar.menu-open .nav-link.current{background:#e8ddff;color:#321e58}
+.workspace[data-theme="light"] .mobile-nav-backdrop{background:#251d3566}
 .workspace[data-theme="light"] .welcome{border-color:#d881ef;background:radial-gradient(circle at 83% 48%,#ffb83e 0 4%,transparent 4.4%),radial-gradient(circle at 82% 48%,#ff5c9d66 0 18%,transparent 18.5%),radial-gradient(circle at 82% 48%,#8a57f655 0 31%,transparent 31.5%),linear-gradient(112deg,#6333c5 0%,#a42da5 49%,#e74482 100%);box-shadow:0 12px 40px #8739b52b,0 0 0 1px #ffffff50 inset}
 .workspace[data-theme="light"] .welcome .eyebrow{color:#ebffab}
 .workspace[data-theme="light"] .welcome h1,.workspace[data-theme="light"] .welcome p{color:#fff}
@@ -584,13 +609,14 @@
 .theme-control select{min-width:94px;height:38px;padding-inline:12px 30px;font-size:12px}
 .theme-control select:focus-visible{outline:3px solid #ff9c52;outline-offset:2px}
 @media(max-width:740px){
+  .theme-control span{display:none}
+  .theme-control select{width:clamp(84px,31vw,120px);min-width:0;max-width:none;height:32px;padding:0 5px;font-size:9px}
   .sidebar.menu-open nav{gap:7px;padding:12px}
   .sidebar.menu-open .nav-link{min-height:48px;padding-inline:13px;font-size:15px}
   .sidebar.menu-open .nav-number{font-size:12px}
   .topbar{height:48px}
   .topbar>div{gap:8px;font-size:11px}
   .theme-control{gap:5px;font-size:10px}
-  .theme-control select{min-width:84px;height:36px;padding-inline:8px 26px;font-size:12px}
 }
 
 /* Complete light-theme contrast pass for text that used dark-theme colors. */

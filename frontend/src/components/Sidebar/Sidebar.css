@@ -20,3 +20,8 @@
 }
 
 @media(max-width:740px){.sidebar{position:fixed!important;inset:0 0 auto;height:50px}.sidebar .mobile-nav-toggle{position:relative;z-index:103}}
+
+@media(max-width:740px){
+  .sidebar.menu-open nav{max-height:calc(100dvh - 70px);overflow-y:auto}
+  .sidebar.menu-open .nav-link{min-width:0}
+}
