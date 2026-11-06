@@ -124,6 +124,20 @@ html[data-duunicheck-theme] a.cl-userButtonPopoverActionButton {
   filter: none !important;
 }
 
+/* Clerk renders custom UserButton actions with secondary text styling, while
+   its built-in manage/sign-out actions use the primary foreground. Normalize
+   every interactive row in this popover so custom legal actions match them. */
+html[data-duunicheck-theme] .duuni-clerk-popover button,
+html[data-duunicheck-theme] .duuni-clerk-popover button *,
+html[data-duunicheck-theme] .duuni-clerk-popover a,
+html[data-duunicheck-theme] .duuni-clerk-popover a *,
+html[data-duunicheck-theme] .duuni-clerk-popover [role="menuitem"],
+html[data-duunicheck-theme] .duuni-clerk-popover [role="menuitem"] * {
+  color: var(--clerk-profile-text) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
 html[data-duunicheck-theme] .duuni-clerk-menu-button:hover,
 html[data-duunicheck-theme] .cl-userButtonPopoverActionButton:hover,
 html[data-duunicheck-theme] a.cl-userButtonPopoverActionButton:hover {

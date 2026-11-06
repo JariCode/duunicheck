@@ -36,7 +36,6 @@ export const clerkAppearance = {
     userButtonPopoverRootBox: 'duuni-clerk-popover-root',
     userButtonPopoverCard: 'duuni-clerk-popover',
     userButtonPopoverActionButton: 'duuni-clerk-menu-button',
-    userButtonPopoverActionButtonText: 'duuni-clerk-menu-text',
     userButtonPopoverFooter: 'duuni-clerk-popover-footer',
     userProfileRootBox: 'duuni-clerk-profile-root',
     userProfileNavbar: 'duuni-clerk-profile-nav',
