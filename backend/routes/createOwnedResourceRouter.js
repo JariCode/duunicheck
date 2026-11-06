@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { serialize } from '../models/serialize.js'
 import { mongoIdParam, parseBody } from '../utils/sanitize.js'
 
-export function createOwnedResourceRouter({ Model, schema, deleteWithCascade, validateData }) {
+export function createOwnedResourceRouter({ Model, schema, deleteWithCascade, validateData, maxItems }) {
   const router = Router()
 
   router.get('/', async (req, res) => {
@@ -22,6 +22,9 @@ export function createOwnedResourceRouter({ Model, schema, deleteWithCascade, va
     if (validateData) {
       const validationError = await validateData(result.data, req.dbUserId)
       if (validationError) return res.status(400).json({ error: validationError })
+    }
+    if (maxItems && await Model.countDocuments({ userId: req.dbUserId }) >= maxItems) {
+      return res.status(413).json({ error: 'Enimmäismäärä on täynnä. Poista vanhoja ja yritä uudelleen.' })
     }
     const document = await Model.create({ ...result.data, userId: req.dbUserId })
     return res.status(201).json(serialize(document))

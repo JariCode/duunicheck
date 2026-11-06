@@ -21,6 +21,7 @@ async function deleteApplicationAndConversation({ id, userId, session }) {
 export const applications = createOwnedResourceRouter({
   Model: Application,
   schema: applicationSchema,
+  maxItems: 500,
   deleteWithCascade: deleteApplicationAndConversation,
   validateData: async ({ cvId, templateId, cvFileId, applicationFileIds }, userId) => {
     if (cvId) {
