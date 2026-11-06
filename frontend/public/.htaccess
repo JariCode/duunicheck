@@ -15,7 +15,7 @@
   #     (the VITE_API_URL value, e.g. your Render URL).
   #  2. Clerk test keys use *.clerk.accounts.dev. For production Clerk keys,
   #     replace that with your Clerk Frontend API domain (e.g. https://clerk.yourdomain.fi).
-  Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://BACKEND-URL.example https://*.clerk.accounts.dev https://clerk-telemetry.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+  Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://BACKEND-URL.example https://*.clerk.accounts.dev https://clerk-telemetry.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 </IfModule>
 
 # Route application paths to the frontend entry point when no static file exists.

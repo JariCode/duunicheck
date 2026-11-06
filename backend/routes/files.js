@@ -14,7 +14,8 @@ const allowedTypes = {
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.txt': 'text/plain',
 }
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: maxFileSize, files: 1, fields: 1, parts: 2 } })
+// Browsers send the filename as UTF-8 without a charset parameter; multer's default latin1 garbles ä and ö.
+const upload = multer({ storage: multer.memoryStorage(), defParamCharset: 'utf8', limits: { fileSize: maxFileSize, files: 1, fields: 1, parts: 2 } })
 
 function safeFilename(value) {
   const name = String(value || 'tiedosto').normalize('NFKC').replace(/[\\/\u0000-\u001f\u007f]/g, '_').trim().slice(0, 180)

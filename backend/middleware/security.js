@@ -2,7 +2,9 @@ import { getAuth } from '@clerk/express'
 import { ipKeyGenerator, rateLimit } from 'express-rate-limit'
 import { User } from '../models/User.js'
 
-const userOrIp = (req) => req.userId || req.auth?.userId || ipKeyGenerator(req.ip)
+// apiLimiter runs before requireUser, so req.userId is not set yet. In @clerk/express 2.x
+// req.auth is a function, so the user id must be read with getAuth().
+const userOrIp = (req) => req.userId || getAuth(req).userId || ipKeyGenerator(req.ip)
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

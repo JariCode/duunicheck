@@ -34,6 +34,16 @@ export default function AuthLanding() {
     window.addEventListener('popstate', syncRoute)
     return () => window.removeEventListener('popstate', syncRoute)
   }, [])
+  useEffect(() => {
+    if (!showLogin || inviteTicket) return undefined
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      setShowLogin(false)
+      window.history.pushState({}, '', appBasePath)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [showLogin, inviteTicket])
   const openLogin = (mode = 'sign-in') => {
     setAuthMode(mode)
     setShowLogin(true)

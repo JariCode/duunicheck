@@ -2,7 +2,13 @@ import { z } from 'zod'
 
 const text = (max) => z.string().trim().max(max)
 const optionalText = (max) => z.string().trim().max(max).optional().default('')
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional().default('')
+// The format alone lets through impossible dates such as 2026-13-45, which break the frontend.
+const isCalendarDate = (value) => {
+  const [year, month, day] = value.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day
+}
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(isCalendarDate).or(z.literal('')).optional().default('')
 const httpUrl = z.string().trim().max(2048).url().refine((value) => {
   try { return ['https:', 'http:'].includes(new URL(value).protocol) } catch { return false }
 }).or(z.literal('')).optional().default('')
