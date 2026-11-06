@@ -570,3 +570,25 @@
 .workspace[data-theme="light"] .cv-editor .form-actions{border-color:#e2d7e9;background:#fbf8fd}
 .workspace[data-theme="dark"] .cv-editor .form-heading{background:#070b10}
 .workspace[data-theme="dark"] .cv-editor .form-actions{border-color:#202b35;background:#080d12}
+
+/* Larger, easier to target primary navigation and header controls. */
+.sidebar .side-label{font-size:11px;letter-spacing:1.1px}
+.sidebar .nav-link{min-height:46px;gap:12px;padding-inline:12px;font-size:14px;font-weight:600}
+.sidebar .nav-number{font-size:12px}
+.sidebar .nav-link small{font-size:11px;font-weight:700}
+.sidebar .nav-link:focus-visible,.sidebar .brand:focus-visible,.sidebar .mobile-nav-toggle:focus-visible{outline:3px solid #ff9c52;outline-offset:2px}
+.topbar{height:62px}
+.topbar>div{gap:12px;font-size:12px}
+.topbar time{font-size:12px}
+.theme-control{gap:9px;font-size:11px}
+.theme-control select{min-width:94px;height:38px;padding-inline:12px 30px;font-size:12px}
+.theme-control select:focus-visible{outline:3px solid #ff9c52;outline-offset:2px}
+@media(max-width:740px){
+  .sidebar.menu-open nav{gap:7px;padding:12px}
+  .sidebar.menu-open .nav-link{min-height:48px;padding-inline:13px;font-size:15px}
+  .sidebar.menu-open .nav-number{font-size:12px}
+  .topbar{height:48px}
+  .topbar>div{gap:8px;font-size:11px}
+  .theme-control{gap:5px;font-size:10px}
+  .theme-control select{min-width:84px;height:36px;padding-inline:8px 26px;font-size:12px}
+}
