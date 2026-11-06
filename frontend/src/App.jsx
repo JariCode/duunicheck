@@ -3,7 +3,7 @@ import './App.css'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth, UserButton } from '@clerk/react'
 import { apiRequest, downloadMaterialFile, uploadMaterialFile } from './api'
-import { clerkProfileAppearance } from './clerkAppearance'
+import { clerkProfileAppearance, clerkUserButtonAppearance } from './clerkAppearance'
 import Sidebar from './components/Sidebar/Sidebar'
 import ApplicationForm from './components/ApplicationForm/ApplicationForm'
 import ApplicationDetails from './components/ApplicationDetails/ApplicationDetails'
@@ -70,6 +70,7 @@ export default function App() {
   const [apiError, setApiError] = useState('')
   const [theme, setTheme] = useState('default')
   const profileAppearance = useMemo(() => clerkProfileAppearance(theme), [theme])
+  const userButtonAppearance = useMemo(() => clerkUserButtonAppearance(theme), [theme])
   const [savingTheme, setSavingTheme] = useState(false)
   const [term, setTerm] = useState('')
   const [stage, setStage] = useState('Kaikki vaiheet')
@@ -366,11 +367,11 @@ export default function App() {
   return <div className="workspace" data-theme={theme}>
     <Sidebar active={section} onNavigate={(key) => { navigateSection(key); setNavOpen(false) }} count={jobs.length} isOpen={navOpen} onClose={() => setNavOpen(false)} onToggle={() => setNavOpen((open) => !open)} />
     <main className="main">
-      <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><label className="theme-control"><span>Teema</span><select aria-label="Väriteema" value={theme} onChange={changeTheme} disabled={savingTheme}><option value="default">Oletus</option><option value="dark">Tumma</option><option value="light">Vaalea</option></select></label><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton appearance={profileAppearance} userProfileProps={{ appearance: profileAppearance }}>
+      <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><label className="theme-control"><span>Teema</span><select aria-label="Väriteema" value={theme} onChange={changeTheme} disabled={savingTheme}><option value="default">Oletus</option><option value="dark">Tumma</option><option value="light">Vaalea</option></select></label><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton appearance={userButtonAppearance} userProfileProps={{ appearance: profileAppearance }}>
         <UserButton.MenuItems>
           <UserButton.Action label="manageAccount" />
-          <UserButton.Action label="Käyttöehdot" labelIcon={<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 2.5h5l3 3v8H4z"/><path d="M9 2.5v3h3M6 8h4M6 10.5h4"/></svg>} onClick={() => window.dispatchEvent(new CustomEvent('duunicheck:open-legal', { detail: 'kayttoehdot' }))} />
-          <UserButton.Action label="Tietosuojaseloste" labelIcon={<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 4.8h.01"/></svg>} onClick={() => window.dispatchEvent(new CustomEvent('duunicheck:open-legal', { detail: 'tietosuojaseloste' }))} />
+          <UserButton.Link label="Käyttöehdot" labelIcon={<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 2.5h5l3 3v8H4z"/><path d="M9 2.5v3h3M6 8h4M6 10.5h4"/></svg>} href="/kayttoehdot" />
+          <UserButton.Link label="Tietosuojaseloste" labelIcon={<svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 4.8h.01"/></svg>} href="/tietosuojaseloste" />
           <UserButton.Action label="signOut" />
         </UserButton.MenuItems>
       </UserButton></div></header>

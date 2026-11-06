@@ -93,3 +93,19 @@ export function clerkProfileAppearance(theme) {
     variables: { ...clerkAppearance.variables, ...(profileThemeVariables[theme] || profileThemeVariables.default) },
   }
 }
+
+export function clerkUserButtonAppearance(theme) {
+  const colors = profileThemeVariables[theme] || profileThemeVariables.default
+  return {
+    ...clerkAppearance,
+    variables: {
+      ...clerkAppearance.variables,
+      ...colors,
+      // Clerk intentionally renders custom account-menu links with its
+      // secondary/neutral text color. Keep those links as legible as the
+      // built-in Manage account and Sign out actions in every app theme.
+      colorTextSecondary: colors.colorText,
+      colorNeutral: colors.colorText,
+    },
+  }
+}
