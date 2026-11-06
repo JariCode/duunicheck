@@ -38,13 +38,16 @@ export const cvSchema = z.object({
   fullName: text(160).min(1),
   email: z.string().trim().max(254).email().or(z.literal('')).optional().default(''),
   phone: optionalText(40),
-  location: optionalText(120),
   photo: z.string().max(700_000).regex(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]*={0,2}$/).or(z.literal('')).optional().default(''),
   title: optionalText(160),
   summary: optionalText(5000),
   skills: optionalText(5000),
   experience: optionalText(12000),
   education: optionalText(8000),
+  certificates: optionalText(5000),
+  courses: optionalText(5000),
+  languages: optionalText(3000),
+  hobbies: optionalText(3000),
   linkedin: httpUrl,
   github: httpUrl,
   portfolio: httpUrl,
@@ -53,7 +56,14 @@ export const cvSchema = z.object({
 
 export const templateSchema = z.object({
   name: text(120).min(1),
+  fullName: optionalText(160),
+  email: z.string().trim().max(254).email().or(z.literal('')).optional().default(''),
+  phone: optionalText(40),
   body: text(20000),
+  linkedin: httpUrl,
+  github: httpUrl,
+  portfolio: httpUrl,
+  website: httpUrl,
 }).strict()
 
 export const assistantSchema = z.object({

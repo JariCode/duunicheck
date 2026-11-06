@@ -15,7 +15,7 @@ export default function ApplicationDetails({ job, cvs, templates = [], files = [
   const template = templates.find((item) => item.id === job.templateId)
   const cvFile = files.find((item) => item.id === job.cvFileId)
   const applicationFiles = files.filter((item) => (job.applicationFileIds || []).includes(item.id))
-  const printApplication = () => onPrint({ kind: 'application', job: { company: job.company, role: job.role, place: job.place }, cv: cv || {}, body: template?.body || '' })
+  const printApplication = () => onPrint({ kind: 'application', job: { company: job.company, role: job.role, place: job.place }, cv: cv ? { ...cv, fullName: template?.fullName || cv.fullName, email: template?.email || cv.email, phone: template?.phone || cv.phone, linkedin: template?.linkedin || cv.linkedin, github: template?.github || cv.github, portfolio: template?.portfolio || cv.portfolio, website: template?.website || cv.website } : (template || {}), body: template?.body || '' })
   async function addEvent(e) {
     e.preventDefault()
     if (!event.type || eventBusy) return

@@ -17,8 +17,13 @@
   .cv-print-title{margin:2mm 0 0;color:#67468f;font-size:13pt;font-weight:700}
   .cv-print-summary{max-width:125mm;margin:4mm 0 0;color:#484451;white-space:pre-wrap}
   .cv-print-photo{width:32mm;height:40mm;border:1px solid #d5cbe4;border-radius:2mm;object-fit:cover}
-  .cv-print-contact{display:flex;flex-wrap:wrap;gap:2mm 6mm;margin:0 0 8mm;padding:0 0 4mm;border-bottom:1px solid #ded9e7;list-style:none;color:#4c4854;font-size:8.5pt}
-  .cv-print-columns{display:grid;grid-template-columns:56mm minmax(0,1fr);gap:9mm;align-items:start}
+  .cv-print-contact{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2mm 8mm;margin:0 0 4mm;padding:3mm 4mm;border:1px solid #dcd2e8;border-left:1.5mm solid #7954aa;border-radius:2mm;background:#f8f6fb;color:#393642}
+  .cv-print-contact h2{margin:0;color:#493267;font-size:8.5pt}
+  .cv-print-contact>div{display:flex;flex-wrap:wrap;gap:2mm 8mm}
+  .cv-print-contact p{display:grid;gap:.5mm;margin:0;font-size:8pt}
+  .cv-print-contact p span{color:#7550a8;font-size:6.5pt;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+  .cv-print-contact a{color:#302440;font-weight:700;text-decoration:none}
+  .cv-print-columns{display:grid;grid-template-columns:56mm minmax(0,1fr);gap:9mm;align-items:stretch}
   .cv-print-sidebar{display:grid;gap:7mm;padding:6mm;border-radius:2mm;background:#f6f4f9}
   .cv-print-sidebar .print-section:last-child,.cv-print-main .print-section:last-child{margin-bottom:0}
   .cv-print-sidebar .print-section h2{font-size:10pt}
@@ -43,4 +48,59 @@
   .print-notes h1{margin-bottom:8mm}
   .print-notes .print-section{margin-bottom:7mm}
   a{color:#493267}
+}
+
+@media print{
+  .print-document.print-cv{height:297mm;padding:10mm 12mm;font-size:8pt;line-height:1.32}
+  .print-cv .cv-print-hero{min-height:0;margin:-10mm -12mm 4mm;padding:10mm 12mm 5mm;gap:8mm;border-bottom:1mm solid #7954aa;background:#f2eff8}
+  .print-cv .cv-print-hero h1{font-size:23pt;line-height:1.05}
+  .print-cv .cv-print-title{margin-top:1.5mm;font-size:10pt}
+  .print-cv .cv-print-summary{max-width:138mm;margin-top:2mm;font-size:8pt;line-height:1.32}
+  .print-cv .cv-print-photo{width:27mm;height:34mm;border:0;border-radius:1.5mm}
+  .print-cv .cv-print-contact{gap:1.5mm 6mm;margin:0 0 3mm;padding:2.5mm 3.5mm}
+  .print-cv .cv-print-contact h2{font-size:8pt}
+  .print-cv .cv-print-contact>div{gap:1.5mm 6mm}
+  .print-cv .cv-print-contact p{font-size:7.2pt}
+  .print-cv .cv-print-contact p span{font-size:6pt}
+  .print-cv .cv-print-columns{display:grid!important;grid-template-columns:53mm minmax(0,1fr)!important;column-gap:7mm;row-gap:0;align-items:stretch;width:100%;break-inside:auto;page-break-inside:auto}
+  .print-cv .cv-print-sidebar{display:flex;flex-direction:column;gap:0;min-width:0;padding:4mm;background:#f6f4f9;break-inside:auto;page-break-inside:auto}
+  .print-cv .cv-print-main{display:block;min-width:0;grid-column:2;grid-row:1;padding:4mm;border-radius:2mm;background:#fbf9fd}
+  .print-cv .print-section{margin:0 0 2.4mm;break-inside:avoid}
+  .print-cv .print-section h2{margin:0 0 1.3mm;padding-bottom:.8mm;border-bottom:.8pt solid #9273b2;font-size:8.2pt;line-height:1.1}
+  .print-cv .print-section p,.print-cv .cv-list-section li{font-size:7.2pt;line-height:1.25}
+  .print-cv .cv-list-section ul{display:grid;gap:.45mm;margin:0;padding-left:3.5mm}
+  .print-cv .cv-print-main .cv-list-section ul{display:block;columns:2;column-gap:6mm;column-fill:balance;margin:0;padding-left:3.5mm}
+  .print-cv .cv-list-section li{padding-left:.3mm;break-inside:avoid}
+  .print-cv .cv-list-section li::marker{color:#7550a8}
+  .print-cv .cv-print-main .print-section{margin-bottom:2.8mm}
+  .print-cv .cv-experience-list{display:grid;gap:1.8mm}
+  .print-cv .cv-experience-list article{break-inside:avoid}
+  .print-cv .cv-experience-list h3{margin:0 0 .5mm;color:#30233e;font-size:7.6pt;line-height:1.18}
+  .print-cv .cv-experience-list p{font-size:7.1pt;line-height:1.22;white-space:pre-wrap}
+  .print-cv .print-links{gap:1mm}
+  .print-cv .print-links li{gap:.2mm;font-size:7pt;line-height:1.2}
+  .print-cv .print-links a{font-size:6.7pt}
+
+  .print-application .letter-titlebar{margin:-17mm -18mm 6mm;padding:5mm 18mm;background:#30263b;color:#fff;text-align:center;font-size:15pt;font-weight:800;letter-spacing:2px}
+  .print-application .letter-sender{align-items:center;margin:0;padding:0 0 5mm;border:0;border-bottom:1px solid #ded9e7;background:#fff}
+  .print-application .letter-sender h1{font-size:23pt}
+  .print-application .letter-sender-name p{font-size:10pt}
+  .print-application .letter-sender ul{gap:1.5mm;font-size:8.5pt}
+  .print-application .letter-address-row{align-items:center;margin:6mm 0 8mm;padding:4mm 5mm;border:1px solid #e2d9ec;border-left:2mm solid #7954aa;border-radius:2mm;background:#f8f6fb}
+  .print-application .letter-label{margin-bottom:1.5mm;color:#7550a8;font-size:7pt;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .print-application .letter-recipient strong{font-size:11pt}
+  .print-application .letter-address-row time{display:grid;color:#63596d;font-size:8.5pt;text-align:right}
+  .print-application .letter-content{margin-top:0}
+  .print-application .letter-content h2{margin:0 0 5mm;padding-bottom:2mm;border-bottom:1pt solid #cfc2dd;color:#30233e;font-size:17pt}
+  .print-application .letter-body{max-width:none;font-size:10pt;line-height:1.65}
+  .print-application .letter-body>p{margin:0 0 4mm}
+  .print-application .letter-text-section{margin:0 0 5mm;padding:0 0 3mm 4mm;border-left:1mm solid #d6c9e4;break-inside:avoid}
+  .print-application .letter-text-section h3{margin:0 0 1.5mm;color:#50376b;font-size:10pt;line-height:1.2}
+  .print-application .letter-text-section p{margin:0}
+  .print-application .letter-signoff{margin-top:8mm;padding-top:4mm;border-top:1px solid #e2d9ec}
+  .print-application .letter-links{margin-top:7mm;padding-top:3mm;border-top:1px solid #d8cfdf;break-inside:avoid}
+  .print-application .letter-links h2{margin:0 0 2mm;color:#493267;font-size:9pt}
+  .print-application .letter-links ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5mm 7mm;margin:0;padding:0;list-style:none}
+  .print-application .letter-links li{display:flex;flex-wrap:wrap;gap:1.5mm;color:#4a4650;font-size:7.5pt;overflow-wrap:anywhere}
+  .print-application .letter-links a{color:#4f3b70;text-decoration:none;overflow-wrap:anywhere}
 }

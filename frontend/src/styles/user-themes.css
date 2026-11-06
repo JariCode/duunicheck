@@ -427,3 +427,146 @@
 :root[data-duunicheck-theme="light"]::-webkit-scrollbar-thumb{border-color:#f7f4fa;background:#d1c5df}
 :root[data-duunicheck-theme="dark"]::-webkit-scrollbar-track{background:#070b10}
 :root[data-duunicheck-theme="dark"]::-webkit-scrollbar-thumb{border-color:#070b10;background:#2a3742}
+.workspace[data-theme="light"] .cv-photo-field{border-color:#e1d8eb;background:#faf8fc}
+.workspace[data-theme="light"] .cv-photo-control{color:#372c43}
+.workspace[data-theme="light"] .cv-photo-control>small,.workspace[data-theme="light"] .cv-photo-file-name{color:#756981}
+.workspace[data-theme="light"] .file-picker-button{border-color:#ded4e8;background:#f4eff9;color:#4f3b66}
+.workspace[data-theme="light"] .cv-photo-picker:hover .file-picker-button{border-color:#bca8d2;background:#eae2f3}
+.workspace[data-theme="dark"] .cv-photo-field{border-color:#202b35;background:#080d12}
+.workspace[data-theme="dark"] .cv-photo-control{color:#cad4db}
+.workspace[data-theme="dark"] .cv-photo-control>small,.workspace[data-theme="dark"] .cv-photo-file-name{color:#84929c}
+.workspace[data-theme="dark"] .file-picker-button{border-color:#273540;background:#111820;color:#aebbc5}
+.workspace[data-theme="dark"] .cv-photo-picker:hover .file-picker-button{border-color:#3a4b59;background:#17212a}
+.workspace[data-theme="light"] .cv-list-editor{border-color:#e1d8eb;background:#faf8fc}
+.workspace[data-theme="light"] .cv-list-editor legend{color:#372c43}
+.workspace[data-theme="light"] .cv-list-editor legend small{border-color:#d2c7dd;color:#5b5065}
+.workspace[data-theme="light"] .cv-list-chip{border-color:#d5cadf;background:#fff}
+.workspace[data-theme="light"] .cv-list-chip input{color:#302440}
+.workspace[data-theme="light"] .cv-list-empty{color:#665a72}
+.workspace[data-theme="light"] .cv-list-add-form input{border-color:#cbbdd8!important;background:#fff!important;color:#302440!important}
+.workspace[data-theme="light"] .cv-list-add-form button{border-color:#cbbdd8;background:#f4eff9;color:#443651}
+.workspace[data-theme="light"] .cv-list-add-form button[type="submit"]{border-color:#9abc42;background:#dff1ae;color:#2e421c}
+.workspace[data-theme="light"] .cv-list-remove{border-color:#ded4e8;background:#fff;color:#665772}
+.workspace[data-theme="light"] .cv-list-remove:hover{border-color:#e8c7d2;background:#fff4f6;color:#91435d}
+.workspace[data-theme="light"] .cv-list-add{border-color:#d8cde4;background:#f7f3fb;color:#5b466f}
+.workspace[data-theme="light"] .cv-list-add:hover{border-color:#bca8d2;background:#eee7f6}
+.workspace[data-theme="dark"] .cv-list-editor{border-color:#202b35;background:#080d12}
+.workspace[data-theme="dark"] .cv-list-editor legend{color:#cad4db}
+.workspace[data-theme="dark"] .cv-list-editor legend small{border-color:#34414b;color:#aebbc5}
+.workspace[data-theme="dark"] .cv-list-chip{border-color:#27323d;background:#111820}
+.workspace[data-theme="dark"] .cv-list-chip input{color:#e3e8ec}
+.workspace[data-theme="dark"] .cv-list-empty{color:#aebbc5}
+.workspace[data-theme="dark"] .cv-list-add-form input{border-color:#34414b!important;background:#05090e!important;color:#e3e8ec!important}
+.workspace[data-theme="dark"] .cv-list-add-form button{border-color:#34414b;background:#111820;color:#aebbc5}
+.workspace[data-theme="dark"] .cv-list-add-form button[type="submit"]{border-color:#50604a;background:#263526;color:#e3e8ec}
+.workspace[data-theme="dark"] .cv-list-remove{border-color:#27323d;background:#111820;color:#aebbc5}
+.workspace[data-theme="dark"] .cv-list-remove:hover{border-color:#4a2734;background:#20131a;color:#d99aae}
+.workspace[data-theme="dark"] .cv-list-add{border-color:#2c3944;background:#10171e;color:#aebbc4}
+.workspace[data-theme="dark"] .cv-list-add:hover{border-color:#40515d;background:#151f28}
+
+.workspace[data-theme="light"] .confirm-backdrop{background:#2a1b3b75}
+.workspace[data-theme="light"] .confirm-dialog{border-color:#d9cce7;background:linear-gradient(145deg,#fff,#f7f3fb);box-shadow:0 24px 70px #38264e35;color:#332741}
+.workspace[data-theme="light"] .confirm-kicker{color:#7550a8}
+.workspace[data-theme="light"] .confirm-dialog h2{color:#302440}
+.workspace[data-theme="light"] .confirm-dialog p{color:#62576e}
+.workspace[data-theme="light"] .confirm-actions{border-color:#e4dbea}
+.workspace[data-theme="light"] .confirm-cancel{border-color:#ded4e8;background:#faf8fc;color:#51415f}
+.workspace[data-theme="light"] .confirm-cancel:hover{background:#eee8f5}
+.workspace[data-theme="light"] .confirm-danger{border:1px solid #e8c7d2;background:#fde8ee;box-shadow:0 3px 0 #e9ccd5;color:#84364f}
+.workspace[data-theme="light"] .confirm-danger:hover{background:#f8dce5}
+.workspace[data-theme="dark"] .confirm-backdrop{background:#020407c9}
+.workspace[data-theme="dark"] .confirm-dialog{border-color:#26323d;background:linear-gradient(145deg,#0d131a,#070b10);box-shadow:0 25px 80px #000d;color:#d7e0e6}
+.workspace[data-theme="dark"] .confirm-kicker{color:#93a17c}
+.workspace[data-theme="dark"] .confirm-dialog h2{color:#e3e8ec}
+.workspace[data-theme="dark"] .confirm-dialog p{color:#9ba8b2}
+.workspace[data-theme="dark"] .confirm-actions{border-color:#202b35}
+.workspace[data-theme="dark"] .confirm-cancel{border-color:#27323d;background:#111820;color:#aebbc5}
+.workspace[data-theme="dark"] .confirm-cancel:hover{background:#17212a}
+.workspace[data-theme="dark"] .confirm-danger{border:1px solid #4b2936;background:#27151e;box-shadow:0 3px 0 #170d12;color:#dca5b7}
+.workspace[data-theme="dark"] .confirm-danger:hover{background:#321923}
+.workspace[data-theme="light"] .welcome .eyebrow{color:#534064}
+.workspace[data-theme="light"] .welcome h1{color:#30213f;text-shadow:none}
+.workspace[data-theme="light"] .welcome p{color:#493a58}
+.workspace[data-theme="light"] .welcome:after{color:#644a8d;text-shadow:none}
+.workspace[data-theme="light"] .side-label,.workspace[data-theme="light"] .nav-number,.workspace[data-theme="light"] .account small,.workspace[data-theme="light"] .account>i{color:#6c5d79}
+.workspace[data-theme="light"] .topbar>div,.workspace[data-theme="light"] .topbar time{color:#655970}
+.workspace[data-theme="light"] .section-heading p,.workspace[data-theme="light"] .upcoming>p,.workspace[data-theme="light"] .conversion-note,.workspace[data-theme="light"] .materials-heading p,.workspace[data-theme="light"] .materials-note,.workspace[data-theme="light"] .history .section-heading p,.workspace[data-theme="light"] .privacy-note,.workspace[data-theme="light"] .permission-empty,.workspace[data-theme="light"] .connection-state,.workspace[data-theme="light"] .permission-list>small{color:#5f536b}
+.workspace[data-theme="light"] .company small,.workspace[data-theme="light"] .added,.workspace[data-theme="light"] .next-step,.workspace[data-theme="light"] .reminder>span small,.workspace[data-theme="light"] .upcoming-row small,.workspace[data-theme="light"] .job-card>span,.workspace[data-theme="light"] .job-card footer,.workspace[data-theme="light"] .card-stage-label{color:#5e5369}
+.workspace[data-theme="light"] .rows-label,.workspace[data-theme="light"] .calendar-grid>b,.workspace[data-theme="light"] .day.dim,.workspace[data-theme="light"] .axis,.workspace[data-theme="light"] .legend,.workspace[data-theme="light"] .bar-group>span,.workspace[data-theme="light"] .bar-group>small{color:#655970}
+.workspace[data-theme="light"] .search-field input::placeholder,.workspace[data-theme="light"] .form-card input::placeholder,.workspace[data-theme="light"] .form-card textarea::placeholder,.workspace[data-theme="light"] .chat-composer textarea::placeholder,.workspace[data-theme="light"] .posting-context::placeholder,.workspace[data-theme="light"] .cv-editor-grid input::placeholder,.workspace[data-theme="light"] .cv-editor-grid textarea::placeholder{color:#71657d;opacity:1}
+.workspace[data-theme="light"] button{color:#43354f}
+.workspace[data-theme="light"] .row-actions button,.workspace[data-theme="light"] .card-actions button,.workspace[data-theme="light"] .timeline-actions button,.workspace[data-theme="light"] .material-actions button,.workspace[data-theme="light"] .detail-print-actions button,.workspace[data-theme="light"] .history-event-actions button,.workspace[data-theme="light"] .calendar-controls button,.workspace[data-theme="light"] .materials-secondary,.workspace[data-theme="light"] .cv-list-add,.workspace[data-theme="light"] .cv-list-remove,.workspace[data-theme="light"] .file-picker-button{border-color:#cbbdd8;background:#fbf9fd;color:#443651}
+.workspace[data-theme="light"] .row-actions button:hover,.workspace[data-theme="light"] .card-actions button:hover,.workspace[data-theme="light"] .timeline-actions button:hover,.workspace[data-theme="light"] .material-actions button:hover,.workspace[data-theme="light"] .detail-print-actions button:hover,.workspace[data-theme="light"] .history-event-actions button:hover,.workspace[data-theme="light"] .calendar-controls button:hover,.workspace[data-theme="light"] .materials-secondary:hover,.workspace[data-theme="light"] .cv-list-add:hover{border-color:#ad99c3;background:#f0eaf6;color:#352643}
+.workspace[data-theme="light"] .row-actions .delete-action,.workspace[data-theme="light"] .card-actions .delete-action,.workspace[data-theme="light"] .timeline-actions .delete-action,.workspace[data-theme="light"] .material-actions .delete-material,.workspace[data-theme="light"] .uploaded-file-list .delete-material,.workspace[data-theme="light"] .delete-detail,.workspace[data-theme="light"] .history-event-actions .delete-action{border-color:#e0b8c5;background:#fff1f4;color:#842e49}
+.workspace[data-theme="light"] .status-picker,.workspace[data-theme="light"] .application-picker-trigger,.workspace[data-theme="light"] .theme-control select,.workspace[data-theme="light"] .list-tools select{color:#352b40}
+
+/* Keep every light-theme control legible, including buttons whose component
+   styles otherwise inherit the dark theme's pale text. Preserve semantic
+   accent, status, navigation, and destructive button treatments below. */
+.workspace[data-theme="light"] button:not(.brand):not(.nav-link):not(.mobile-nav-toggle):not(.add-button):not(.chat-send):not(.delete-action):not(.delete-material):not(.confirm-danger):not(.status-picker):not(.company-button):not(.calendar-event){
+  border-color:#b9a8cc;
+  background-color:#f6f1fb;
+  color:#302440;
+}
+.workspace[data-theme="light"] button:not(.brand):not(.nav-link):not(.mobile-nav-toggle):not(.add-button):not(.chat-send):not(.delete-action):not(.delete-material):not(.confirm-danger):not(.status-picker):not(.company-button):not(.calendar-event):hover{
+  border-color:#9679b4;
+  background-color:#e9def4;
+  color:#251832;
+}
+.workspace[data-theme="light"] button:disabled{
+  border-color:#d2c8dc;
+  background-color:#eeeaf2;
+  color:#645a70;
+  opacity:1;
+}
+.workspace[data-theme="light"] button:focus-visible,
+.workspace[data-theme="light"] a:focus-visible,
+.workspace[data-theme="light"] input:focus-visible,
+.workspace[data-theme="light"] select:focus-visible,
+.workspace[data-theme="light"] textarea:focus-visible{
+  outline:3px solid #7045be;
+  outline-offset:2px;
+}
+.workspace[data-theme="light"] .add-button,
+.workspace[data-theme="light"] .chat-send{color:#211635}
+.workspace[data-theme="light"] .delete-action,
+.workspace[data-theme="light"] .delete-material,
+.workspace[data-theme="light"] .confirm-danger{color:#842e49}
+.workspace[data-theme="light"] .nav-link.current{color:#321e58}
+.workspace[data-theme="light"] .form-card label small,
+.workspace[data-theme="light"] .cv-editor-grid label small,
+.workspace[data-theme="light"] .cv-list-editor legend,
+.workspace[data-theme="light"] .cv-photo-control>small,
+.workspace[data-theme="light"] .cv-photo-file-name,
+.workspace[data-theme="light"] .permission-list label,
+.workspace[data-theme="light"] .permission-list>small,
+.workspace[data-theme="light"] .assistant-permissions>label,
+.workspace[data-theme="light"] .connection-state,
+.workspace[data-theme="light"] .timeline-empty,
+.workspace[data-theme="light"] .file-library-empty,
+.workspace[data-theme="light"] .permission-empty{color:#51465f}
+.workspace[data-theme="light"] input::placeholder,
+.workspace[data-theme="light"] textarea::placeholder{color:#665a72;opacity:1}
+
+/* The default app theme draws the note background on ::after. Override that
+   painted layer as well as the note text so the dark theme stays readable. */
+.workspace[data-theme="dark"] .sticky-note{background:transparent;color:#e3e8ec;box-shadow:none}
+.workspace[data-theme="dark"] .sticky-note:after{background:#151d25;box-shadow:0 0 0 1px #34414b,0 8px 24px #0009;transform:none}
+.workspace[data-theme="dark"] .sticky-note>b,.workspace[data-theme="dark"] .sticky-note>p{color:#e3e8ec}
+.workspace[data-theme="dark"] .sticky-note>span{color:#64f1cf}
+.workspace[data-theme="light"] .template-section{border-color:#d2c4df;background:#fbf8fd}
+.workspace[data-theme="light"] .template-section legend,.workspace[data-theme="light"] .template-section>label{color:#302440}
+.workspace[data-theme="light"] .template-section>p,.workspace[data-theme="light"] .template-section>.template-placeholder-help{color:#5b5065}
+.workspace[data-theme="dark"] .template-section{border-color:#263b4b;background:#080d12}
+.workspace[data-theme="dark"] .template-section legend,.workspace[data-theme="dark"] .template-section>label{color:#e3e8ec}
+.workspace[data-theme="dark"] .template-section>p,.workspace[data-theme="dark"] .template-section>.template-placeholder-help{color:#aebbc5}
+.workspace[data-theme="light"] .cv-list-content{scrollbar-color:#9b6adb #eee7f4}
+.workspace[data-theme="light"] .cv-list-content::-webkit-scrollbar-track{border-color:#e1d8eb;background:#eee7f4}
+.workspace[data-theme="light"] .cv-list-content::-webkit-scrollbar-thumb{border-color:#eee7f4;background:linear-gradient(180deg,#9b6adb,#c075d7)}
+.workspace[data-theme="dark"] .cv-list-content{scrollbar-color:#506c62 #080d12}
+.workspace[data-theme="dark"] .cv-list-content::-webkit-scrollbar-track{border-color:#202b35;background:#080d12}
+.workspace[data-theme="dark"] .cv-list-content::-webkit-scrollbar-thumb{border-color:#080d12;background:linear-gradient(180deg,#506c62,#45628a)}
+.workspace[data-theme="light"] .cv-editor .form-heading{background:#fffaff}
+.workspace[data-theme="light"] .cv-editor .form-actions{border-color:#e2d7e9;background:#fbf8fd}
+.workspace[data-theme="dark"] .cv-editor .form-heading{background:#070b10}
+.workspace[data-theme="dark"] .cv-editor .form-actions{border-color:#202b35;background:#080d12}
