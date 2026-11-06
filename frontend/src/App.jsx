@@ -352,7 +352,7 @@ export default function App() {
       </div>
     </main>
     {showForm && <ApplicationForm form={form} setForm={setForm} cvs={cvs} templates={templates} files={materialFiles} editing={editingId !== null} onClose={closeForm} onSubmit={saveJob} />}
-    {selectedJob && <ApplicationDetails job={selectedJob} cvs={cvs} files={materialFiles} onDownloadFile={downloadFile} onClose={() => { setSelectedJobId(''); writeWorkspaceRoute({ selectedJobId: '' }, true) }} onAddEvent={addEvent} onUpdateEvent={updateEvent} onDeleteEvent={removeEvent} onAssistant={openAssistant} onPrint={setPrintDocument} />}
+    {selectedJob && <ApplicationDetails job={selectedJob} cvs={cvs} templates={templates} files={materialFiles} onDownloadFile={downloadFile} onClose={() => { setSelectedJobId(''); writeWorkspaceRoute({ selectedJobId: '' }, true) }} onAddEvent={addEvent} onUpdateEvent={updateEvent} onDeleteEvent={removeEvent} onAssistant={openAssistant} onPrint={setPrintDocument} />}
     <ConfirmDialog open={Boolean(pendingDeleteJob)} title="Poistetaanko hakemus?" description={pendingDeleteJob ? `${pendingDeleteJob.company} · ${pendingDeleteJob.role} ja sen keskustelu poistetaan pysyvästi.` : ''} busy={deletingJob} onConfirm={confirmDeleteJob} onCancel={() => setPendingDeleteJob(null)} />
     <PrintSheet document={printDocument} />
   </div>

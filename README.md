@@ -8,6 +8,7 @@ DuuniCheck auttaa pitämään työnhaun hakemukset, tapahtumat, muistutukset, CV
 - Hakemusten lisäys, muokkaus, poisto, tilan vaihto ja päivämäärällinen tapahtumahistoria
 - Etenemisen aikajana ja muistutuksilla täydennetty kalenteri
 - CV-kirjasto, CV-versioiden muokkaus ja tulostus sekä hakemuspohjat
+- CV:lle voi lisätä JPG-, PNG- tai WebP-kuvan; CV:n ja hakemuksen tulosteet on muotoiltu PDF-tallennusta varten
 - Hakemuskohtaiset muistiinpanot ja CV- tai hakukirjetiedostojen liittäminen
 - AI-chatin palvelinpuolella tallennettu keskusteluhistoria
 - Clerk-kirjautuminen ja MongoDB Atlas -tallennus käyttäjäkohtaisella tietojen rajauksella

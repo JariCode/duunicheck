@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 const cvSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true, maxlength: 120 },
+  photo: { type: String, maxlength: 700_000, default: '' },
   title: { type: String, maxlength: 160, default: '' },
   summary: { type: String, maxlength: 5000, default: '' },
   skills: { type: String, maxlength: 5000, default: '' },

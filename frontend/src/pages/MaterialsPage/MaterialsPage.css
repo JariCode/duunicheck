@@ -40,5 +40,12 @@
 .cv-editor{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:18px}
 .cv-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
 .cv-editor-grid>label{min-width:0}
+.cv-photo-field{display:flex;align-items:center;gap:14px;min-width:0;padding:10px;border:1px solid #49315e;border-radius:8px;background:#1a1225}
+.cv-photo-field>label{display:grid;flex:1;gap:5px;margin:0;color:#f5eaff;font-size:10px;font-weight:750}
+.cv-photo-field>label small{color:#b49fc4;font-size:8px;font-weight:500}
+.cv-photo-field input[type=file]{max-width:100%;color:#dfd0ef;font-size:9px}
+.cv-photo-preview{display:flex;align-items:center;gap:9px}
+.cv-photo-preview img,.cv-card-photo{width:58px;height:72px;border:1px solid #735091;border-radius:6px;object-fit:cover}
+.cv-card-photo{align-self:flex-start;width:64px;height:78px;margin:8px 0 0;border-color:#c5ff3e}
 .cv-editor-grid textarea{min-height:76px;max-height:120px}
 @media(max-width:740px){.cv-editor{width:min(100%,500px);max-height:calc(100dvh - 16px);padding:15px}.cv-editor-grid{grid-template-columns:1fr}}

@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
 import { safeHttpUrl } from '../../utils'
 
-function emptyCv() { return { name: '', title: '', summary: '', skills: '', experience: '', education: '', linkedin: '', github: '', portfolio: '', website: '' } }
+function emptyCv() { return { name: '', title: '', summary: '', skills: '', experience: '', education: '', linkedin: '', github: '', portfolio: '', website: '', photo: '' } }
 function emptyTemplate() { return { name: '', body: '' } }
 const fileAccept = '.pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain'
 const fileLibraries = [
@@ -66,6 +66,25 @@ export default function MaterialsPage({ cvs, templates, files, onPrint, onSaveCv
     event.preventDefault()
     try { await onSaveCv({ ...cvForm, name: cvForm.name.trim() }); setCvForm(null) } catch (error) { onError(error.message) }
   }
+  const chooseCvPhoto = (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      onError('CV-kuvan pitää olla JPG-, PNG- tai WebP-kuva.')
+      return
+    }
+    if (file.size > 512 * 1024) {
+      onError('CV-kuvan enimmäiskoko on 512 kt.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') setCvForm((current) => current ? { ...current, photo: reader.result } : current)
+    }
+    reader.onerror = () => onError('CV-kuvan lukeminen epäonnistui.')
+    reader.readAsDataURL(file)
+  }
   const saveTemplate = async (event) => {
     event.preventDefault()
     try { await onSaveTemplate({ ...templateForm, name: templateForm.name.trim() }); setTemplateForm(null) } catch (error) { onError(error.message) }
@@ -84,16 +103,13 @@ export default function MaterialsPage({ cvs, templates, files, onPrint, onSaveCv
       setPendingDelete(null)
     }
   }
-  const printCv = (cv) => {
-    const links = [['LinkedIn', cv.linkedin], ['GitHub', cv.github], ['Portfolio', cv.portfolio], ['Verkkosivu', cv.website]].filter(([, url]) => safeHttpUrl(url)).map(([label, url]) => `${label}: ${url}`).join('\n')
-    onPrint({ title: cv.name, blocks: [{ title: cv.title, body: cv.summary }, ...(links ? [{ title: 'Linkit', body: links }] : []), { title: 'Osaaminen', body: cv.skills }, { title: 'Työkokemus', body: cv.experience }, { title: 'Koulutus', body: cv.education }] })
-  }
+  const printCv = (cv) => onPrint({ kind: 'cv', title: cv.name, cv })
   return <div className="materials-page">
     <section className="file-libraries"><div className="materials-heading"><div><h3>Tiedostot</h3><p>Vedä tiedostot laatikkoon tai valitse ne laitteeltasi. Tiedostot tallennetaan omalle käyttäjätilillesi.</p></div></div>
       <div className="file-library-grid">{fileLibraries.map((library) => <FileLibrary key={library.category} {...library} files={files} uploading={uploading} setUploading={setUploading} onUpload={onUploadFile} onError={onError} onDownload={onDownloadFile} onDelete={(file) => setPendingDelete({ kind: 'file', id: file.id, name: file.name })} />)}</div>
     </section>
     <section className="materials-section"><div className="materials-heading"><div><h3>Omat CV:t</h3><p>Muokkaa yhtä CV:tä ja päivitä sitä uudelleen käytettäväksi.</p></div><div className="materials-heading-actions"><button className="add-button" onClick={() => setCvForm(emptyCv())}>＋ Lisää CV</button></div></div>
-      <div className="material-grid">{cvs.map((cv) => <article className="material-card" key={cv.id}><span className="material-type">CV-VERSIO</span><h4>{cv.name}</h4><b>{cv.title}</b><p>{cv.summary}</p>{[cv.linkedin, cv.github, cv.portfolio, cv.website].some((url) => safeHttpUrl(url)) && <div className="cv-social-links">{[['LinkedIn', cv.linkedin], ['GitHub', cv.github], ['Portfolio', cv.portfolio], ['Verkkosivu', cv.website]].filter(([, url]) => safeHttpUrl(url)).map(([label, url]) => <a key={label} href={safeHttpUrl(url)} target="_blank" rel="noopener noreferrer">{label} ↗</a>)}</div>}<small>Osaaminen: {cv.skills}</small><div className="material-actions"><button onClick={() => setCvForm({ ...cv })}>Muokkaa / päivitä</button><button onClick={() => printCv(cv)}>Tulosta / tallenna PDF</button><button className="delete-material" onClick={() => setPendingDelete({ kind: 'cv', id: cv.id, name: cv.name })}>Poista</button></div></article>)}
+      <div className="material-grid">{cvs.map((cv) => <article className="material-card" key={cv.id}><span className="material-type">CV-VERSIO</span>{cv.photo && <img className="cv-card-photo" src={cv.photo} alt="" />}<h4>{cv.name}</h4><b>{cv.title}</b><p>{cv.summary}</p>{[cv.linkedin, cv.github, cv.portfolio, cv.website].some((url) => safeHttpUrl(url)) && <div className="cv-social-links">{[['LinkedIn', cv.linkedin], ['GitHub', cv.github], ['Portfolio', cv.portfolio], ['Verkkosivu', cv.website]].filter(([, url]) => safeHttpUrl(url)).map(([label, url]) => <a key={label} href={safeHttpUrl(url)} target="_blank" rel="noopener noreferrer">{label} ↗</a>)}</div>}<small>Osaaminen: {cv.skills}</small><div className="material-actions"><button onClick={() => setCvForm({ ...cv, photo: cv.photo || '' })}>Muokkaa / päivitä</button><button onClick={() => printCv(cv)}>Tulosta / tallenna PDF</button><button className="delete-material" onClick={() => setPendingDelete({ kind: 'cv', id: cv.id, name: cv.name })}>Poista</button></div></article>)}
       {!cvs.length && <p className="empty">CV-kirjastossa ei ole vielä CV:tä. Lisää CV tai sen tiedot tähän.</p>}</div>
     </section>
     <section className="materials-section"><div className="materials-heading"><div><h3>Hakemuspohjat</h3><p>Pohjasta kopioidaan teksti hakemukseen. Muokattu teksti pysyy hakemuskohtaisena.</p></div><div className="materials-heading-actions"><button className="materials-secondary" onClick={() => setTemplateForm(emptyTemplate())}>＋ Lisää pohja</button></div></div>
@@ -103,6 +119,7 @@ export default function MaterialsPage({ cvs, templates, files, onPrint, onSaveCv
     <p className="materials-note">CV:t ja hakemuspohjat tallentuvat käyttäjätilillesi ja pysyvät siellä kirjautumiskertojen välillä.</p>
     {cvForm && <div className="overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setCvForm(null) }}><form className="form-card material-editor cv-editor" onSubmit={saveCv}><div className="form-heading"><div><span className="eyebrow">OMA CV-KIRJASTO</span><h2>{cvForm.id ? 'Muokkaa CV:tä' : 'Lisää CV'}</h2></div><button type="button" onClick={() => setCvForm(null)} aria-label="Sulje">×</button></div><div className="cv-editor-grid">
 <label>CV:n nimi<input required maxLength="120" value={cvForm.name} onChange={(e) => setCvForm({ ...cvForm, name: e.target.value })} placeholder="Esim. Frontend-kehittäjän CV" /></label>
+<div className="cv-photo-field"><label>CV-kuva<small>JPG, PNG tai WebP · enintään 512 kt</small><input type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseCvPhoto} /></label>{cvForm.photo && <div className="cv-photo-preview"><img src={cvForm.photo} alt="CV-kuvan esikatselu" /><button className="materials-secondary" type="button" onClick={() => setCvForm({ ...cvForm, photo: '' })}>Poista kuva</button></div>}</div>
 <label>Ammatillinen otsikko<input maxLength="160" value={cvForm.title} onChange={(e) => setCvForm({ ...cvForm, title: e.target.value })} placeholder="Esim. Frontend-kehittäjä" /></label>
 <label>LinkedIn-profiili<input type="url" maxLength="2048" value={cvForm.linkedin || ''} onChange={(e) => setCvForm({ ...cvForm, linkedin: e.target.value })} placeholder="https://www.linkedin.com/in/..." /></label>
 <label>GitHub<input type="url" maxLength="2048" value={cvForm.github || ''} onChange={(e) => setCvForm({ ...cvForm, github: e.target.value })} placeholder="https://github.com/..." /></label>

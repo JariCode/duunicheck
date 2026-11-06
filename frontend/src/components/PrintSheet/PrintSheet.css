@@ -1,15 +1,47 @@
 .print-document{display:none}
 @media print{
-  @page{size:A4;margin:18mm}
-  body{background:#fff!important;color:#111!important}
+  @page{size:A4;margin:0}
+  html,body,#root{width:210mm;min-height:297mm;margin:0!important;background:#fff!important}
+  body{color:#211a2a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body *{visibility:hidden}
   .print-document,.print-document *{visibility:visible}
-  .workspace,.overlay{display:none!important}
-  .print-document{display:block!important;position:absolute;inset:0;padding:0;color:#171717;background:white;font:11pt/1.55 Arial,sans-serif}
-  .print-document header{display:flex;justify-content:space-between;margin-bottom:24px;padding-bottom:10px;border-bottom:2px solid #222}
-  .print-document header strong{font-size:14pt}.print-document header small{color:#555}
-  .print-document h1{margin:0 0 22px;font-size:23pt}
-  .print-document section{margin:0 0 18px;break-inside:avoid}
-  .print-document h2{margin:0 0 5px;font-size:12pt}
-  .print-document p{margin:0;white-space:pre-wrap}
+  .workspace{display:block!important}
+  .workspace>:not(.print-document),.overlay{display:none!important}
+  .print-document{display:block!important;position:absolute;inset:0;width:210mm;min-height:297mm;box-sizing:border-box;padding:15mm 17mm;color:#211a2a;background:#fff;font:10pt/1.55 'DM Sans',Arial,sans-serif}
+  .print-brand{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9mm;padding:0 0 4mm;border-bottom:1px solid #e2d8eb;color:#57406c}
+  .print-brand strong{display:flex;align-items:center;gap:7px;font-size:11pt;font-weight:850;letter-spacing:-.3px}
+  .print-brand strong span{display:grid;place-items:center;width:8mm;height:8mm;border-radius:50%;background:#c5ff3e;color:#211a2a;font-size:11pt}
+  .print-brand small,.print-kicker{color:#75578d;font-size:7pt;font-weight:800;letter-spacing:1.3px}
+  .print-document h1{margin:2mm 0 0;color:#211a2a;font-size:27pt;line-height:1.12;letter-spacing:-.8px}
+  .print-section{margin:0 0 7mm;break-inside:avoid}
+  .print-section h2{margin:0 0 2mm;padding-bottom:1.5mm;border-bottom:2px solid #c5ff3e;color:#3b2850;font-size:11pt;line-height:1.2}
+  .print-section p{margin:0;color:#393340;white-space:pre-wrap;overflow-wrap:anywhere}
+  .cv-print-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10mm;min-height:45mm;margin-bottom:9mm;padding:9mm;border-radius:4mm;background:#241632;color:#fff;break-inside:avoid}
+  .cv-print-hero h1{color:#fff;font-size:25pt}
+  .cv-print-hero p{max-width:125mm;margin:4mm 0 0;color:#e7deee;white-space:pre-wrap}
+  .cv-print-photo{width:34mm;height:42mm;border:1.2mm solid #c5ff3e;border-radius:3mm;object-fit:cover}
+  .cv-print-columns{display:grid;grid-template-columns:58mm minmax(0,1fr);gap:9mm;align-items:start}
+  .cv-print-sidebar{display:grid;gap:7mm;padding:6mm;border-radius:3mm;background:#f4f0f7}
+  .cv-print-sidebar .print-section:last-child,.cv-print-main .print-section:last-child{margin-bottom:0}
+  .cv-print-sidebar .print-section h2{font-size:10pt}
+  .cv-print-main{min-width:0}
+  .cv-print-main .print-section{margin-bottom:8mm}
+  .print-links,.print-material-list{display:grid;gap:2mm;margin:0;padding:0;list-style:none}
+  .print-links li{display:grid;gap:.5mm;overflow-wrap:anywhere;color:#393340;font-size:8pt}
+  .print-links li span{color:#675b70}
+  .application-print-hero{margin-bottom:7mm;padding:9mm;border-left:3mm solid #c5ff3e;border-radius:2mm;background:#f4f0f7;break-inside:avoid}
+  .application-print-hero h1{margin-top:2mm}
+  .application-print-hero p{margin:2mm 0 0;color:#675b70;font-size:12pt;font-weight:700}
+  .application-print-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3mm;margin:0 0 8mm}
+  .application-print-meta>div{min-width:0;padding:3mm 4mm;border:1px solid #e2d8eb;border-radius:2mm;break-inside:avoid}
+  .application-print-meta dt{color:#75578d;font-size:7pt;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+  .application-print-meta dd{margin:1mm 0 0;color:#211a2a;font-size:9pt;font-weight:700;overflow-wrap:anywhere}
+  .application-print-link a{color:#56387a;font-size:8pt;overflow-wrap:anywhere}
+  .application-print-history ol{display:grid;gap:3mm;margin:0;padding:0;list-style:none}
+  .application-print-history li{display:grid;grid-template-columns:28mm minmax(0,1fr);gap:3mm;padding:0 0 3mm;border-bottom:1px solid #e8e1ee;break-inside:avoid}
+  .application-print-history time{color:#75578d;font-size:8pt;font-weight:700}
+  .application-print-history li p{margin-top:1mm;color:#675b70;font-size:8pt}
+  .print-generic h1{margin-bottom:8mm}
+  .print-generic .print-section{margin-bottom:7mm}
+  .print-generic .print-section h2{font-size:12pt}
 }
