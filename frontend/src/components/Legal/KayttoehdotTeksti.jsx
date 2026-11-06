@@ -30,7 +30,7 @@ export default function KayttoehdotTeksti() {
     <p>Palvelu tarjotaan ilman nimenomaisia tai oletettuja takuita lain sallimissa rajoissa. Kehittäjä ei vastaa käyttökatkoksista tai tietojen menetyksestä lain sallimissa rajoissa. Näillä ehdoilla ei rajoiteta kuluttajan pakottavaan lainsäädäntöön perustuvia oikeuksia eikä vastuuta tahallisuudesta tai törkeästä huolimattomuudesta.</p>
 
     <h2>9. Tilin päättäminen</h2>
-    <p>Voit poistaa tilisi Clerk-profiilivalikon kohdasta Hallitse tiliä. Tilin poistaminen käynnistää siihen liitettyjen DuuniCheck-tietojen poistamisen. Ehtoja rikkovan tilin käyttöä voidaan rajoittaa tai tili sulkea.</p>
+    <p>Voit poistaa tilisi sovelluksen profiilivalikon kohdasta Hallitse tiliä. Tilin poistaminen käynnistää siihen liitettyjen DuuniCheck-tietojen poistamisen. Ehtoja rikkovan tilin käyttöä voidaan rajoittaa tai tili sulkea.</p>
 
     <h2>10. Ehtojen muutokset</h2>
     <p>Uusin versio on aina luettavissa sovelluksessa. Olennaisista muutoksista pyritään ilmoittamaan etukäteen. Palvelun käytön jatkaminen muutosten jälkeen merkitsee päivitettyjen ehtojen hyväksymistä.</p>

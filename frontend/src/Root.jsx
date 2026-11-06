@@ -1,4 +1,4 @@
-import { ClerkProvider, ClerkLoading, SignedIn, SignedOut } from '@clerk/clerk-react'
+import { ClerkProvider, ClerkLoading, Show } from '@clerk/react'
 import { fiFI } from '@clerk/localizations'
 import App from './App.jsx'
 import AuthLanding from './components/AuthLanding/AuthLanding.jsx'
@@ -18,7 +18,7 @@ export default function Root() {
   return <ClerkProvider publishableKey={publishableKey} localization={fiFI} appearance={clerkAppearance} signInUrl="/sign-in" signUpUrl="/sign-up" signInFallbackRedirectUrl="/" signUpFallbackRedirectUrl="/">
     <LegalModalHost />
     <ClerkLoading><div className="auth-loading">Ladataan DuuniCheckiä…</div></ClerkLoading>
-    <SignedOut><AuthLanding /></SignedOut>
-    <SignedIn><App /></SignedIn>
+    <Show when="signed-out"><AuthLanding /></Show>
+    <Show when="signed-in"><App /></Show>
   </ClerkProvider>
 }

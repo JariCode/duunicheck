@@ -1,6 +1,6 @@
 import './AssistantPage.css'
 import { useEffect, useRef, useState } from 'react'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { apiRequest } from '../../api'
 
 function isApplicationInfoQuestion(value) {

@@ -1,0 +1,25 @@
+.custom-signup{margin-top:8px;color:#f8f3ff;font-family:'DM Sans',Arial,sans-serif}
+.custom-signup h2{margin:10px 0 6px;color:#fff;font:600 24px Fraunces,serif}
+.custom-signup-intro{margin:0 36px 18px 0;color:#c2b1d1;font-size:12px;line-height:1.5}
+.custom-signup form{display:grid;gap:13px}
+.custom-signup form>label:not(.custom-signup-consent){display:grid;gap:6px;color:#eee4f5;font-size:12px;font-weight:650}
+.custom-signup input:not([type="checkbox"]){width:100%;min-height:42px;padding:10px 12px;border:1px solid #72578a;border-radius:7px;background:#10091b;color:#fff;font:13px 'DM Sans',Arial,sans-serif}
+.custom-signup input:not([type="checkbox"]):focus-visible{outline:2px solid #caff45;outline-offset:2px}
+.custom-signup-consent{display:flex;align-items:flex-start;gap:9px;color:#d7c8e3;font-size:11px;line-height:1.5}
+.custom-signup-consent input{flex:0 0 auto;width:16px;height:16px;margin:1px 0 0;accent-color:#caff45}
+.custom-signup-consent a,.custom-signup-resend{color:#caff45;text-decoration:underline;text-underline-offset:3px}
+.custom-signup-submit,.custom-signup-google,.custom-signup-resend{min-height:42px;border-radius:7px;font:700 12px 'DM Sans',Arial,sans-serif;cursor:pointer}
+.custom-signup-submit{border:0;background:#caff45;color:#171022;box-shadow:0 3px 0 #91c92b}
+.custom-signup-submit:hover{background:#b8ef38}
+.custom-signup-submit:disabled,.custom-signup-google:disabled,.custom-signup-resend:disabled{cursor:wait;opacity:.65}
+.custom-signup-google{width:100%;border:1px solid #65487b;background:#21152f;color:#f8f3ff}
+.custom-signup-google:hover{background:#2a1a3b}
+.custom-signup-divider{display:flex;align-items:center;gap:12px;margin:14px 0;color:#b8a5c8;font-size:11px}
+.custom-signup-divider:before,.custom-signup-divider:after{content:"";height:1px;flex:1;background:#49315e}
+.custom-signup-resend{justify-self:start;padding:0;border:0;background:transparent;color:#caff45}
+.custom-signup-message{margin:14px 0 0;padding:10px 12px;border:1px solid #65487b;border-radius:7px;background:#21152f;color:#f0e3fa;font-size:12px;line-height:1.45}
+.custom-signup-code-label{display:grid;gap:9px;color:#eee4f5;font-size:12px;font-weight:650}
+.custom-signup-code{display:flex;gap:8px;justify-content:flex-start}
+.custom-signup-code input:not([type="checkbox"]){width:clamp(40px,11vw,50px);height:52px;min-height:52px;padding:0;text-align:center;border:1px solid #8a61a7;border-radius:9px;background:#10091b;color:#fff;font:700 22px 'DM Sans',Arial,sans-serif;caret-color:#caff45}
+.custom-signup-code input:not([type="checkbox"]):focus-visible{outline:2px solid #caff45;outline-offset:2px;border-color:#caff45}
+@media(max-width:420px){.custom-signup-code{gap:6px}.custom-signup-code input:not([type="checkbox"]){width:min(12vw,44px);height:46px;min-height:46px;font-size:19px}}

@@ -71,6 +71,42 @@ html[data-duunicheck-theme] .cl-userButtonPopoverCard {
   border: 1px solid var(--clerk-profile-border) !important;
   border-radius: 12px !important;
   box-shadow: 0 16px 45px var(--clerk-profile-shadow) !important;
+  background: var(--clerk-profile-bg) !important;
+  color: var(--clerk-profile-text) !important;
+}
+
+html[data-duunicheck-theme] .cl-userButtonPopoverCard .cl-userButtonPopoverActionButton,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard a.cl-userButtonPopoverActionButton,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard [class*="userButtonPopoverActionButton"],
+html[data-duunicheck-theme] .cl-userButtonPopoverCard [class*="userButtonPopoverActionButton"] *,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard .cl-userButtonPopoverActionButtonText,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard .cl-userPreviewMainIdentifier,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard .cl-userPreviewSecondaryIdentifier {
+  color: var(--clerk-profile-text) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html[data-duunicheck-theme] .cl-userButtonPopoverCard a,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard a *,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard button,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard button * {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html[data-duunicheck-theme] .cl-userButtonPopoverCard a:focus-visible,
+html[data-duunicheck-theme] .cl-userButtonPopoverCard button:focus-visible {
+  outline: 2px solid var(--clerk-profile-primary) !important;
+  outline-offset: 2px !important;
+}
+
+html[data-duunicheck-theme] .cl-userButtonPopoverCard .cl-userButtonPopoverActionButton {
+  background: transparent !important;
+}
+
+html[data-duunicheck-theme] .cl-userButtonPopoverCard .cl-userButtonPopoverActionButton:hover {
+  background: var(--clerk-profile-hover) !important;
 }
 
 html[data-duunicheck-theme] .duuni-clerk-popover-footer,
@@ -81,12 +117,16 @@ html[data-duunicheck-theme] .cl-userButtonPopoverFooter {
 }
 
 html[data-duunicheck-theme] .duuni-clerk-menu-button,
-html[data-duunicheck-theme] .cl-userButtonPopoverActionButton {
+html[data-duunicheck-theme] .cl-userButtonPopoverActionButton,
+html[data-duunicheck-theme] a.cl-userButtonPopoverActionButton {
   color: var(--clerk-profile-text) !important;
+  opacity: 1 !important;
+  filter: none !important;
 }
 
 html[data-duunicheck-theme] .duuni-clerk-menu-button:hover,
-html[data-duunicheck-theme] .cl-userButtonPopoverActionButton:hover {
+html[data-duunicheck-theme] .cl-userButtonPopoverActionButton:hover,
+html[data-duunicheck-theme] a.cl-userButtonPopoverActionButton:hover {
   background: var(--clerk-profile-hover) !important;
   color: var(--clerk-profile-text) !important;
 }
@@ -96,6 +136,13 @@ html[data-duunicheck-theme] .cl-userButtonPopoverActionButtonText,
 html[data-duunicheck-theme] .cl-userPreviewMainIdentifier,
 html[data-duunicheck-theme] .cl-userPreviewSecondaryIdentifier {
   color: var(--clerk-profile-text) !important;
+  opacity: 1 !important;
+}
+
+html[data-duunicheck-theme] .cl-userButtonPopoverCard button.duuni-clerk-menu-button:not(:disabled),
+html[data-duunicheck-theme] .cl-userButtonPopoverCard button.cl-userButtonPopoverActionButton:not(:disabled) {
+  cursor: pointer !important;
+  opacity: 1 !important;
 }
 
 html[data-duunicheck-theme] .duuni-clerk-profile-title,

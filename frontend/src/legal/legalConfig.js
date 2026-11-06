@@ -7,7 +7,7 @@ export const supportText = supportEmail || 'Ota yhteytt채 sovelluksen kehitt채j�
 
 export const providers = [
   { name: 'Domainhotelli', purpose: 'Sovelluksen verkkosivujen hosting', location: 'Suomi' },
-  { name: 'Render', purpose: 'Palvelinpuolen (backend) hosting', location: 'Yhdysvallat' },
+  { name: 'Render', purpose: 'Verkkopalvelun palvelimen yll채pito', location: 'Yhdysvallat' },
   { name: 'MongoDB Atlas', purpose: 'Tietokanta', location: 'Ruotsi (EU)' },
   { name: 'Clerk', purpose: 'K채ytt채j채tilit ja kirjautuminen', location: 'Yhdysvallat' },
   { name: 'OpenAI', purpose: 'Teko채lyavustajan vastaukset', location: 'Yhdysvallat' },
