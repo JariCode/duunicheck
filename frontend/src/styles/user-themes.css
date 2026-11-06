@@ -659,3 +659,11 @@
 .workspace[data-theme="light"] .history li:before{border-color:#fffaff}
 .workspace[data-theme="light"] .nav-link small,.workspace[data-theme="light"] .nav-link.current small{color:#4e6b00}
 .workspace[data-theme="light"] .day.dim{color:#655970}
+
+/* One high-contrast foreground for every light-theme screen and control. */
+.workspace[data-theme="light"] *{color:#211635!important}
+.workspace[data-theme="light"] .welcome h1{color:#251d35!important}
+.workspace[data-theme="light"] .welcome p{color:#382c47!important}
+.workspace[data-theme="light"] .welcome .eyebrow{color:#594278!important}
+.workspace[data-theme="light"] .api-error,.workspace[data-theme="light"] .assistant-error,.workspace[data-theme="light"] .event-error{color:#70253f!important}
+.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day.selected,.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day.startRange,.workspace[data-theme="light"] .flatpickr-calendar .flatpickr-day.endRange{color:#fff!important}
