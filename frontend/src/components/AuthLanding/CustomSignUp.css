@@ -23,3 +23,4 @@
 .custom-signup-code input:not([type="checkbox"]){width:clamp(40px,11vw,50px);height:52px;min-height:52px;padding:0;text-align:center;border:1px solid #8a61a7;border-radius:9px;background:#10091b;color:#fff;font:700 22px 'DM Sans',Arial,sans-serif;caret-color:#caff45}
 .custom-signup-code input:not([type="checkbox"]):focus-visible{outline:2px solid #caff45;outline-offset:2px;border-color:#caff45}
 @media(max-width:420px){.custom-signup-code{gap:6px}.custom-signup-code input:not([type="checkbox"]){width:min(12vw,44px);height:46px;min-height:46px;font-size:19px}}
+@media(max-width:480px){.custom-signup,.custom-signup form{width:100%;min-width:0}.custom-signup-intro{margin-right:0}.custom-signup input:not([type="checkbox"]),.custom-signup button{max-width:100%;box-sizing:border-box}.custom-signup-consent{min-width:0}.custom-signup-consent span{min-width:0;overflow-wrap:anywhere}}
