@@ -1,32 +1,6 @@
 import express, { Router } from 'express'
 import { verifyWebhook } from '@clerk/express/webhooks'
-import { Application } from '../models/Application.js'
-import { Conversation } from '../models/Conversation.js'
-import { ConversationMessage } from '../models/ConversationMessage.js'
-import { Cv } from '../models/Cv.js'
-import { Template } from '../models/Template.js'
-import { User } from '../models/User.js'
-import { FileAsset } from '../models/FileAsset.js'
-
-async function removeUserAndData(clerkId) {
-  const user = await User.findOne({ clerkId }).select('_id').lean()
-  if (!user) return
-
-  // Clerk/Svix retries a delivery when it does not receive a 2xx response.
-  // These owner-scoped deletes are idempotent, so execute them concurrently
-  // and remove the user row only after every collection has been cleaned.
-  // This avoids a multi-collection transaction delaying the webhook response.
-  const userId = user._id
-  await Promise.all([
-    Application.deleteMany({ userId }),
-    Cv.deleteMany({ userId }),
-    Template.deleteMany({ userId }),
-    FileAsset.deleteMany({ userId }),
-    ConversationMessage.deleteMany({ userId }),
-    Conversation.deleteMany({ userId }),
-  ])
-  await User.deleteOne({ _id: userId })
-}
+import { ClerkDeletionJob } from '../models/ClerkDeletionJob.js'
 
 export function createClerkWebhookRouter({ signingSecret = process.env.CLERK_WEBHOOK_SIGNING_SECRET } = {}) {
   const router = Router()
@@ -48,11 +22,21 @@ export function createClerkWebhookRouter({ signingSecret = process.env.CLERK_WEB
     if (typeof clerkId !== 'string' || !/^user_[A-Za-z0-9]+$/.test(clerkId)) {
       return res.status(400).json({ error: 'Poistotapahtumasta puuttui kelvollinen käyttäjätunniste.' })
     }
+    const svixId = req.get('svix-id')
+    if (typeof svixId !== 'string' || svixId.length < 1 || svixId.length > 200) {
+      return res.status(400).json({ error: 'Webhookista puuttui kelvollinen tapahtumatunniste.' })
+    }
 
     try {
-      await removeUserAndData(clerkId)
-      return res.status(204).end()
+      await ClerkDeletionJob.updateOne({ svixId }, {
+        $setOnInsert: { svixId, clerkId, status: 'pending', attempts: 0, nextAttemptAt: new Date() },
+      }, { upsert: true, runValidators: true })
+      // The verified event is durably queued in MongoDB. Return immediately;
+      // deletion continues in the worker and survives Render restarts.
+      return res.status(202).json({ status: 'queued' })
     } catch (error) {
+      // Duplicate deliveries race safely on the unique Svix event id.
+      if (error?.code === 11000) return res.status(202).json({ status: 'queued' })
       return next(error)
     }
   })

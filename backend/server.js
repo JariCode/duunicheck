@@ -12,6 +12,8 @@ import { Cv } from './models/Cv.js'
 import { Template } from './models/Template.js'
 import { User } from './models/User.js'
 import { FileAsset } from './models/FileAsset.js'
+import { ClerkDeletionJob } from './models/ClerkDeletionJob.js'
+import { startClerkDeletionWorker } from './services/clerkDeletionWorker.js'
 import { applications } from './routes/applications.js'
 import { assistant } from './routes/assistant.js'
 import { clerkWebhook } from './routes/clerkWebhook.js'
@@ -94,12 +96,13 @@ try {
   })
   // Build required unique/ownership indexes before accepting authenticated
   // traffic, including in production where automatic indexing is disabled.
-  await Promise.all([User.createIndexes(), Application.createIndexes(), Cv.createIndexes(), Template.createIndexes(), Conversation.createIndexes(), ConversationMessage.createIndexes(), FileAsset.createIndexes()])
+  await Promise.all([User.createIndexes(), Application.createIndexes(), Cv.createIndexes(), Template.createIndexes(), Conversation.createIndexes(), ConversationMessage.createIndexes(), FileAsset.createIndexes(), ClerkDeletionJob.createIndexes()])
 } catch (error) {
   console.error(JSON.stringify({ event: 'database_connect_failed', name: error?.name || 'Error' }))
   throw new Error('MongoDB-yhteyttä ei saatu avattua.')
 }
 
+const stopClerkDeletionWorker = startClerkDeletionWorker()
 const server = app.listen(PORT, () => console.log(`Backend käynnissä portissa ${PORT}.`))
 server.requestTimeout = 30_000
 server.headersTimeout = 15_000
@@ -107,6 +110,7 @@ server.keepAliveTimeout = 5_000
 server.maxRequestsPerSocket = 100
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, async () => {
+    stopClerkDeletionWorker()
     server.close()
     await mongoose.disconnect()
     process.exit(0)
