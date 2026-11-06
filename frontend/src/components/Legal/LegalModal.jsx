@@ -9,7 +9,7 @@ const pageDetails = {
   tietosuojaseloste: { title: 'Tietosuojaseloste', documentTitle: 'Tietosuojaseloste | DuuniCheck', Content: TietosuojaselosteTeksti },
 }
 
-export default function LegalModal({ page, onClose }) {
+export default function LegalModal({ page, theme = 'default', onClose }) {
   const panelRef = useRef(null)
   const details = pageDetails[page]
   const Content = details?.Content
@@ -57,7 +57,7 @@ export default function LegalModal({ page, onClose }) {
   if (!details || !Content) return null
   const portalTarget = document.querySelector('.cl-modalBackdrop') || document.body
 
-  return createPortal(<div className="legal-modal-backdrop" data-theme={document.documentElement.dataset.duunicheckTheme || 'default'} onClick={(event) => { event.stopPropagation(); if (event.target === event.currentTarget) onClose() }}>
+  return createPortal(<div className="legal-modal-backdrop" data-theme={theme} onClick={(event) => { event.stopPropagation(); if (event.target === event.currentTarget) onClose() }}>
     <section className="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" tabIndex="-1" ref={panelRef} onClick={(event) => event.stopPropagation()}>
       <header className="legal-modal-header">
         <h1 id="legal-modal-title">{details.title}</h1>

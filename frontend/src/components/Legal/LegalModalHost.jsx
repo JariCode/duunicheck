@@ -1,11 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useAuth } from '@clerk/react'
 import LegalModal from './LegalModal.jsx'
 import { legalHref, legalPageFromHref, legalPageFromPath } from '../../utils/legalPath.js'
 
 export default function LegalModalHost() {
+  const { isLoaded, isSignedIn } = useAuth()
   const [page, setPage] = useState(() => legalPageFromPath(window.location.pathname))
+  const [appTheme, setAppTheme] = useState('default')
   const openedByRef = useRef(null)
   const directPathRef = useRef(Boolean(legalPageFromPath(window.location.pathname)))
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return undefined
+    const updateTheme = () => {
+      const nextTheme = document.documentElement.dataset.duunicheckTheme
+      setAppTheme(['default', 'dark', 'light'].includes(nextTheme) ? nextTheme : 'default')
+    }
+    const observer = new MutationObserver(updateTheme)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-duunicheck-theme'] })
+    return () => observer.disconnect()
+  }, [isLoaded, isSignedIn])
 
   const close = useCallback(() => {
     setPage(null)
@@ -53,5 +67,5 @@ export default function LegalModalHost() {
     }
   }, [])
 
-  return page ? <LegalModal page={page} onClose={close} /> : null
+  return page ? <LegalModal page={page} theme={isSignedIn ? appTheme : 'default'} onClose={close} /> : null
 }
