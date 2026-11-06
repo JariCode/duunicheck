@@ -12,7 +12,7 @@ DuuniCheck auttaa pitämään työnhaun hakemukset, tapahtumat, muistutukset, CV
 - Hakemuskohtaiset muistiinpanot ja CV- tai hakukirjetiedostojen liittäminen
 - AI-chatin palvelinpuolella tallennettu keskusteluhistoria
 - Clerk-kirjautuminen ja MongoDB Atlas -tallennus käyttäjäkohtaisella tietojen rajauksella
-- Kolme vaihdettavaa väriteemaa (DuuniCheck, tumma ja vaalea); valinta tallentuu käyttäjän asetuksena tietokantaan
+- Kolme vaihdettavaa väriteemaa (oletus, tumma ja vaalea); valinta tallentuu käyttäjän asetuksena tietokantaan
 - Mobiiliresponsiivinen käyttöliittymä
 
 AI-avustaja voi hakea valitun hakemuksen tietoja DuuniCheckin omasta tietokannasta. Tietokantahakuja ei välitetä OpenAI:lle. AI-ehdotuksia varten palvelin käyttää vain käyttäjän viestiä ja erikseen valittuja kontekstitietoja. Ehdotus ei muuta hakemusta ennen käyttäjän hyväksyntää. OpenAI-avain tarvitaan vain tätä ehdotustoimintoa varten.
