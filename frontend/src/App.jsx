@@ -68,6 +68,8 @@ export default function App() {
   const [materialFiles, setMaterialFiles] = useState([])
   const [dataLoading, setDataLoading] = useState(true)
   const [apiError, setApiError] = useState('')
+  const [theme, setTheme] = useState('default')
+  const [savingTheme, setSavingTheme] = useState(false)
   const [term, setTerm] = useState('')
   const [stage, setStage] = useState('Kaikki vaiheet')
   const [showForm, setShowForm] = useState(() => Boolean(readWorkspaceRoute().formMode))
@@ -100,6 +102,11 @@ export default function App() {
     window.addEventListener('popstate', restoreRoute)
     return () => window.removeEventListener('popstate', restoreRoute)
   }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.duunicheckTheme = theme
+    return () => { delete document.documentElement.dataset.duunicheckTheme }
+  }, [theme])
 
   // Restore the edit form once the jobs have loaded (e.g. after a page reload).
   // State is adjusted during render instead of in an effect, so no extra
@@ -134,7 +141,8 @@ export default function App() {
       apiRequest(getToken, '/cvs'),
       apiRequest(getToken, '/templates'),
       apiRequest(getToken, '/files'),
-    ]).then(([loadedJobs, loadedCvs, loadedTemplates, loadedFiles]) => {
+      apiRequest(getToken, '/settings'),
+    ]).then(([loadedJobs, loadedCvs, loadedTemplates, loadedFiles, settings]) => {
       if (!active) return
       setJobs(loadedJobs.map((job) => {
         const status = normalizeStage(job.status)
@@ -145,11 +153,29 @@ export default function App() {
       setCvs(loadedCvs)
       setTemplates(loadedTemplates)
       setMaterialFiles(loadedFiles)
+      setTheme(['default', 'dark', 'light'].includes(settings.theme) ? settings.theme : 'default')
       setApiError('')
     }).catch((error) => { if (active) setApiError(error.message) })
       .finally(() => { if (active) setDataLoading(false) })
     return () => { active = false }
   }, [getToken, isLoaded])
+
+  async function changeTheme(event) {
+    const nextTheme = event.target.value
+    const previousTheme = theme
+    setTheme(nextTheme)
+    setSavingTheme(true)
+    try {
+      const saved = await apiRequest(getToken, '/settings', { method: 'PUT', body: { theme: nextTheme } })
+      setTheme(saved.theme)
+      setApiError('')
+    } catch (error) {
+      setTheme(previousTheme)
+      setApiError(error.message)
+    } finally {
+      setSavingTheme(false)
+    }
+  }
 
   useEffect(() => {
     if (!printDocument) return undefined
@@ -336,10 +362,10 @@ export default function App() {
   }
 
   if (dataLoading) return <div className="auth-loading">Ladataan käyttäjän tietoja…</div>
-  return <div className="workspace">
+  return <div className="workspace" data-theme={theme}>
     <Sidebar active={section} onNavigate={(key) => { navigateSection(key); setNavOpen(false) }} count={jobs.length} isOpen={navOpen} onClose={() => setNavOpen(false)} onToggle={() => setNavOpen((open) => !open)} />
     <main className="main">
-      <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton userProfileProps={{ appearance: clerkAppearance }} /></div></header>
+      <header className="topbar"><div><span>DUUNICHECK</span><i>/</i><b>{pageTitle}</b></div><div className="topbar-actions"><label className="theme-control"><span>Teema</span><select aria-label="Väriteema" value={theme} onChange={changeTheme} disabled={savingTheme}><option value="default">DuuniCheck</option><option value="dark">Tumma</option><option value="light">Vaalea</option></select></label><time>{new Intl.DateTimeFormat('fi-FI', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date())}</time><UserButton userProfileProps={{ appearance: clerkAppearance }} /></div></header>
       <div className={`content${section === 'assistant' ? ' assistant-content' : ''}`}>
         {apiError && <div className="api-error" role="alert">{apiError}</div>}
         <section className="welcome"><div><span className="eyebrow">{section === 'home' ? 'TYÖNHAKU · YLEISKATSAUS' : 'DUUNICHECK · TYÖPÖYTÄ'}</span><h1>{section === 'home' ? 'Työnhaun tilanne' : pageTitle}</h1><p>{welcomeText[section]}</p></div>{['home', 'jobs', 'board'].includes(section) && <button className="add-button" onClick={openNew}>＋ Lisää hakemus</button>}</section>

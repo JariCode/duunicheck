@@ -19,6 +19,7 @@ import { conversations } from './routes/conversations.js'
 import { cvs } from './routes/cvs.js'
 import { templates } from './routes/templates.js'
 import { files } from './routes/files.js'
+import { settings } from './routes/settings.js'
 
 const app = express()
 const PORT = Number(process.env.PORT || 5000)
@@ -69,6 +70,7 @@ app.use('/api/cvs', cvs)
 app.use('/api/templates', templates)
 app.use('/api/files', files)
 app.use('/api/assistant', assistant)
+app.use('/api/settings', settings)
 
 app.use((_req, res) => res.status(404).json({ error: 'Rajapintaa ei löytynyt.' }))
 app.use((error, req, res, _next) => {

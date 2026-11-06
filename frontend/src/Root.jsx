@@ -5,6 +5,7 @@ import AuthLanding from './components/AuthLanding/AuthLanding.jsx'
 import { clerkAppearance } from './clerkAppearance'
 import './components/AuthLanding/clerk-theme.css'
 import './components/AuthLanding/clerk-overrides.css'
+import './styles/user-themes.css'
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
