@@ -25,3 +25,8 @@
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ /index.html [L]
 </IfModule>
+
+# Browsers and install prompts expect the web app manifest with this MIME type.
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+</IfModule>
