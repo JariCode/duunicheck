@@ -59,6 +59,11 @@ const profileThemeVariables = {
     colorDanger: '#ff759c',
     colorSuccess: '#caff45',
     colorWarning: '#ffbe48',
+    colorForeground: '#f8f3ff',
+    colorMutedForeground: '#c2b1d1',
+    colorInput: '#10091b',
+    colorInputForeground: '#f8f3ff',
+    colorPrimaryForeground: '#171022',
   },
   dark: {
     colorPrimary: '#64f1cf',
