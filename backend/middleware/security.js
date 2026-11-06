@@ -2,13 +2,20 @@ import { getAuth } from '@clerk/express'
 import { ipKeyGenerator, rateLimit } from 'express-rate-limit'
 import { User } from '../models/User.js'
 
+// Limits can be raised for automated test runs with environment variables. Without them the
+// production values below are used.
+const limitFromEnv = (name, fallback) => {
+  const value = Number(process.env[name])
+  return Number.isInteger(value) && value > 0 ? value : fallback
+}
+
 // apiLimiter runs before requireUser, so req.userId is not set yet. In @clerk/express 2.x
 // req.auth is a function, so the user id must be read with getAuth().
 const userOrIp = (req) => req.userId || getAuth(req).userId || ipKeyGenerator(req.ip)
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 120,
+  limit: limitFromEnv('RATE_LIMIT_API', 120),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   keyGenerator: userOrIp,
@@ -19,7 +26,7 @@ export const apiLimiter = rateLimit({
 // the source IP. The request body remains untouched for Svix verification.
 export const webhookLimiter = rateLimit({
   windowMs: 60 * 1000,
-  limit: 120,
+  limit: limitFromEnv('RATE_LIMIT_WEBHOOK', 120),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   keyGenerator: (req) => ipKeyGenerator(req.ip),
@@ -28,7 +35,7 @@ export const webhookLimiter = rateLimit({
 
 export const fileUploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  limit: 30,
+  limit: limitFromEnv('RATE_LIMIT_UPLOAD', 30),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   keyGenerator: userOrIp,
@@ -37,7 +44,7 @@ export const fileUploadLimiter = rateLimit({
 
 export const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  limit: 20,
+  limit: limitFromEnv('RATE_LIMIT_AI', 20),
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   keyGenerator: userOrIp,
