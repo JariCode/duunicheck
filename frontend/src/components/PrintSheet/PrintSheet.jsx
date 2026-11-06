@@ -1,21 +1,27 @@
 import './PrintSheet.css'
-import { dateLabel, safeHttpUrl } from '../../utils'
+import { safeHttpUrl } from '../../utils'
+
+function personalContact(person) {
+  return [person.fullName, person.email, person.phone, person.location]
+    .filter(Boolean)
+}
 
 function CvPrint({ cv }) {
   const links = [['LinkedIn', cv.linkedin], ['GitHub', cv.github], ['Portfolio', cv.portfolio], ['Verkkosivu', cv.website]]
     .map(([label, value]) => [label, safeHttpUrl(value)])
     .filter(([, url]) => url)
+  const contact = personalContact(cv)
 
   return <>
-    <header className="print-brand"><strong><span>D</span> DuuniCheck</strong><small>ANSIOLUETTELO</small></header>
-    <section className="cv-print-hero">
-      <div><span className="print-kicker">{cv.name || 'ANSIOLUETTELO'}</span><h1>{cv.title || cv.name}</h1>{cv.summary && <p>{cv.summary}</p>}</div>
+    <header className="cv-print-hero">
+      <div><h1>{cv.fullName}</h1>{cv.title && <p className="cv-print-title">{cv.title}</p>}{cv.summary && <p className="cv-print-summary">{cv.summary}</p>}</div>
       {cv.photo && <img className="cv-print-photo" src={cv.photo} alt="" />}
-    </section>
+    </header>
+    {contact.length > 0 && <ul className="cv-print-contact">{contact.map((item) => <li key={item}>{item}</li>)}</ul>}
     <div className="cv-print-columns">
       <aside className="cv-print-sidebar">
         {cv.skills && <section className="print-section"><h2>Osaaminen</h2><p>{cv.skills}</p></section>}
-        {links.length > 0 && <section className="print-section"><h2>Verkossa</h2><ul className="print-links">{links.map(([label, url]) => <li key={label}><b>{label}</b><span>{url.replace(/^https?:\/\//, '')}</span></li>)}</ul></section>}
+        {links.length > 0 && <section className="print-section"><h2>Profiilit ja työnäytteet</h2><ul className="print-links">{links.map(([label, url]) => <li key={label}><b>{label}</b><a href={url}>{url.replace(/^https?:\/\//, '')}</a></li>)}</ul></section>}
       </aside>
       <main className="cv-print-main">
         {cv.experience && <section className="print-section"><h2>Työkokemus</h2><p>{cv.experience}</p></section>}
@@ -25,34 +31,45 @@ function CvPrint({ cv }) {
   </>
 }
 
+function replaceLetterFields(text, { job, cv }) {
+  const values = {
+    yritys: job?.company || '', company: job?.company || '', tehtävä: job?.role || '', role: job?.role || '',
+    nimi: cv?.fullName || '', name: cv?.fullName || '', sijainti: job?.place || '', place: job?.place || '',
+  }
+  return text.replace(/\{\{\s*(yritys|company|tehtävä|role|nimi|name|sijainti|place)\s*\}\}/gi, (_, key) => values[key.toLowerCase()] || '')
+}
+
 function ApplicationPrint({ document }) {
-  const { job } = document
-  const link = safeHttpUrl(job.link)
-  const events = [...(job.events || [])].sort((a, b) => a.date.localeCompare(b.date))
-  const metadata = [
-    ['Tila', job.status],
-    ['Lähetyspäivä', job.added ? dateLabel(job.added) : '—'],
-    ['Vastauspäivä', job.respondedAt ? dateLabel(job.respondedAt) : '—'],
-    ['Seuraava tehtävä', job.next || '—'],
-    ['Muistutuspäivä', job.nextDate ? dateLabel(job.nextDate) : '—'],
-  ]
+  const { job = {}, cv = {}, body = '' } = document
+  const contact = [cv.email, cv.phone, cv.location].filter(Boolean)
+  const letterBody = replaceLetterFields(body, { job, cv }).trim()
+  const date = new Intl.DateTimeFormat('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())
+  const hasGreeting = /^(hei|hyvä|arvoisa)\b/im.test(letterBody)
+  const hasClosing = /(ystävällisin terveisin|ystävällisin|terveisin|parhain terveisin)/i.test(letterBody)
+  const paragraphs = letterBody ? letterBody.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean) : []
 
   return <>
-    <header className="print-brand"><strong><span>D</span> DuuniCheck</strong><small>HAKEMUKSEN YHTEENVETO</small></header>
-    <section className="application-print-hero"><span className="print-kicker">TYÖPAIKKA</span><h1>{job.role}</h1><p>{job.company}{job.place ? ` · ${job.place}` : ''}</p></section>
-    <dl className="application-print-meta">{metadata.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-    {link && <section className="print-section application-print-link"><h2>Työpaikkailmoitus</h2><a href={link}>{link}</a></section>}
-    {(document.cvName || document.templateName || document.cvFileName || document.applicationFileNames?.length > 0) && <section className="print-section"><h2>Liitetyt materiaalit</h2><ul className="print-material-list">{document.cvName && <li>CV-versio: {document.cvName}</li>}{document.templateName && <li>Hakemuspohja: {document.templateName}</li>}{document.cvFileName && <li>CV-tiedosto: {document.cvFileName}</li>}{document.applicationFileNames?.map((name) => <li key={name}>Hakemustiedosto: {name}</li>)}</ul></section>}
-    {job.notes && <section className="print-section application-print-notes"><h2>Muistiinpanot</h2><p>{job.notes}</p></section>}
-    {events.length > 0 && <section className="print-section application-print-history"><h2>Tapahtumahistoria</h2><ol>{events.map((event, index) => <li key={`${event.date}-${event.type}-${index}`}><time>{dateLabel(event.date)}</time><div><b>{event.type}</b>{event.note && <p>{event.note}</p>}</div></li>)}</ol></section>}
+    <header className="letter-sender">
+      <div className="letter-sender-name"><h1>{cv.fullName}</h1>{cv.title && <p>{cv.title}</p>}</div>
+      <ul>{contact.map((item) => <li key={item}>{item}</li>)}</ul>
+    </header>
+    <div className="letter-address-row"><div className="letter-recipient"><strong>{job.company}</strong>{job.place && <span>{job.place}</span>}</div><time>{date}</time></div>
+    <section className="letter-content">
+      <h2>{job.role}</h2>
+      <div className="letter-body">
+        {!hasGreeting && <p>Hyvä rekrytointitiimi,</p>}
+        {paragraphs.map((paragraph, index) => <p key={index}>{paragraph.split('\n').map((line, lineIndex) => <span key={lineIndex}>{lineIndex > 0 && <br />}{line}</span>)}</p>)}
+        {!hasClosing && <p className="letter-signoff">Ystävällisin terveisin,<br />{cv.fullName}</p>}
+      </div>
+    </section>
   </>
 }
 
 export default function PrintSheet({ document }) {
   if (!document) return null
-  return <article className={`print-document${document.kind ? ` print-${document.kind}` : ' print-generic'}`}>
-    {document.kind === 'cv' ? <CvPrint cv={document.cv} /> : document.kind === 'application' ? <ApplicationPrint document={document} /> : <>
-      <header className="print-brand"><strong><span>D</span> DuuniCheck</strong><small>TYÖNHAUN MATERIAALIT</small></header>
+  const kind = document.kind || 'notes'
+  return <article className={`print-document print-${kind}`}>
+    {kind === 'cv' ? <CvPrint cv={document.cv} /> : kind === 'application' ? <ApplicationPrint document={document} /> : kind === 'letter' ? <div className="letter-body">{document.body}</div> : <>
       <h1>{document.title}</h1>
       {document.blocks.map((block, index) => <section className="print-section" key={index}><h2>{block.title}</h2><p>{block.body}</p></section>)}
     </>}

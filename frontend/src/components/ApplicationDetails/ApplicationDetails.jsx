@@ -15,7 +15,7 @@ export default function ApplicationDetails({ job, cvs, templates = [], files = [
   const template = templates.find((item) => item.id === job.templateId)
   const cvFile = files.find((item) => item.id === job.cvFileId)
   const applicationFiles = files.filter((item) => (job.applicationFileIds || []).includes(item.id))
-  const printApplication = () => onPrint({ kind: 'application', title: job.company, job, cvName: cv?.name || '', templateName: template?.name || '', cvFileName: cvFile?.name || '', applicationFileNames: applicationFiles.map((file) => file.name) })
+  const printApplication = () => onPrint({ kind: 'application', job: { company: job.company, role: job.role, place: job.place }, cv: cv || {}, body: template?.body || '' })
   async function addEvent(e) {
     e.preventDefault()
     if (!event.type || eventBusy) return

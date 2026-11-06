@@ -35,6 +35,10 @@ export const applicationSchema = z.object({
 
 export const cvSchema = z.object({
   name: text(120).min(1),
+  fullName: text(160).min(1),
+  email: z.string().trim().max(254).email().or(z.literal('')).optional().default(''),
+  phone: optionalText(40),
+  location: optionalText(120),
   photo: z.string().max(700_000).regex(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]*={0,2}$/).or(z.literal('')).optional().default(''),
   title: optionalText(160),
   summary: optionalText(5000),

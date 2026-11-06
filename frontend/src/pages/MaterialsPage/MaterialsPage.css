@@ -49,3 +49,4 @@
 .cv-card-photo{align-self:flex-start;width:64px;height:78px;margin:8px 0 0;border-color:#c5ff3e}
 .cv-editor-grid textarea{min-height:76px;max-height:120px}
 @media(max-width:740px){.cv-editor{width:min(100%,500px);max-height:calc(100dvh - 16px);padding:15px}.cv-editor-grid{grid-template-columns:1fr}}
+.template-placeholder-help{display:block;margin-top:-5px;color:#b9a8c9;font-size:10px;line-height:1.5}
