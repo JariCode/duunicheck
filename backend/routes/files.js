@@ -6,8 +6,9 @@ import { fileUploadLimiter } from '../middleware/security.js'
 
 const router = Router()
 const maxFileSize = 10 * 1024 * 1024
-// CHANGED: total storage allowed per user across all uploaded files.
+// Per-user library limits.
 const maxUserStorage = 50 * 1024 * 1024
+const maxUserFiles = 500
 const allowedTypes = {
   '.pdf': 'application/pdf',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -43,6 +44,14 @@ function validateFile(file) {
   return { name, mimeType }
 }
 
+async function getUsage(userId) {
+  const [usage] = await FileAsset.aggregate([
+    { $match: { userId } },
+    { $group: { _id: null, total: { $sum: '$size' }, count: { $sum: 1 } } },
+  ])
+  return { total: usage?.total || 0, count: usage?.count || 0 }
+}
+
 function serializeFile(file) {
   return { id: String(file._id), category: file.category, name: file.name, mimeType: file.mimeType, size: file.size, createdAt: file.createdAt }
 }
@@ -61,14 +70,10 @@ router.post('/', fileUploadLimiter, (req, res, next) => {
       if (!req.file) return res.status(400).json({ error: 'Valitse ladattava tiedosto.' })
       const validated = validateFile(req.file)
       if (validated.error) return res.status(400).json({ error: validated.error })
-      const count = await FileAsset.countDocuments({ userId: req.dbUserId })
-      if (count >= 500) return res.status(413).json({ error: 'Tiedostokirjaston 500 tiedoston raja tuli vastaan.' })
-      // CHANGED: per-user total storage quota.
-      const [usage] = await FileAsset.aggregate([
-        { $match: { userId: req.dbUserId } },
-        { $group: { _id: null, total: { $sum: '$size' } } },
-      ])
-      if ((usage?.total || 0) + req.file.buffer.length > maxUserStorage) {
+      // Early rejection before storing anything.
+      const before = await getUsage(req.dbUserId)
+      if (before.count >= maxUserFiles) return res.status(413).json({ error: 'Tiedostokirjaston 500 tiedoston raja tuli vastaan.' })
+      if (before.total + req.file.buffer.length > maxUserStorage) {
         return res.status(413).json({ error: 'Tiedostokirjaston 50 Mt:n tallennustila tuli täyteen. Poista vanhoja tiedostoja ja yritä uudelleen.' })
       }
       const file = await FileAsset.create({
@@ -79,6 +84,13 @@ router.post('/', fileUploadLimiter, (req, res, next) => {
         size: req.file.buffer.length,
         data: req.file.buffer,
       })
+      // Re-check after saving: parallel uploads can all pass the early check,
+      // so roll this one back if the library is now over either limit.
+      const after = await getUsage(req.dbUserId)
+      if (after.count > maxUserFiles || after.total > maxUserStorage) {
+        await FileAsset.deleteOne({ _id: file._id, userId: req.dbUserId })
+        return res.status(413).json({ error: 'Tiedostokirjaston tallennusraja tuli vastaan. Poista vanhoja tiedostoja ja yritä uudelleen.' })
+      }
       return res.status(201).json(serializeFile(file))
     } catch (routeError) {
       return next(routeError)
