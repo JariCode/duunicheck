@@ -1,5 +1,4 @@
 import express, { Router } from 'express'
-import mongoose from 'mongoose'
 import { verifyWebhook } from '@clerk/express/webhooks'
 import { Application } from '../models/Application.js'
 import { Conversation } from '../models/Conversation.js'
@@ -10,24 +9,23 @@ import { User } from '../models/User.js'
 import { FileAsset } from '../models/FileAsset.js'
 
 async function removeUserAndData(clerkId) {
-  const session = await mongoose.startSession()
-  try {
-    await session.withTransaction(async () => {
-      const user = await User.findOne({ clerkId }).select('_id').session(session)
-      if (!user) return
+  const user = await User.findOne({ clerkId }).select('_id').lean()
+  if (!user) return
 
-      const userId = user._id
-      await Application.deleteMany({ userId }, { session })
-      await Cv.deleteMany({ userId }, { session })
-      await Template.deleteMany({ userId }, { session })
-      await FileAsset.deleteMany({ userId }, { session })
-      await ConversationMessage.deleteMany({ userId }, { session })
-      await Conversation.deleteMany({ userId }, { session })
-      await User.deleteOne({ _id: userId }, { session })
-    })
-  } finally {
-    await session.endSession()
-  }
+  // Clerk/Svix retries a delivery when it does not receive a 2xx response.
+  // These owner-scoped deletes are idempotent, so execute them concurrently
+  // and remove the user row only after every collection has been cleaned.
+  // This avoids a multi-collection transaction delaying the webhook response.
+  const userId = user._id
+  await Promise.all([
+    Application.deleteMany({ userId }),
+    Cv.deleteMany({ userId }),
+    Template.deleteMany({ userId }),
+    FileAsset.deleteMany({ userId }),
+    ConversationMessage.deleteMany({ userId }),
+    Conversation.deleteMany({ userId }),
+  ])
+  await User.deleteOne({ _id: userId })
 }
 
 export function createClerkWebhookRouter({ signingSecret = process.env.CLERK_WEBHOOK_SIGNING_SECRET } = {}) {
