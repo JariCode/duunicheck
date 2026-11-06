@@ -1,6 +1,6 @@
 import './styles/app-theme.css'
 import './App.css'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth, UserButton } from '@clerk/clerk-react'
 import { apiRequest, downloadMaterialFile, uploadMaterialFile } from './api'
 import { clerkAppearance } from './clerkAppearance'
@@ -72,7 +72,7 @@ export default function App() {
   const [stage, setStage] = useState('Kaikki vaiheet')
   const [showForm, setShowForm] = useState(() => Boolean(readWorkspaceRoute().formMode))
   const [editingId, setEditingId] = useState(() => readWorkspaceRoute().formMode.startsWith('edit:') ? readWorkspaceRoute().formMode.slice(5) : null)
-  const restoredEditId = useRef('')
+  const [restoredEditId, setRestoredEditId] = useState('')
   const [selectedJobId, setSelectedJobId] = useState(() => readWorkspaceRoute().selectedJobId)
   const [assistantJobId, setAssistantJobId] = useState(() => readWorkspaceRoute().assistantJobId)
   const [form, setForm] = useState(blankForm)
@@ -95,21 +95,22 @@ export default function App() {
       setShowForm(Boolean(route.formMode))
       setEditingId(route.formMode.startsWith('edit:') ? route.formMode.slice(5) : null)
       setForm(blankForm())
-      restoredEditId.current = ''
+      setRestoredEditId('')
     }
     window.addEventListener('popstate', restoreRoute)
     return () => window.removeEventListener('popstate', restoreRoute)
   }, [])
 
-  useEffect(() => {
-    if (!showForm || editingId === null) return
-    const id = String(editingId)
-    if (restoredEditId.current === id) return
-    const job = jobs.find((item) => String(item.id) === id)
-    if (!job) return
-    setForm(formForJob(job))
-    restoredEditId.current = id
-  }, [jobs, showForm, editingId])
+  // Restore the edit form once the jobs have loaded (e.g. after a page reload).
+  // State is adjusted during render instead of in an effect, so no extra
+  // cascading render is triggered.
+  if (showForm && editingId !== null && restoredEditId !== String(editingId)) {
+    const job = jobs.find((item) => String(item.id) === String(editingId))
+    if (job) {
+      setForm(formForJob(job))
+      setRestoredEditId(String(editingId))
+    }
+  }
 
   function navigateSection(nextSection) {
     setSection(nextSection)
@@ -165,14 +166,14 @@ export default function App() {
     setEditingId(null)
     setForm(blankForm())
     setShowForm(true)
-    restoredEditId.current = ''
+    setRestoredEditId('')
     writeWorkspaceRoute({ formMode: 'new' })
   }
   function openEdit(job) {
     setEditingId(job.id)
     setForm(formForJob(job))
     setShowForm(true)
-    restoredEditId.current = String(job.id)
+    setRestoredEditId(String(job.id))
     writeWorkspaceRoute({ formMode: `edit:${job.id}` })
   }
   function apiApplication(job) {
