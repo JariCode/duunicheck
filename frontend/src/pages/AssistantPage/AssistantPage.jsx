@@ -19,9 +19,9 @@ const sameLink = (left, right) => {
 }
 
 // Deadline arrives as YYYY-MM-DD and is written as pp.kk.vvvv.
-function postingDraftNotes({ deadline, source }) {
+function postingDraftNotes({ deadline }) {
   const [year, month, day] = (deadline || '').split('-')
-  return [deadline && `Haku päättyy: ${day}.${month}.${year}`, source && `Lähde: ${source}`].filter(Boolean).join('\n')
+  return deadline ? `Haku päättyy: ${day}.${month}.${year}` : ''
 }
 
 // Local list covers links edited after parsing; the server result covers the parsed link.

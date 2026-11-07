@@ -21,7 +21,7 @@ The AI assistant reads the selected application from DuuniCheck's own database. 
 
 ### Prefilled application from a job posting
 
-The user copies the posting text (and optionally its link) from a job board or an employer's site and pastes it into the chat with the option "Tee hakemuspohja ilmoituksesta" selected in the context column. The backend (`POST /api/assistant/parse-posting`) sends only the pasted text to OpenAI, which extracts the company, role, location, application deadline and source. The link is never opened. Nothing is saved until the user reviews the draft and saves it; the deadline and source go into the notes.
+The user copies the posting text (and optionally its link) from a job board or an employer's site and pastes it into the chat with the option "Tee hakemuspohja ilmoituksesta" selected in the context column. The backend (`POST /api/assistant/parse-posting`) sends only the pasted text to OpenAI, which extracts the company, role, location and application deadline. The link is never opened. Nothing is saved until the user reviews the draft and saves it; the deadline goes into the notes.
 
 ## Requirements
 

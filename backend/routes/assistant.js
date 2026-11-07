@@ -6,8 +6,7 @@ import { Conversation } from '../models/Conversation.js'
 import { ConversationMessage } from '../models/ConversationMessage.js'
 import { Cv } from '../models/Cv.js'
 import { Template } from '../models/Template.js'
-import { assistantSchema, parseBody, parsePostingSchema, postingDraftSchema, postingSources } from '../utils/sanitize.js'
-import { jobBoardForHostname } from '../utils/jobPostingFetch.js'
+import { assistantSchema, parseBody, parsePostingSchema, postingDraftSchema } from '../utils/sanitize.js'
 
 export const assistant = Router()
 
@@ -103,13 +102,12 @@ const postingDraftFormat = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    required: ['company', 'role', 'place', 'deadline', 'source'],
+    required: ['company', 'role', 'place', 'deadline'],
     properties: {
       company: { type: 'string', description: 'Hiring company name exactly as written in the posting, or empty.' },
       role: { type: 'string', description: 'Job title as written in the posting, or empty.' },
       place: { type: 'string', description: 'Work location as written in the posting, or empty.' },
       deadline: { type: 'string', description: 'Application deadline as YYYY-MM-DD, or empty.' },
-      source: { type: 'string', enum: [...postingSources, ''], description: 'Where the posting was published, or empty if not stated.' },
     },
   },
 }
@@ -138,7 +136,6 @@ assistant.post('/parse-posting', aiLimiter, async (req, res) => {
         'role: tehtävänimike sellaisena kuin se on ilmoituksessa.',
         'place: työn sijainti (paikkakunta tai etätyö) sellaisena kuin se on ilmoituksessa.',
         `deadline: haun päättymispäivä muodossa VVVV-KK-PP vain, jos tekstissä on selvä päättymispäivä. Jos vuosi puuttuu, käytä päivän ${helsinkiToday()} jälkeistä lähintä kyseistä päivää. Jos haku on toistaiseksi auki tai päivää ei mainita, palauta tyhjä.`,
-        'source: Duunitori tai Työmarkkinatori vain, jos teksti osoittaa ilmoituksen olevan kyseiseltä sivustolta; työnantajan sivu vain, jos teksti osoittaa sen olevan työnantajan omalta sivulta; muuten tyhjä.',
       ].join('\n'),
       input: `Työpaikkailmoituksen teksti:\n${postingText}`,
     })
@@ -151,9 +148,8 @@ assistant.post('/parse-posting', aiLimiter, async (req, res) => {
   if (!parsed || typeof parsed !== 'object') return res.status(502).json({ error: 'AI-vastausta ei voitu lukea. Yritä uudelleen.' })
   const draft = postingDraftSchema.parse(parsed)
 
-  // The link is never opened; only its hostname decides the source label.
+  // The link is never opened; it is only compared with the user's existing applications.
   const url = link ? new URL(link) : null
-  const source = url ? (jobBoardForHostname(url.hostname) || 'työnantajan sivu') : draft.source
 
   let existingApplication = null
   if (url) {
@@ -168,7 +164,7 @@ assistant.post('/parse-posting', aiLimiter, async (req, res) => {
   }
 
   return res.json({
-    draft: { company: draft.company, role: draft.role, place: draft.place, link, deadline: draft.deadline, source },
+    draft: { company: draft.company, role: draft.role, place: draft.place, link, deadline: draft.deadline },
     existingApplication,
   })
 })
