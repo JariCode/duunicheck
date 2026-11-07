@@ -35,11 +35,11 @@ export default function TietosuojaselosteTeksti() {
     </div>
 
     <h2>4. Mistä tiedot saadaan</h2>
-    <p>Tiedot saadaan sinulta, kirjautumistietojen osalta Clerkiltä ja tarvittaessa Googlelta. Jos annat työpaikkailmoituksen linkin ja pyydät avustajaa lukemaan ilmoituksen, palvelu hakee linkistä julkisesti näkyvää ilmoitustekstiä. Duunitorin ja Työmarkkinatorin ilmoituksia ei haeta automaattisesti, vaan niiden teksti liitetään itse avustajaan.</p>
+    <p>Tiedot saadaan sinulta, kirjautumistietojen osalta Clerkiltä ja tarvittaessa Googlelta. Palvelu ei hae työpaikkailmoituksia linkeistä, vaan liität ilmoituksen tekstin itse.</p>
 
     <h2>5. Tekoälyavustaja</h2>
     <p>OpenAI:lle lähetetään avustajalle kirjoittamasi viesti ja vain erikseen valitsemasi konteksti. Konteksti voi sisältää hakemuksen yrityksen ja tehtävän, ilmoitustekstin, valitsemasi CV:n otsikon, yhteenvedon, taidot, kokemuksen ja koulutuksen, hakemuspohjan tekstin tai hakemuksen muistiinpanot tai hakemustekstin. CV-kuvaa, CV:n sähköpostia, puhelinnumeroa tai koko tiedostoa ei tämän toiminnon kautta lähetetä OpenAI:lle.</p>
-    <p>Kun teet työpaikkailmoituksesta esitäytetyn hakemuksen, OpenAI:lle lähetetään vain liittämäsi ilmoituksen teksti, josta poimitaan yritys, tehtävä, paikkakunta, haun päättymispäivä ja lähde. Liittämääsi linkkiä ei lähetetä OpenAI:lle eikä avata. Ilmoituksen tekstiä tai esitäytettyä hakemusta ei tallenneta, ennen kuin hyväksyt sen.</p>
+    <p>Kun teet työpaikkailmoituksesta esitäytetyn hakemuksen, OpenAI:lle lähetetään vain viestikenttään liittämäsi teksti, josta poimitaan yritys, tehtävä, paikkakunta, haun päättymispäivä ja lähde. Jos tekstissä on linkki, se lähetetään tekstin mukana, mutta palvelu ei avaa sitä. Ilmoituksen tekstiä ei tallenneta, eikä sitä lisätä keskusteluhistoriaan. Esitäytetty hakemus tallennetaan vasta, kun hyväksyt sen.</p>
     <p>Avustajaa käytetään vain, kun lähetät sille viestin. Avustaja antaa ehdotuksia eikä muuta tallennettuja tietoja ilman hyväksyntääsi. Viesti ja vastaus tallennetaan DuuniCheckin tietokantaan keskusteluhistoriana. Keskustelu poistuu, kun poistat siihen liittyvän hakemuksen tai tilisi.</p>
     <p>OpenAI kertoo, ettei avustajalle lähetettyjä tietoja käytetä mallien kouluttamiseen oletuksena. OpenAI voi säilyttää viestejä ja vastauksia väärinkäytösten valvontaa varten enintään 30 päivää, ellei laki tai palvelun suojaaminen edellytä pidempää aikaa. Käytäntö voi muuttua, joten OpenAI:n ajantasaiset ehdot on hyvä tarkistaa. Älä lähetä avustajalle arkaluonteisia tietoja.</p>
 

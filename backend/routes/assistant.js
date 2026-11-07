@@ -7,7 +7,7 @@ import { ConversationMessage } from '../models/ConversationMessage.js'
 import { Cv } from '../models/Cv.js'
 import { Template } from '../models/Template.js'
 import { assistantSchema, parseBody, parsePostingSchema, postingDraftSchema, postingSources } from '../utils/sanitize.js'
-import { BlockedJobBoardError, fetchJobPostingText, jobBoardForHostname } from '../utils/jobPostingFetch.js'
+import { jobBoardForHostname } from '../utils/jobPostingFetch.js'
 
 export const assistant = Router()
 
@@ -42,18 +42,12 @@ assistant.post('/suggest', aiLimiter, async (req, res) => {
     context.includeCv && /^[a-f\d]{24}$/i.test(application.cvId || '') ? Cv.findOne({ _id: application.cvId, userId: req.dbUserId }).lean() : null,
     context.includeTemplate && /^[a-f\d]{24}$/i.test(application.templateId || '') ? Template.findOne({ _id: application.templateId, userId: req.dbUserId }).lean() : null,
   ])
-  let postingText = context.postingText
-  if (context.includePosting && !postingText) {
-    if (!application.link) return res.status(400).json({ error: 'Tälle hakemukselle ei ole ilmoituslinkkiä. Liitä ilmoituksen teksti.' })
-    try { postingText = await fetchJobPostingText(application.link) }
-    catch (error) {
-      if (error instanceof BlockedJobBoardError) return res.status(400).json({ error: error.message })
-      return res.status(422).json({ error: 'Ilmoitussivua ei voitu lukea turvallisesti. Liitä ilmoituksen teksti käsin.' })
-    }
-  }
+  // Postings are never fetched from links (job boards and employer sites may forbid automated access); the user pastes the text.
+  const { postingText } = context
+  if (context.includePosting && !postingText) return res.status(400).json({ error: 'Liitä työpaikkailmoituksen teksti. Ilmoituksia ei haeta linkeistä automaattisesti.' })
   const selectedContext = [
     `Tehtävä: ${application.role} yrityksessä ${application.company}`,
-    context.includePosting && postingText && `Käyttäjän toimittama tai linkistä luettu työpaikkailmoituksen teksti:\n${postingText}`,
+    context.includePosting && postingText && `Käyttäjän toimittama työpaikkailmoituksen teksti:\n${postingText}`,
     cv && `Käyttäjän valitsema CV:\n${cv.title}\n${cv.summary}\n${cv.skills}\n${cv.experience}\n${cv.education}`,
     template && `Käyttäjän valitsema hakemuspohja:\n${template.body}`,
     context.includeApplication && `Hakemuksen muistiinpanot:\n${application.notes || application.applicationText || ''}`,
