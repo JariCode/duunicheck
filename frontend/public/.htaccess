@@ -18,6 +18,9 @@
   Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://BACKEND-URL.example https://*.clerk.accounts.dev https://clerk-telemetry.com; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 </IfModule>
 
+# Never show a file listing for folders such as assets/ and img/.
+Options -Indexes
+
 # Route application paths to the frontend entry point when no static file exists.
 # FallbackResource resolves relative to this .htaccess file's own directory, so
 # it works unchanged whether the app is deployed at the domain root or in a
