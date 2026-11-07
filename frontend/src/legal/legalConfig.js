@@ -1,4 +1,4 @@
-export const legalUpdated = '6. marraskuuta 2026'
+export const legalUpdated = '7. marraskuuta 2026'
 export const controllerName = 'JariCode (jaricode.fi)'
 
 const configuredEmail = import.meta.env.VITE_SUPPORT_EMAIL?.trim() || ''

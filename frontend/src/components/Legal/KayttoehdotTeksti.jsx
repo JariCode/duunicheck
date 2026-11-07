@@ -6,7 +6,7 @@ export default function KayttoehdotTeksti() {
     <p>Nämä käyttöehdot koskevat DuuniCheck-palvelun käyttöä. Hyväksyt ehdot, kun luot tilin tai käytät palvelua.</p>
 
     <h2>1. Palvelusta</h2>
-    <p>DuuniCheck on työnhaun hallintapalvelu. Sen avulla voit seurata hakemuksia ja niiden tapahtumia, käyttää kalenteria, ylläpitää CV-versioita ja hakemuspohjia, tallentaa tiedostoja sekä keskustella tekoälyavustajan kanssa. Palvelu on maksuton harjoitus- ja portfoliohanke. Se tarjotaan sellaisena kuin se on, eikä palvelu takaa työpaikkaa tai haastattelua.</p>
+    <p>DuuniCheck on työnhaun hallintapalvelu. Sen avulla voit seurata hakemuksia ja niiden tapahtumia, käyttää kalenteria, ylläpitää CV-versioita ja hakemuspohjia, tallentaa tiedostoja, keskustella tekoälyavustajan kanssa sekä luoda esitäytettyjä hakemuksia työpaikkailmoituksista. Palvelu on maksuton harjoitus- ja portfoliohanke. Se tarjotaan sellaisena kuin se on, eikä palvelu takaa työpaikkaa tai haastattelua.</p>
 
     <h2>2. Tili ja ikäraja</h2>
     <p>Palvelun ikäraja on 18 vuotta. Palvelu on kutsupohjainen. Tilin voi luoda vain kehittäjän lähettämällä kutsulla. Kirjautuminen ja tilin hallinta toimivat Clerk-palvelun kautta. Google-kirjautuminen on valinnainen. Vastaat itse kirjautumistietojesi ja laitteidesi turvallisuudesta.</p>
@@ -22,6 +22,7 @@ export default function KayttoehdotTeksti() {
 
     <h2>6. Tekoälyavustaja</h2>
     <p>Tekoälyn vastaukset voivat olla virheellisiä tai puutteellisia. Ne eivät ole ammatillista neuvontaa. Tarkista ehdotukset ennen kuin käytät niitä. Avustaja ei muuta hakemustietojasi ilman omaa hyväksyntääsi.</p>
+    <p>Avustaja voi tehdä liittämästäsi työpaikkailmoituksen tekstistä esitäytetyn hakemuksen. Tarkista tiedot ennen tallennusta. Hakemus tallennetaan vasta, kun hyväksyt sen.</p>
 
     <h2>7. Saatavuus ja muutokset</h2>
     <p>Palvelua voidaan muuttaa, keskeyttää tai lopettaa. Tietoja voi kadota esimerkiksi kehityksen aikana. Säilytä tärkeät asiakirjasi myös muualla. Merkittävistä muutoksista pyritään ilmoittamaan etukäteen.</p>

@@ -35,15 +35,16 @@ export default function TietosuojaselosteTeksti() {
     </div>
 
     <h2>4. Mistä tiedot saadaan</h2>
-    <p>Tiedot saadaan sinulta, kirjautumistietojen osalta Clerkiltä ja tarvittaessa Googlelta. Jos annat työpaikkailmoituksen linkin ja pyydät avustajaa lukemaan ilmoituksen, palvelu hakee linkistä julkisesti näkyvää ilmoitustekstiä.</p>
+    <p>Tiedot saadaan sinulta, kirjautumistietojen osalta Clerkiltä ja tarvittaessa Googlelta. Jos annat työpaikkailmoituksen linkin ja pyydät avustajaa lukemaan ilmoituksen, palvelu hakee linkistä julkisesti näkyvää ilmoitustekstiä. Duunitorin ja Työmarkkinatorin ilmoituksia ei haeta automaattisesti, vaan niiden teksti liitetään itse avustajaan.</p>
 
     <h2>5. Tekoälyavustaja</h2>
     <p>OpenAI:lle lähetetään avustajalle kirjoittamasi viesti ja vain erikseen valitsemasi konteksti. Konteksti voi sisältää hakemuksen yrityksen ja tehtävän, ilmoitustekstin, valitsemasi CV:n otsikon, yhteenvedon, taidot, kokemuksen ja koulutuksen, hakemuspohjan tekstin tai hakemuksen muistiinpanot tai hakemustekstin. CV-kuvaa, CV:n sähköpostia, puhelinnumeroa tai koko tiedostoa ei tämän toiminnon kautta lähetetä OpenAI:lle.</p>
+    <p>Kun teet työpaikkailmoituksesta esitäytetyn hakemuksen, OpenAI:lle lähetetään vain liittämäsi ilmoituksen teksti, josta poimitaan yritys, tehtävä, paikkakunta, haun päättymispäivä ja lähde. Liittämääsi linkkiä ei lähetetä OpenAI:lle eikä avata. Ilmoituksen tekstiä tai esitäytettyä hakemusta ei tallenneta, ennen kuin hyväksyt sen.</p>
     <p>Avustajaa käytetään vain, kun lähetät sille viestin. Avustaja antaa ehdotuksia eikä muuta tallennettuja tietoja ilman hyväksyntääsi. Viesti ja vastaus tallennetaan DuuniCheckin tietokantaan keskusteluhistoriana. Keskustelu poistuu, kun poistat siihen liittyvän hakemuksen tai tilisi.</p>
     <p>OpenAI kertoo, ettei avustajalle lähetettyjä tietoja käytetä mallien kouluttamiseen oletuksena. OpenAI voi säilyttää viestejä ja vastauksia väärinkäytösten valvontaa varten enintään 30 päivää, ellei laki tai palvelun suojaaminen edellytä pidempää aikaa. Käytäntö voi muuttua, joten OpenAI:n ajantasaiset ehdot on hyvä tarkistaa. Älä lähetä avustajalle arkaluonteisia tietoja.</p>
 
     <h2>6. Evästeet ja selaimen tallennus</h2>
-    <p>Clerk voi käyttää evästeitä kirjautumisen ja tilin suojaamisen yhteydessä. DuuniCheck ei tallenna hakemus-, CV- tai keskustelutietoja selaimeen eikä käytä analytiikkaa tai mainoksia. Käyttöliittymän fontit ladataan Google Fonts -palvelusta, jolloin Google saa laitteen IP-osoitteen fonttien toimittamista varten.</p>
+    <p>Clerk voi käyttää evästeitä kirjautumisen ja tilin suojaamisen yhteydessä. DuuniCheck ei tallenna hakemus-, CV- tai keskustelutietoja selaimeen eikä käytä analytiikkaa tai mainoksia. Käyttöliittymän fontit ladataan DuuniCheckin omalta palvelimelta, joten niiden lataamisesta ei välity tietoja kolmansille osapuolille.</p>
 
     <h2>7. Palveluntarjoajat ja tietojen siirrot</h2>
     <div className="legal-table-scroll" role="region" aria-label="Palveluntarjoajat ja sijainnit" tabIndex="0">
