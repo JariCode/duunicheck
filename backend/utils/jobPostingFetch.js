@@ -7,6 +7,24 @@ const MAX_BYTES = 500_000
 const MAX_REDIRECTS = 3
 const REQUEST_TIMEOUT_MS = 8_000
 const BLOCKED_PUBLIC_SERVICE_IPS = new Set(['168.63.129.16'])
+// Job boards whose robots.txt or data source forbids automated fetching. Subdomains are included.
+const JOB_BOARDS = [
+  { domain: 'duunitori.fi', name: 'Duunitori' },
+  { domain: 'tyomarkkinatori.fi', name: 'Työmarkkinatori' },
+]
+
+export class BlockedJobBoardError extends Error {
+  constructor() {
+    super('Duunitorin ja Työmarkkinatorin ilmoituksia ei voi hakea automaattisesti. Kopioi ilmoituksen teksti ja liitä se apuriin.')
+    this.name = 'BlockedJobBoardError'
+  }
+}
+
+// Returns the job board name for a hostname, or '' when it is not a known job board.
+export function jobBoardForHostname(value) {
+  const hostname = String(value || '').toLowerCase().replace(/\.$/, '')
+  return JOB_BOARDS.find(({ domain }) => hostname === domain || hostname.endsWith(`.${domain}`))?.name || ''
+}
 
 export function isPublicAddress(value) {
   try {
@@ -18,6 +36,8 @@ export function isPublicAddress(value) {
 function parseSafeUrl(value) {
   let url
   try { url = new URL(value) } catch { throw new Error('URL ei ole kelvollinen.') }
+  // Checked first and on every redirect hop, so a redirect cannot bypass the block.
+  if (jobBoardForHostname(url.hostname)) throw new BlockedJobBoardError()
   if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443')) {
     throw new Error('Sallittu vain julkinen HTTPS-työpaikkasivu.')
   }

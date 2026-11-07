@@ -383,7 +383,7 @@ export default function App() {
         {section === 'board' && <BoardPage jobs={jobs} actions={actions} />}
         {section === 'calendar' && <CalendarPage jobs={jobs} onDetails={actions.onDetails} />}
         {section === 'materials' && <MaterialsPage cvs={cvs} templates={templates} files={materialFiles} onPrint={setPrintDocument} onSaveCv={(item) => saveMaterial('cv', item)} onDeleteCv={(id) => deleteMaterial('cv', id)} onSaveTemplate={(item) => saveMaterial('template', item)} onDeleteTemplate={(id) => deleteMaterial('template', id)} onUploadFile={saveMaterialFile} onDeleteFile={removeMaterialFile} onDownloadFile={downloadFile} onError={setApiError} />}
-        {section === 'assistant' && <AssistantPage key={assistantJobId} jobs={jobs} cvs={cvs} templates={templates} initialJobId={assistantJobId} onSelectJob={(id) => { setAssistantJobId(id); writeWorkspaceRoute({ assistantJobId: id }, true) }} />}
+        {section === 'assistant' && <AssistantPage key={assistantJobId} jobs={jobs} cvs={cvs} templates={templates} initialJobId={assistantJobId} onSelectJob={(id) => { setAssistantJobId(id); writeWorkspaceRoute({ assistantJobId: id }, true) }} onApplicationCreated={(created) => setJobs((all) => [{ ...created, notes: created.notes || '', status: normalizeStage(created.status), events: created.events || [], initial: created.company?.[0]?.toUpperCase() || '?', color: 'coral' }, ...all])} />}
       </div>
     </main>
     {showForm && <ApplicationForm form={form} setForm={setForm} cvs={cvs} templates={templates} files={materialFiles} editing={editingId !== null} onClose={closeForm} onSubmit={saveJob} />}

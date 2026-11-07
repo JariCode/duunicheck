@@ -87,6 +87,23 @@ export const assistantSchema = z.object({
   }).strict(),
 }).strict()
 
+export const parsePostingSchema = z.object({
+  postingText: text(16000).min(1),
+  link: httpUrl,
+}).strict()
+
+export const postingSources = ['Duunitori', 'Työmarkkinatori', 'työnantajan sivu']
+
+// Normalizes model output: invalid or missing values become empty instead of failing the request.
+const clipped = (max) => z.string().catch('').transform((value) => value.trim().slice(0, max))
+export const postingDraftSchema = z.object({
+  company: clipped(160),
+  role: clipped(160),
+  place: clipped(160),
+  deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(isCalendarDate).catch(''),
+  source: z.enum(postingSources).catch(''),
+})
+
 export const localAnswerSchema = z.object({
   message: text(4000).min(1),
 }).strict()
