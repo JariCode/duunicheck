@@ -199,4 +199,4 @@ backend/
 - React and Vite
 - Express and MongoDB/Mongoose
 - Clerk
-- OpenAI API for the optional AI features# duunicheck
+- OpenAI API for the optional AI features

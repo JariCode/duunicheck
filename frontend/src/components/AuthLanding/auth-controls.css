@@ -1,0 +1,42 @@
+.auth-close:disabled {
+  display: none;
+}
+.duuni-clerk-footer,
+.duuni-clerk-footer-pages,
+.cl-footer,
+.cl-footerPages,
+.cl-footerAction {
+  border-color: #49315e !important;
+  background: #160f21 !important;
+  color: #b8a5c8 !important;
+}
+.duuni-clerk-footer {
+  border-top: 1px solid #49315e !important;
+  border-radius: 0 0 12px 12px !important;
+}
+.duuni-clerk-footer-pages,
+.cl-footerPages {
+  color: #b8a5c8 !important;
+}
+.cl-footerPagesText,
+.cl-footerActionText {
+  color: #b8a5c8 !important;
+}
+.cl-footerPagesLink,
+.cl-footerActionLink {
+  color: #caff45 !important;
+}
+.cl-footerPagesLink img,
+.cl-footer img {
+  filter: brightness(0) invert(0.85);
+  opacity: 0.8;
+}
+.cl-formFieldAction,
+.cl-formFieldActionLink,
+.cl-identityPreviewEditButton {
+  color: #caff45 !important;
+}
+.cl-formFieldAction:hover,
+.cl-formFieldActionLink:hover {
+  color: #e3ffa3 !important;
+}

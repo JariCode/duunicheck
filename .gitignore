@@ -1,0 +1,20 @@
+# Claude Code settings and local files
+.claude/
+
+# Temporary helper scripts and files
+tmp/
+
+# Local environment files; keep the documented templates tracked
+.env
+.env.*
+*.env
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+
+# Local MCP and editor settings
+.mcp.json
+.idea/
+.vscode/

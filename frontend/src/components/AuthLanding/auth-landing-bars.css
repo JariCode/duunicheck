@@ -1,0 +1,18 @@
+.auth-bars i:nth-child(1),
+.auth-bars i:nth-child(5) {
+  background: linear-gradient(180deg, #27d9eb, #3787ff);
+}
+.auth-bars i:nth-child(2),
+.auth-bars i:nth-child(6) {
+  background: linear-gradient(180deg, #bd72ff, #7349ed);
+}
+.auth-bars i:nth-child(3),
+.auth-bars i:nth-child(7) {
+  background: linear-gradient(180deg, #a3f878, #39b86e);
+}
+.auth-bars i:nth-child(4) {
+  background: linear-gradient(180deg, #ff6294, #e73169);
+}
+.auth-card-footer strong {
+  font-size: 26px;
+}

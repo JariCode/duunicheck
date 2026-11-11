@@ -1,0 +1,225 @@
+.duuni-clerk-root {
+  width: 100%;
+  margin: 0 auto;
+}
+.duuni-clerk-card,
+.cl-card {
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg, #1b1228, #160f21) !important;
+  color: #f8f3ff !important;
+  box-shadow: none !important;
+}
+.duuni-clerk-title,
+.cl-headerTitle {
+  color: #fff !important;
+  font:
+    700 20px 'DM Sans',
+    sans-serif !important;
+}
+.duuni-clerk-subtitle,
+.cl-headerSubtitle {
+  color: #c2b1d1 !important;
+  font:
+    12px/1.5 'DM Sans',
+    sans-serif !important;
+}
+.duuni-clerk-label,
+.cl-formFieldLabel {
+  color: #eee4f5 !important;
+  font:
+    600 11px 'DM Sans',
+    sans-serif !important;
+}
+.duuni-clerk-input:not([type='checkbox']):not([type='radio']),
+.cl-formFieldInput:not([type='checkbox']):not([type='radio']),
+.cl-otpCodeFieldInput {
+  min-height: 42px !important;
+  border: 1px solid #72578a !important;
+  border-radius: 7px !important;
+  background: #10091b !important;
+  color: #fff !important;
+  font:
+    13px 'DM Sans',
+    sans-serif !important;
+  box-shadow: none !important;
+}
+.duuni-clerk-input:not([type='checkbox']):not([type='radio']):focus,
+.cl-formFieldInput:not([type='checkbox']):not([type='radio']):focus,
+.cl-otpCodeFieldInput:focus {
+  border-color: #caff45 !important;
+  box-shadow: 0 0 0 2px #caff4530 !important;
+}
+.duuni-clerk-input::placeholder,
+.cl-formFieldInput::placeholder {
+  color: #a696b4 !important;
+}
+.duuni-clerk-hint,
+.duuni-clerk-footer-text,
+.cl-formFieldHintText,
+.cl-footerActionText {
+  color: #c2b1d1 !important;
+}
+.duuni-clerk-primary,
+.cl-formButtonPrimary {
+  min-height: 42px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: #caff45 !important;
+  color: #171022 !important;
+  font:
+    700 12px 'DM Sans',
+    sans-serif !important;
+  box-shadow: 0 3px 0 #91c92b !important;
+}
+.duuni-clerk-primary:hover,
+.cl-formButtonPrimary:hover {
+  background: #b8ef38 !important;
+}
+.duuni-clerk-primary:disabled,
+.cl-formButtonPrimary:disabled {
+  opacity: 0.6 !important;
+}
+.duuni-clerk-link,
+.cl-footerActionLink,
+.cl-formResendCodeLink,
+.cl-identityPreviewEditButton {
+  color: #caff45 !important;
+  font-weight: 700 !important;
+}
+.duuni-clerk-social,
+.cl-socialButtonsBlockButton {
+  min-height: 42px !important;
+  border: 1px solid #65487b !important;
+  border-radius: 7px !important;
+  background: #21152f !important;
+  color: #f8f3ff !important;
+  font:
+    600 12px 'DM Sans',
+    sans-serif !important;
+}
+.duuni-clerk-social:hover,
+.cl-socialButtonsBlockButton:hover {
+  border-color: #bd63ff !important;
+  background: #2a1a3b !important;
+}
+.duuni-clerk-divider,
+.cl-dividerLine {
+  border-color: #49315e !important;
+}
+.duuni-clerk-divider-text,
+.cl-dividerText {
+  color: #b8a5c8 !important;
+  font-size: 11px !important;
+}
+.duuni-clerk-error,
+.cl-formFieldErrorText,
+.cl-alertText,
+.cl-formFieldWarningText {
+  color: #ff9aba !important;
+  font-size: 11px !important;
+}
+.duuni-clerk-alert,
+.cl-alert {
+  border: 1px solid #ff4d9166 !important;
+  border-radius: 7px !important;
+  background: #341426 !important;
+}
+.duuni-clerk-popover-root {
+  z-index: 120 !important;
+}
+.duuni-clerk-popover,
+.cl-userButtonPopoverCard {
+  border: 1px solid #65487b !important;
+  border-radius: 12px !important;
+  background: #1b1228 !important;
+  color: #f8f3ff !important;
+  box-shadow: 0 16px 45px #0009 !important;
+}
+.duuni-clerk-menu-button,
+.cl-userButtonPopoverActionButton {
+  border-radius: 7px !important;
+  color: #f8f3ff !important;
+}
+.duuni-clerk-menu-button:hover,
+.cl-userButtonPopoverActionButton:hover {
+  background: #2b1b3c !important;
+}
+.duuni-clerk-menu-text,
+.cl-userButtonPopoverActionButtonText,
+.cl-userPreviewMainIdentifier,
+.cl-userPreviewSecondaryIdentifier {
+  color: #f8f3ff !important;
+}
+.duuni-clerk-popover-footer,
+.cl-userButtonPopoverFooter {
+  border-color: #49315e !important;
+  background: #160f21 !important;
+}
+.cl-userProfile-root,
+.cl-userProfilePage,
+.cl-userProfileNavbar {
+  background: #1b1228 !important;
+  color: #f8f3ff !important;
+}
+.cl-userProfileSection,
+.cl-userProfileSectionTitle,
+.cl-userProfileSectionSubtitle {
+  color: #f8f3ff !important;
+}
+.cl-modalBackdrop {
+  background: #0b0611cc !important;
+  backdrop-filter: blur(7px);
+}
+.cl-modalContent {
+  border: 1px solid #65487b !important;
+  border-radius: 14px !important;
+  background: #1b1228 !important;
+  color: #f8f3ff !important;
+  box-shadow: 0 25px 80px #000a !important;
+}
+.auth-dialog .cl-lastAuthenticationStrategyBadge {
+  color: #caff45 !important;
+  background: #2b1b3c !important;
+  border-color: #65487b !important;
+  opacity: 1 !important;
+}
+
+/* Clerk checkboxes and radio buttons look like the app's own (CustomSignUp consent): a native
+   16 x 16 px control in the accent color, not a text field box. */
+.cl-formFieldCheckboxInput,
+.cl-formFieldRadioInput,
+.cl-formFieldInput[type='checkbox'],
+.cl-formFieldInput[type='radio'] {
+  flex: 0 0 auto !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 1px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  appearance: auto !important;
+  accent-color: #caff45 !important;
+  cursor: pointer;
+}
+
+.cl-formFieldCheckboxInput:focus,
+.cl-formFieldRadioInput:focus,
+.cl-formFieldInput[type='checkbox']:focus,
+.cl-formFieldInput[type='radio']:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.cl-formFieldCheckboxInput:focus-visible,
+.cl-formFieldRadioInput:focus-visible,
+.cl-formFieldInput[type='checkbox']:focus-visible,
+.cl-formFieldInput[type='radio']:focus-visible {
+  outline: 2px solid #caff45 !important;
+  outline-offset: 2px !important;
+}
