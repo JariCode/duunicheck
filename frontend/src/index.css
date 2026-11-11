@@ -65,3 +65,22 @@ a {
     overflow-x: hidden;
   }
 }
+/* iOS Safari zooms the page into a focused field whose font is smaller than 16px. On touch devices
+   every text field is at least 16px. !important and the specificity (0,3,3) win the component rules,
+   including the !important ones on the CV list fields (0,1,1) and the Clerk fields (0,3,0).
+   The sign-up code boxes are larger already. */
+@media (pointer: coarse) {
+  html:root
+    :is(
+      input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color']),
+      textarea,
+      select
+    ):not(.custom-signup-code input) {
+    font-size: 16px !important;
+  }
+  /* These fixed heights are too low for 16px text. */
+  html .cv-list-chip input,
+  html .cv-list-add-form input {
+    height: auto !important;
+  }
+}

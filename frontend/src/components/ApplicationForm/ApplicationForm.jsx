@@ -1,11 +1,15 @@
 import './ApplicationForm.css'
 import { stages } from '../../utils'
 import DateField from '../DateField/DateField'
+import { useState } from 'react'
 import { useDialog } from '../../utils/useDialog.js'
+import { isCoarsePointer } from '../../utils/pointer.js'
 
 export default function ApplicationForm({ form, setForm, cvs, templates, files = [], editing, onClose, onSubmit }) {
+  // On touch devices the dialog itself gets focus, so the keyboard does not open as soon as the form opens.
+  const [touch] = useState(isCoarsePointer)
   // Escape works like the dialog's own close button.
-  const panelRef = useDialog({ onClose })
+  const panelRef = useDialog({ onClose, initialFocus: touch ? 'panel' : 'first' })
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
   const chooseCv = (value) =>
     setForm((current) => ({
@@ -54,7 +58,7 @@ export default function ApplicationForm({ form, setForm, cvs, templates, files =
           <label>
             Yritys
             <input
-              autoFocus
+              autoFocus={!touch}
               required
               maxLength="120"
               value={form.company}
