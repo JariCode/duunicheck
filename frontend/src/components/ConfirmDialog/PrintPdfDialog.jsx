@@ -4,16 +4,68 @@ import './ConfirmDialog.css'
 
 const safariHelp = 'Avaa duunicheck.jaricode.fi Safarissa, niin voit tulostaa tai tallentaa PDF:n sieltä.'
 const retryHelp = 'avaa duunicheck.jaricode.fi Safarissa ja tulosta tai tallenna PDF sieltä.'
-// How long an opened PDF keeps its blob URL after the dialog closes, so the new tab has time to load it.
+// How long an opened PDF keeps its blob URL after the dialog closes, so the new tab has time to load
+// and print it.
 const revokeDelay = 60_000
+// How long to wait for the PDF to load in the new tab before giving up on opening the print dialog.
+const printWaitLimit = 5_000
+const printCheckInterval = 100
+
+// Opens the print dialog of the tab that shows the PDF once the PDF has loaded there. The tab shows a
+// blob URL made by this page, so it has the same origin and its window can be read. Until the PDF
+// arrives the tab holds the initial about:blank, which is already complete, so the address is checked
+// too. Nothing that goes wrong here is shown: the PDF stays open and Cmd+P still prints it.
+function printWhenLoaded(pdfWindow, url) {
+  const started = Date.now()
+  let done = false
+  let timer = null
+  const stop = () => {
+    done = true
+    window.clearInterval(timer)
+  }
+  const loaded = () => {
+    try {
+      return !pdfWindow.closed && pdfWindow.location.href === url && pdfWindow.document.readyState === 'complete'
+    } catch {
+      return false
+    }
+  }
+  const printNow = () => {
+    if (done || !loaded()) return
+    stop()
+    try {
+      pdfWindow.focus()
+      pdfWindow.print()
+    } catch {
+      // Cmd+P in the PDF tab still prints it.
+    }
+  }
+  try {
+    pdfWindow.addEventListener('load', printNow)
+  } catch {
+    // The checks below find the loaded PDF too.
+  }
+  timer = window.setInterval(() => {
+    if (done) return
+    let closed = true
+    try {
+      closed = pdfWindow.closed
+    } catch {
+      // A window that cannot be read is treated as closed.
+    }
+    if (closed || Date.now() - started > printWaitLimit) stop()
+    else printNow()
+  }, printCheckInterval)
+}
 
 // Printing where window.print() is not used. The PDF is made on the device when the dialog opens, and
 // the button is shown once it is ready, because Safari only allows these actions right after a click:
 // - mode 'share' (the iOS home screen app, where window.print() does nothing): the button hands the PDF
 //   to the iOS share sheet (Tulosta, Tallenna tiedostoihin).
 // - mode 'open' (Safari and the Dock app on a Mac, where window.print() places the document too high
-//   on the paper): the button opens the PDF in a new tab, in Safari's PDF view, which prints it exactly
-//   (Cmd+P). If the new tab is blocked, the PDF is downloaded instead.
+//   on the paper): the button opens the PDF in a new tab, in Safari's PDF view, and opens its print
+//   dialog once the PDF has loaded; the PDF view prints it exactly. If the print dialog does not open,
+//   Cmd+P prints the PDF. If the new tab is blocked, the PDF is downloaded instead.
 export default function PrintPdfDialog({ document, mode = 'share', onClose }) {
   const open = Boolean(document)
   const opensPdf = mode === 'open'
@@ -86,7 +138,9 @@ export default function PrintPdfDialog({ document, mode = 'share', onClose }) {
   // Called directly in the click handler, with nothing awaited before it, so Safari allows the new tab.
   function openPdf() {
     urlRef.current ||= URL.createObjectURL(pdf.file)
-    if (window.open(urlRef.current, '_blank')) {
+    const pdfWindow = window.open(urlRef.current, '_blank')
+    if (pdfWindow) {
+      printWhenLoaded(pdfWindow, urlRef.current)
       onClose()
       return
     }
@@ -117,7 +171,7 @@ export default function PrintPdfDialog({ document, mode = 'share', onClose }) {
         ? `${pdf.file.name} on valmis. Valitse jakovalikosta Tulosta tai Tallenna tiedostoihin.`
         : downloaded
           ? `Selain ei avannut uutta välilehteä, joten ${pdf.file.name} ladattiin Lataukset-kansioon. Löydät sen Safarin latauksista (nuolipainike työkalupalkissa) tai Finderista kohdasta Lataukset. Avaa tiedosto ja tulosta se: Cmd+P. Jos Safari kysyy, sallitaanko lataukset tältä sivustolta, valitse Salli ja paina Avaa PDF uudelleen.`
-          : `${pdf.file.name} on valmis. Avaa PDF painamalla nappia: se avautuu uuteen välilehteen, jossa voit tulostaa sen (Cmd+P) tai tallentaa.`
+          : `${pdf.file.name} on valmis. Paina Avaa PDF: PDF avautuu uuteen välilehteen ja tulostusikkuna aukeaa. Jos tulostusikkuna ei aukea, tulosta painamalla Cmd+P. Sulje PDF:n välilehti painamalla Cmd+W.`
   return (
     <div
       className="confirm-backdrop"
