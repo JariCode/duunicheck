@@ -9,6 +9,7 @@ DuuniCheck keeps job applications, their events, reminders, CV versions and cove
 - Progress timeline and a calendar with reminders
 - CV library, editing and printing of CV versions, and cover letter templates
 - JPG, PNG or WebP photo on the CV; CV and application printouts are formatted for saving as PDF
+- Printing in the iOS home screen app and in Safari or the Dock app on a Mac: the document is made into a PDF on the device; on iOS it opens in the share sheet (Print, Save to Files), on a Mac it opens with its print dialog
 - Application-specific notes and attached CV or cover letter files
 - AI chat with conversation history stored on the server; answers are shown with safe formatting (headings, bold text and lists)
 - Prefilled application from a job posting: paste the posting text and link into the chat, review the draft and save it with the status "Kiinnostava"
@@ -139,6 +140,7 @@ Configure a webhook in Clerk pointing to the backend route `/api/webhooks/clerk`
 - Deleting a file also removes its references from the user's applications.
 - Job postings are never fetched from links; the assistant only uses text the user pastes.
 - Contact details are removed from documents before they are sent to OpenAI.
+- Print PDFs are made on the device with pdfmake. Nothing is sent to the server, pdfmake may not fetch any URL, and the fonts come from a bundled package.
 - The AI never deletes anything: deletions run only after the user selects the applications and confirms.
 - Imported and attached files are validated by extension and content, parsed in a worker thread with time and memory limits, and their content is never logged.
 - Backend security headers: Helmet with a JSON API Content-Security-Policy (`default-src 'none'`), `X-Frame-Options: DENY`, `Permissions-Policy` and `Cache-Control: no-store` on every response.
@@ -181,7 +183,7 @@ frontend/
     legal/         terms of use and privacy policy settings
     pages/         application pages
     styles/        theme styles and font definitions
-    utils/         shared hooks and helpers (dialog behaviour, base path)
+    utils/         shared hooks and helpers (dialog behaviour, base path, print target, PDF printouts)
     App.jsx        page views and application state
     api.js         backend requests
     index.css      shared base styles
@@ -200,3 +202,4 @@ backend/
 - Express and MongoDB/Mongoose
 - Clerk
 - OpenAI API for the optional AI features
+- pdfmake for PDF printouts on iOS and in Safari on a Mac
