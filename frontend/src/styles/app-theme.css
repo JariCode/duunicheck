@@ -1736,9 +1736,12 @@ body {
     transform 0.18s,
     box-shadow 0.18s;
 }
-.metric:hover {
-  transform: translateY(-3px) rotate(-0.5deg);
-  box-shadow: 0 9px 0 #d7d0e7;
+/* Only with a mouse: on a touch screen :hover stays on after a tap and the card would stay tilted. */
+@media (hover: hover) {
+  .metric:hover {
+    transform: translateY(-3px) rotate(-0.5deg);
+    box-shadow: 0 9px 0 #d7d0e7;
+  }
 }
 .metric:nth-child(1) {
   background: #c4ff43;
@@ -2332,9 +2335,12 @@ body {
     transform 0.2s,
     filter 0.2s;
 }
-.metric:hover {
-  transform: translateY(-5px) rotate(-1deg);
-  filter: saturate(1.2);
+/* Only with a mouse: on a touch screen :hover stays on after a tap and the card would stay tilted. */
+@media (hover: hover) {
+  .metric:hover {
+    transform: translateY(-5px) rotate(-1deg);
+    filter: saturate(1.2);
+  }
 }
 .metric:after {
   width: 110px;
@@ -3332,14 +3338,20 @@ html {
     padding: 12px;
     border-radius: 10px;
   }
-  .metric > div {
+  .metric > div,
+  .metric:nth-child(2) > div,
+  .metric:nth-child(4) > div {
     gap: 5px;
     font-size: 10px;
   }
-  .metric > b {
+  .metric > b,
+  .metric:nth-child(2) > b,
+  .metric:nth-child(4) > b {
     font-size: 30px;
   }
-  .metric > small {
+  .metric > small,
+  .metric:nth-child(2) > small,
+  .metric:nth-child(4) > small {
     max-width: 100%;
     font-size: 9px;
     line-height: 1.25;
@@ -3526,17 +3538,23 @@ html {
     min-height: 108px;
     padding: 10px;
   }
-  .metric > div {
+  .metric > div,
+  .metric:nth-child(2) > div,
+  .metric:nth-child(4) > div {
     font-size: 9px;
   }
   .metric > div > i {
     width: 25px;
     height: 25px;
   }
-  .metric > b {
+  .metric > b,
+  .metric:nth-child(2) > b,
+  .metric:nth-child(4) > b {
     font-size: 27px;
   }
-  .metric > small {
+  .metric > small,
+  .metric:nth-child(2) > small,
+  .metric:nth-child(4) > small {
     font-size: 8px;
   }
   .section-heading h2 {
