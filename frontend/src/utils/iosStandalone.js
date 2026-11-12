@@ -7,8 +7,9 @@ function isIosDevice() {
 }
 
 // True when DuuniCheck runs as an app added to the iOS home screen. window.print() does nothing there.
+// A web app added to the Mac Dock also reports navigator.standalone, but it can print, so only iOS counts.
 export function isIosStandalone() {
   if (typeof window === 'undefined') return false
-  if (window.navigator.standalone === true) return true
-  return isIosDevice() && Boolean(window.matchMedia?.('(display-mode: standalone)').matches)
+  if (!isIosDevice()) return false
+  return window.navigator.standalone === true || Boolean(window.matchMedia?.('(display-mode: standalone)').matches)
 }
