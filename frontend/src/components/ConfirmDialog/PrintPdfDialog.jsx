@@ -4,16 +4,24 @@ import './ConfirmDialog.css'
 
 const safariHelp = 'Avaa duunicheck.jaricode.fi Safarissa, niin voit tulostaa tai tallentaa PDF:n sieltä.'
 const retryHelp = 'avaa duunicheck.jaricode.fi Safarissa ja tulosta tai tallenna PDF sieltä.'
+// How long an opened PDF keeps its blob URL after the dialog closes, so the new tab has time to load it.
+const revokeDelay = 60_000
 
-// Printing in the iOS home screen app, where window.print() does nothing: the PDF is made on the
-// device when the dialog opens, and the button hands it to the iOS share sheet (Tulosta, Tallenna
-// tiedostoihin). Safari only allows navigator.share() right after a tap, so the PDF must be ready
-// before the button is shown.
-export default function PrintPdfDialog({ document, onClose }) {
+// Printing where window.print() is not used. The PDF is made on the device when the dialog opens, and
+// the button is shown once it is ready, because Safari only allows these actions right after a click:
+// - mode 'share' (the iOS home screen app, where window.print() does nothing): the button hands the PDF
+//   to the iOS share sheet (Tulosta, Tallenna tiedostoihin).
+// - mode 'open' (Safari and the Dock app on a Mac, where window.print() places the document too high
+//   on the paper): the button opens the PDF in a new tab, in Safari's PDF view, which prints it exactly
+//   (Cmd+P). If the new tab is blocked, the PDF is downloaded instead.
+export default function PrintPdfDialog({ document, mode = 'share', onClose }) {
   const open = Boolean(document)
+  const opensPdf = mode === 'open'
   const [pdf, setPdf] = useState(null)
   const [error, setError] = useState(null)
+  const [downloaded, setDownloaded] = useState(false)
   const shareRef = useRef(null)
+  const urlRef = useRef(null)
   const panelRef = useDialog({ open, onClose })
 
   useEffect(() => {
@@ -29,7 +37,9 @@ export default function PrintPdfDialog({ document, onClose }) {
         if (current) {
           setError({
             title: 'PDF:n luonti epäonnistui',
-            description: `PDF-tiedostoa ei voitu tehdä tällä laitteella. Sulje ikkuna ja yritä uudelleen. Jos virhe toistuu, ${retryHelp}`,
+            description: opensPdf
+              ? 'PDF-tiedostoa ei voitu tehdä. Sulje ikkuna ja yritä uudelleen. Jos virhe toistuu, lataa sivu uudelleen ja yritä vielä kerran.'
+              : `PDF-tiedostoa ei voitu tehdä tällä laitteella. Sulje ikkuna ja yritä uudelleen. Jos virhe toistuu, ${retryHelp}`,
           })
         }
       })
@@ -39,8 +49,12 @@ export default function PrintPdfDialog({ document, onClose }) {
       current = false
       setPdf(null)
       setError(null)
+      setDownloaded(false)
+      const url = urlRef.current
+      urlRef.current = null
+      if (url) window.setTimeout(() => URL.revokeObjectURL(url), revokeDelay)
     }
-  }, [document])
+  }, [document, opensPdf])
 
   // Keyboard and screen reader users land on the button once the PDF is ready.
   useEffect(() => {
@@ -69,14 +83,41 @@ export default function PrintPdfDialog({ document, onClose }) {
     })
   }
 
+  // Called directly in the click handler, with nothing awaited before it, so Safari allows the new tab.
+  function openPdf() {
+    urlRef.current ||= URL.createObjectURL(pdf.file)
+    if (window.open(urlRef.current, '_blank')) {
+      onClose()
+      return
+    }
+    // The new tab was blocked: the PDF is downloaded instead.
+    const link = window.document.createElement('a')
+    link.href = urlRef.current
+    link.download = pdf.file.name
+    window.document.body.append(link)
+    link.click()
+    link.remove()
+    setDownloaded(true)
+  }
+
   if (!open) return null
   const busy = !pdf && !error
-  const title = error ? error.title : busy ? 'Luodaan PDF:ää…' : 'PDF on valmis'
+  const title = error
+    ? error.title
+    : busy
+      ? 'Luodaan PDF:ää…'
+      : downloaded
+        ? 'PDF ladattiin tiedostona'
+        : 'PDF on valmis'
   const description = error
     ? error.description
     : busy
       ? 'PDF tehdään tällä laitteella. Mitään ei lähetetä palvelimelle.'
-      : `${pdf.file.name} on valmis. Valitse jakovalikosta Tulosta tai Tallenna tiedostoihin.`
+      : !opensPdf
+        ? `${pdf.file.name} on valmis. Valitse jakovalikosta Tulosta tai Tallenna tiedostoihin.`
+        : downloaded
+          ? `Selain ei avannut uutta välilehteä, joten ${pdf.file.name} ladattiin Lataukset-kansioon. Löydät sen Safarin latauksista (nuolipainike työkalupalkissa) tai Finderista kohdasta Lataukset. Avaa tiedosto ja tulosta se: Cmd+P. Jos Safari kysyy, sallitaanko lataukset tältä sivustolta, valitse Salli ja paina Avaa PDF uudelleen.`
+          : `${pdf.file.name} on valmis. Avaa PDF painamalla nappia: se avautuu uuteen välilehteen, jossa voit tulostaa sen (Cmd+P) tai tallentaa.`
   return (
     <div
       className="confirm-backdrop"
@@ -105,8 +146,8 @@ export default function PrintPdfDialog({ document, onClose }) {
             {busy ? 'Peruuta' : 'Sulje'}
           </button>
           {pdf && (!error || error.retry) && (
-            <button ref={shareRef} className="confirm-primary" type="button" onClick={share}>
-              Tulosta / jaa PDF
+            <button ref={shareRef} className="confirm-primary" type="button" onClick={opensPdf ? openPdf : share}>
+              {opensPdf ? 'Avaa PDF' : 'Tulosta / jaa PDF'}
             </button>
           )}
         </div>

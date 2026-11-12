@@ -559,12 +559,12 @@
   }
 }
 
-/* Safari and the Mac Dock app (WebKit) only; Chrome, Edge and Firefox do not support this font
-   keyword and skip the block. WebKit does not paginate the absolutely positioned print document
-   like Chrome does: it printed an extra blank page and placed the document too high on the page.
-   Here the wrappers take no height and the print document is in the normal flow, starting at the
-   top of the paper, so WebKit paginates it like any page content. The CV hero and the letter title
-   bar start at the top edge without a negative margin. The result is the same layout as in Chrome. */
+/* Safari on iPhone and iPad (WebKit) only; Chrome, Edge and Firefox do not support this font keyword
+   and skip the block. Safari and the Dock app on a Mac print a PDF instead (utils/printTarget.js).
+   Above, the page wrappers are at least 297mm (min-height, 100vh) and .print-document is stretched
+   to the page by inset: 0 (the CV is height: 297mm), so the document is exactly one page tall and
+   WebKit prints an extra blank page. Here the wrappers take no height and the print document is as
+   tall as its content, so a page is only added when the content needs it. Both rules are needed. */
 @media print {
   @supports (font: -apple-system-body) {
     html,
@@ -573,23 +573,12 @@
     .workspace {
       height: auto !important;
       min-height: 0 !important;
-      margin: 0 !important;
-      padding: 0 !important;
     }
     .print-document,
     .print-document.print-cv {
-      position: static;
-      inset: auto;
+      bottom: auto;
       height: auto;
       min-height: 0;
-    }
-    .print-document.print-cv,
-    .print-document.print-application {
-      padding-top: 0;
-    }
-    .print-cv .cv-print-hero,
-    .print-application .letter-titlebar {
-      margin-top: 0;
     }
   }
 }

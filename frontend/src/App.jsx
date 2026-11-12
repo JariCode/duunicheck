@@ -17,7 +17,7 @@ import AssistantPage from './pages/AssistantPage/AssistantPage'
 import { createAssistantChatState, hasPendingChatWork } from './pages/AssistantPage/assistantChatState'
 import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import PrintPdfDialog from './components/ConfirmDialog/PrintPdfDialog'
-import { isIosStandalone } from './utils/iosStandalone'
+import { printTarget } from './utils/printTarget'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
 
 const pages = {
@@ -134,6 +134,7 @@ export default function App() {
   const [form, setForm] = useState(blankForm)
   const [printDocument, setPrintDocument] = useState(null)
   const [pdfDocument, setPdfDocument] = useState(null)
+  const [pdfMode, setPdfMode] = useState('share')
   const [pendingDeleteJob, setPendingDeleteJob] = useState(null)
   const [deletingJob, setDeletingJob] = useState(false)
   // The assistant chat lives here so it survives tab switches. It is memory only; App unmounts on sign-out,
@@ -289,14 +290,18 @@ export default function App() {
   }, [printDocument])
 
   // window.print() does nothing in the iOS home screen app, so there the document is made into a PDF
-  // that the iOS share sheet can print (AirPrint) or save to Files.
+  // that the iOS share sheet can print (AirPrint) or save to Files. Safari and the Dock app on a Mac
+  // print the document too high on the paper, so there the same PDF is opened in Safari's PDF view.
   function requestPrint(nextDocument) {
-    if (!isIosStandalone()) {
+    const target = printTarget()
+    if (target === 'print') {
       setPrintDocument(nextDocument)
       return
     }
-    // iOS does not focus a tapped button, so focus it here; the dialog then returns focus to it on close.
+    // Safari (iOS and Mac) does not focus a clicked button, so focus it here; the dialog then returns
+    // focus to it on close.
     window.event?.target?.closest?.('button')?.focus()
+    setPdfMode(target)
     setPdfDocument(nextDocument)
   }
 
@@ -885,7 +890,7 @@ export default function App() {
         onConfirm={confirmDeleteJob}
         onCancel={() => setPendingDeleteJob(null)}
       />
-      <PrintPdfDialog document={pdfDocument} onClose={() => setPdfDocument(null)} />
+      <PrintPdfDialog document={pdfDocument} mode={pdfMode} onClose={() => setPdfDocument(null)} />
       <PrintSheet document={printDocument} />
     </div>
   )
