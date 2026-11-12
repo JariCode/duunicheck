@@ -563,7 +563,10 @@
    keyword and skip the block. Above, the page wrappers are at least 297mm (min-height, 100vh) and
    .print-document is stretched to the page by inset: 0 (the CV is height: 297mm), so the document is
    exactly one page tall and WebKit prints an extra blank page. Here the wrappers take no height and
-   the print document is as tall as its content, so a page is only added when the content needs it. */
+   the print document is as tall as its content, so a page is only added when the content needs it.
+   The CV hero and the letter title bar reach the top edge with a negative margin above; WebKit
+   prints them too high with it, so here the document has no top padding and the bar needs no
+   negative top margin. The result is the same layout. */
 @media print {
   @supports (font: -apple-system-body) {
     html,
@@ -578,6 +581,14 @@
       bottom: auto;
       height: auto;
       min-height: 0;
+    }
+    .print-document.print-cv,
+    .print-document.print-application {
+      padding-top: 0;
+    }
+    .print-cv .cv-print-hero,
+    .print-application .letter-titlebar {
+      margin-top: 0;
     }
   }
 }
