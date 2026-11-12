@@ -64,6 +64,12 @@
   color: #210c15;
   box-shadow: 0 3px 0 #cc2d56;
 }
+.confirm-primary {
+  border: 0;
+  background: #caff45;
+  color: #17200a;
+  box-shadow: 0 3px 0 #8fbf1f;
+}
 .confirm-actions button:disabled {
   opacity: 0.6;
   cursor: wait;
