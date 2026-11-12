@@ -114,6 +114,160 @@ function box(content, { padding = [0, 0, 0, 0], border = {}, fill, margin = [0, 
   }
 }
 
+/* --------------------------- Pyöristetyt laatikot --------------------------- */
+
+// border-radius 2mm: the CV contact box and columns and the letter's address row. pdfmake's table
+// fills and lines are square, so a rounded box lays out its content in a table without fill or
+// lines (the border widths are added to the padding, so the size stays the same) between two
+// zero-size markers. The first rendering measures where the markers are (see createPrintPdf), and
+// the second paints the background and borders underneath as rounded shapes (roundedBackground).
+const BOX_RADIUS = mm(2)
+const ROUNDED_ID = 'rounded-'
+// Points per quarter circle; at 2mm the segments are far below the printer's resolution.
+const ARC_STEPS = 16
+
+// pdfmake only reports the position of a node that draws something, so the marker is an empty rect.
+const marker = (id) => ({ id, canvas: [{ type: 'rect', x: 0, y: 0, w: 0, h: 0, color: '#ffffff' }] })
+
+// A block whose top and bottom are measured: `${id}` marks the top, `${id}-body` is the content
+// (its first page, in case the content moved on to the next page) and `${id}-end` the bottom.
+function measuredBlock(id, content, { margin = [0, 0, 0, 0], ...rest } = {}) {
+  return { stack: [marker(id), { ...content, id: `${id}-body` }, marker(`${id}-end`)], margin, ...rest }
+}
+
+// A CSS box with border-radius 2mm. `rounded` collects what roundedBackground paints: the box's
+// left edge and width on the page (x, width), background and borders.
+function roundedBox(rounded, content, { padding = [0, 0, 0, 0], border = {}, fill, x, width, ...rest }) {
+  const id = `${ROUNDED_ID}${rounded.length}`
+  const sides = Object.fromEntries(
+    ['top', 'right', 'bottom', 'left'].map((name) => {
+      const [size, color] = border[name] || [0, null]
+      return [name, [borderWidth(size), color]]
+    }),
+  )
+  rounded.push({ id, x, width, fill, border: sides })
+  const [top, right, bottom, left] = padding
+  return measuredBlock(
+    id,
+    box(content, {
+      padding: [top + sides.top[0], right + sides.right[0], bottom + sides.bottom[0], left + sides.left[0]],
+    }),
+    rest,
+  )
+}
+
+// Outline of a rectangle with elliptical corners [rx, ry] (top-left, top-right, bottom-right,
+// bottom-left), clockwise on the page.
+function roundedOutline(x, y, w, h, corners) {
+  const centres = [
+    [x, y, 1, 1, Math.PI],
+    [x + w, y, -1, 1, Math.PI * 1.5],
+    [x + w, y + h, -1, -1, 0],
+    [x, y + h, 1, -1, Math.PI * 0.5],
+  ]
+  const points = []
+  centres.forEach(([cx, cy, sx, sy, start], index) => {
+    const [rx, ry] = corners[index]
+    if (rx <= 0 || ry <= 0) {
+      points.push({ x: cx, y: cy })
+      return
+    }
+    for (let step = 0; step <= ARC_STEPS; step += 1) {
+      const angle = start + (step / ARC_STEPS) * (Math.PI / 2)
+      points.push({ x: cx + sx * rx + rx * Math.cos(angle), y: cy + sy * ry + ry * Math.sin(angle) })
+    }
+  })
+  return points
+}
+
+// The part of a convex polygon inside another convex polygon (Sutherland–Hodgman).
+function clipPolygon(points, clip) {
+  const area = clip.reduce((sum, p, i) => sum + (p.x * clip[(i + 1) % clip.length].y - clip[(i + 1) % clip.length].x * p.y), 0)
+  const side = (a, b, p) => Math.sign(area) * ((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)) >= 0
+  let result = points
+  clip.forEach((a, i) => {
+    const b = clip[(i + 1) % clip.length]
+    const input = result
+    result = []
+    input.forEach((p, j) => {
+      const q = input[(j + 1) % input.length]
+      const pIn = side(a, b, p)
+      const qIn = side(a, b, q)
+      if (pIn) result.push(p)
+      if (pIn !== qIn) {
+        const d1 = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x)
+        const d2 = (b.x - a.x) * (q.y - a.y) - (b.y - a.y) * (q.x - a.x)
+        const t = d1 / (d1 - d2)
+        result.push({ x: p.x + t * (q.x - p.x), y: p.y + t * (q.y - p.y) })
+      }
+    })
+  })
+  return result
+}
+
+const shape = (points, color) => ({ type: 'polyline', closePath: true, points, color })
+
+// One page's part of a rounded box, from `top` to `bottom`. Like Chrome's sliced boxes, an edge
+// where the box continues on another page has no rounding and no border.
+function roundedPiece({ x, width, fill, border }, top, bottom, { roundTop, roundBottom }) {
+  const r = (round) => (round ? [BOX_RADIUS, BOX_RADIUS] : [0, 0])
+  const outer = roundedOutline(x, top, width, bottom - top, [r(roundTop), r(roundTop), r(roundBottom), r(roundBottom)])
+  const [bt, topColor] = roundTop ? border.top : [0, null]
+  const [bb, bottomColor] = roundBottom ? border.bottom : [0, null]
+  const [bl, leftColor] = border.left
+  const [br, rightColor] = border.right
+  if (!bt && !bb && !bl && !br) return [shape(outer, fill)]
+  // The background fills the padding box, whose corners have the radius minus the border widths.
+  // The thin border colour fills the rest of the box; the thick left border is the part left of the
+  // lines that join the outer and inner corners, where Chrome divides the border colours.
+  const inner = (round, rx, ry) => (round ? [Math.max(0, BOX_RADIUS - rx), Math.max(0, BOX_RADIUS - ry)] : [0, 0])
+  const padding = roundedOutline(x + bl, top + bt, width - bl - br, bottom - top - bt - bb, [
+    inner(roundTop, bl, bt),
+    inner(roundTop, br, bt),
+    inner(roundBottom, br, bb),
+    inner(roundBottom, bl, bb),
+  ])
+  const thin = topColor || rightColor || bottomColor
+  const vectors = [shape(outer, thin || leftColor)]
+  if (bl && leftColor !== thin) {
+    const left = [
+      { x, y: top },
+      { x: x + bl, y: top + bt },
+      { x: x + bl, y: bottom - bb },
+      { x, y: bottom },
+    ]
+    vectors.push(shape(clipPolygon(outer, left), leftColor))
+  }
+  vectors.push(shape(padding, fill))
+  return vectors
+}
+
+// The page background with every rounded box measured by the first rendering. A box that continues
+// on the next page is painted down to the bottom edge of the paper, as Chrome does.
+function roundedBackground(rounded, spans) {
+  const placed = rounded
+    .map((item) => {
+      const start = spans[item.id]
+      const body = spans[`${item.id}-body`]
+      const end = spans[`${item.id}-end`]
+      if (!start || !end) return null
+      // The marker stayed at the bottom of a page when the content moved on to the next one.
+      const first = body && body.page > start.page ? { page: body.page, top: NO_PAGE_MARGIN_Y } : start
+      return { item, first, end }
+    })
+    .filter(Boolean)
+  if (!placed.length) return undefined
+  return (page) => {
+    const canvas = placed.flatMap(({ item, first, end }) => {
+      if (page < first.page || page > end.page) return []
+      const top = page === first.page ? first.top : 0
+      const bottom = page === end.page ? end.top : A4_HEIGHT
+      return roundedPiece(item, top, bottom, { roundTop: page === first.page, roundBottom: page === end.page })
+    })
+    return canvas.length ? { canvas } : null
+  }
+}
+
 const displayUrl = (url) => url.replace(/^https?:\/\//, '')
 
 // profileLinks and replaceLetterFields are the same as in PrintSheet.jsx. They are copied here
@@ -156,7 +310,7 @@ const CV_PAGE_Y = mm(10)
 // continues the document starts at the top edge of the paper, as in Chrome's print.
 const NO_PAGE_MARGIN_Y = 0
 const A4_HEIGHT = 841.89
-const CV_COLUMNS_ID = 'cv-columns'
+const NO_BORDER = { top: [0, null], right: [0, null], bottom: [0, null], left: [0, null] }
 // List items are not paragraphs, so they keep the document colour #252331.
 const CV_ITEM = { size: 7.2, lineHeight: 1.25, color: '#252331' }
 
@@ -261,8 +415,9 @@ function sectionStack(sections, gap, { lastMargin = 0 } = {}) {
   return { stack: present }
 }
 
-function cvContent(cv, photo, columnsSpan) {
+function cvContent(cv, photo) {
   const links = profileLinks(cv)
+  const rounded = []
   const heroTextWidth = PAGE_WIDTH - 2 * CV_PAGE_X - (photo ? mm(27) + mm(8) : 0)
 
   // .cv-print-hero: grid (1fr auto), gap 8mm, centred; padding 10mm 12mm 5mm; border-bottom 1mm.
@@ -283,8 +438,8 @@ function cvContent(cv, photo, columnsSpan) {
   }
   const heroCells = [heroText]
   if (photo) {
-    // 27 x 34 mm, object-fit: cover.
-    heroCells.push({ image: photo, cover: { width: mm(27), height: mm(34) }, verticalAlignment: 'middle' })
+    // 27 x 34 mm; object-fit: cover and the 1.5mm border-radius are already in the image (pdfPhoto).
+    heroCells.push({ image: photo, width: mm(27), height: mm(34), verticalAlignment: 'middle' })
   }
   // The band reaches the page edges, so it cancels the page margins. The bottom border is one
   // rectangle, because per-cell table lines leave a visible seam where the cells meet.
@@ -308,8 +463,8 @@ function cvContent(cv, photo, columnsSpan) {
   }
 
   // .cv-print-contact: grid (auto 1fr), gap 1.5mm 6mm, padding 2.5mm 3.5mm, border 1px #dcd2e8,
-  // border-left 1.5mm #7954aa, background #f8f6fb, margin-bottom 3mm. Each item: label 6pt/800
-  // uppercase, gap 0.5mm, value 7.2pt/700.
+  // border-left 1.5mm #7954aa, border-radius 2mm, background #f8f6fb, margin-bottom 3mm. Each item:
+  // label 6pt/800 uppercase, gap 0.5mm, value 7.2pt/700.
   const contactItem = (label, value, link) => ({
     width: 'auto',
     stack: [
@@ -322,7 +477,8 @@ function cvContent(cv, photo, columnsSpan) {
     cv.phone && contactItem('Puhelin', cv.phone, `tel:${cv.phone.replace(/[^+\d]/g, '')}`),
   ].filter(Boolean)
   const contact = contactItems.length
-    ? box(
+    ? roundedBox(
+        rounded,
         {
           table: {
             widths: ['auto', '*'],
@@ -345,6 +501,8 @@ function cvContent(cv, photo, columnsSpan) {
           },
           fill: '#f8f6fb',
           margin: [0, 0, 0, mm(3)],
+          x: CV_PAGE_X,
+          width: PAGE_WIDTH - 2 * CV_PAGE_X,
         },
       )
     : null
@@ -385,47 +543,33 @@ function cvContent(cv, photo, columnsSpan) {
   )
 
   // .cv-print-columns: 53mm sidebar (padding 4mm, #f6f4f9), column-gap 7mm, main column
-  // (padding 4mm, #fbf9fd). Both columns are as tall as the taller one. The top and bottom
-  // padding are margins of the content, so a page that continues the columns starts at the top
-  // edge without padding, like Chrome's sliced boxes.
+  // (padding 4mm, #fbf9fd), both with border-radius 2mm. Both columns are as tall as the taller one.
+  // The top and bottom padding are margins of the content, so a page that continues the columns
+  // starts at the top edge without padding, like Chrome's sliced boxes. The backgrounds are painted
+  // by roundedBackground, also down to the bottom edge of a page where the columns continue.
   sidebar.margin = [0, mm(4), 0, mm(4)]
   main.margin = [0, mm(4), 0, mm(4)]
-  const columns = {
-    id: CV_COLUMNS_ID,
+  const columnsId = `${ROUNDED_ID}columns`
+  rounded.push(
+    { id: columnsId, x: CV_PAGE_X, width: mm(53), fill: '#f6f4f9', border: NO_BORDER },
+    { id: columnsId, x: CV_PAGE_X + mm(60), width: PAGE_WIDTH - 2 * CV_PAGE_X - mm(60), fill: '#fbf9fd', border: NO_BORDER },
+  )
+  const columns = measuredBlock(columnsId, {
     table: {
       widths: [mm(53) - mm(8), mm(7), '*'],
       body: [[sidebar, { text: '' }, main]],
     },
     layout: {
       ...noLines,
-      fillColor: (row, node, column) => (column === 0 ? '#f6f4f9' : column === 2 ? '#fbf9fd' : null),
       paddingLeft: (column) => (column === 1 ? 0 : mm(4)),
       paddingRight: (column) => (column === 1 ? 0 : mm(4)),
     },
-  }
-
-  // When the columns continue on the next page, Chrome paints their backgrounds down to the bottom
-  // edge of the paper; pdfmake only fills them as far as the content goes. The second rendering
-  // (see createPrintPdf) knows where the columns are and paints the rest underneath.
-  const background = columnsSpan
-    ? (page) => {
-        const pageIndex = columnsSpan.pages.indexOf(page)
-        if (pageIndex < 0 || pageIndex === columnsSpan.pages.length - 1) return null
-        const top = pageIndex === 0 ? columnsSpan.top : 0
-        const height = A4_HEIGHT - top
-        return {
-          canvas: [
-            { type: 'rect', x: CV_PAGE_X, y: top, w: mm(53), h: height, color: '#f6f4f9' },
-            { type: 'rect', x: CV_PAGE_X + mm(60), y: top, w: PAGE_WIDTH - 2 * CV_PAGE_X - mm(60), h: height, color: '#fbf9fd' },
-          ],
-        }
-      }
-    : undefined
+  })
 
   return {
     pageMargins: [CV_PAGE_X, NO_PAGE_MARGIN_Y, CV_PAGE_X, NO_PAGE_MARGIN_Y],
-    background,
     content: [hero, contact, columns].filter(Boolean),
+    rounded,
   }
 }
 
@@ -487,6 +631,7 @@ function applicationContent(document) {
   const hasClosing = /(ystävällisin terveisin|ystävällisin|terveisin|parhain terveisin)/i.test(letterBody)
   const paragraphs = letterParagraphs(letterBody)
   const contentWidth = PAGE_WIDTH - 2 * LETTER_PAGE_X
+  const rounded = []
 
   // .letter-titlebar: full width, padding 5mm 18mm, #30263b, 15pt/800, letter-spacing 2px,
   // margin-bottom 6mm.
@@ -555,7 +700,8 @@ function applicationContent(document) {
   )
 
   // .letter-address-row: recipient on the left, date on the right, centred vertically; margin
-  // 6mm 0 8mm, padding 4mm 5mm, border 1px #e2d9ec, border-left 2mm #7954aa, background #f8f6fb.
+  // 6mm 0 8mm, padding 4mm 5mm, border 1px #e2d9ec, border-left 2mm #7954aa, border-radius 2mm,
+  // background #f8f6fb.
   const recipient = (job.company || job.place) && {
     stack: [
       // .letter-recipient is a grid with gap 1mm.
@@ -576,7 +722,8 @@ function applicationContent(document) {
   }
   const addressRow =
     (job.company || job.place || job.role || !job) &&
-    box(
+    roundedBox(
+      rounded,
       {
         table: {
           widths: recipient ? ['*', 'auto'] : ['*'],
@@ -594,6 +741,8 @@ function applicationContent(document) {
         },
         fill: '#f8f6fb',
         margin: [0, mm(6), 0, mm(8)],
+        x: LETTER_PAGE_X,
+        width: contentWidth,
       },
     )
 
@@ -680,6 +829,7 @@ function applicationContent(document) {
   return {
     pageMargins: [LETTER_PAGE_X, NO_PAGE_MARGIN_Y, LETTER_PAGE_X, NO_PAGE_MARGIN_Y],
     content: [titlebar, sender, addressRow, ...(role || []), { stack: bodyBlocks }, linksFooter].filter(Boolean),
+    rounded,
   }
 }
 
@@ -743,23 +893,56 @@ function loadImage(src) {
   })
 }
 
-// pdfmake reads JPEG and PNG; any other image type (WebP) is drawn on a canvas and saved as JPEG.
-async function pdfImage(dataUrl) {
+// .print-cv .cv-print-photo: 27 x 34 mm, object-fit: cover, border-radius 1.5mm.
+const PHOTO_WIDTH_MM = 27
+const PHOTO_HEIGHT_MM = 34
+const PHOTO_RADIUS_MM = 1.5
+// The photo is drawn at 600 dpi, so the rounded corners are as smooth in print as Chrome's clipping.
+const PHOTO_WIDTH_PX = Math.round((PHOTO_WIDTH_MM / 25.4) * 600)
+
+// The CV photo as pdfmake gets it: cropped like object-fit: cover (centred), with transparent rounded
+// corners, as PNG. Any image type the browser reads (JPEG, PNG, WebP) works, because it is drawn on a
+// canvas. Both renderings of a CV (see createPrintPdf) use the same photo, so the last one is kept.
+async function pdfPhoto(dataUrl) {
   if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) return null
-  if (/^data:image\/(jpeg|jpg|png);/i.test(dataUrl)) return dataUrl
+  if (pdfPhoto.cache?.source === dataUrl) return pdfPhoto.cache.png
   const image = await loadImage(dataUrl)
+  const aspect = PHOTO_WIDTH_MM / PHOTO_HEIGHT_MM
+  const cropWidth = Math.min(image.naturalWidth, image.naturalHeight * aspect)
+  const cropHeight = cropWidth / aspect
   const canvas = window.document.createElement('canvas')
-  canvas.width = image.naturalWidth
-  canvas.height = image.naturalHeight
+  canvas.width = PHOTO_WIDTH_PX
+  canvas.height = Math.round((PHOTO_WIDTH_PX * PHOTO_HEIGHT_MM) / PHOTO_WIDTH_MM)
   const context = canvas.getContext('2d')
-  // JPEG has no transparency, so transparent areas become white like the printed page.
-  context.fillStyle = '#ffffff'
-  context.fillRect(0, 0, canvas.width, canvas.height)
-  context.drawImage(image, 0, 0)
-  const jpeg = canvas.toDataURL('image/jpeg', 0.92)
+  context.imageSmoothingQuality = 'high'
+  context.drawImage(
+    image,
+    (image.naturalWidth - cropWidth) / 2,
+    (image.naturalHeight - cropHeight) / 2,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  )
+  // Everything outside the rounded rectangle becomes transparent.
+  const r = (PHOTO_RADIUS_MM / PHOTO_WIDTH_MM) * canvas.width
+  const { width: w, height: h } = canvas
+  context.globalCompositeOperation = 'destination-in'
+  context.beginPath()
+  context.moveTo(r, 0)
+  context.arcTo(w, 0, w, h, r)
+  context.arcTo(w, h, 0, h, r)
+  context.arcTo(0, h, 0, 0, r)
+  context.arcTo(0, 0, w, 0, r)
+  context.closePath()
+  context.fill()
+  const png = canvas.toDataURL('image/png')
   canvas.width = 0
   canvas.height = 0
-  return jpeg
+  pdfPhoto.cache = { source: dataUrl, png }
+  return png
 }
 
 /* ---------------------------- Tiedosto ja otsikko ---------------------------- */
@@ -798,25 +981,27 @@ export function pdfTitle(document) {
   return document?.title || 'DuuniCheck'
 }
 
-// columnsSpan: where the CV columns were in a previous rendering ({ pages, top }), if they continued
-// over a page break.
-export async function buildPdfDefinition(document, columnsSpan = null) {
+// spans: where the markers of the rounded boxes were in a previous rendering ({ [id]: { page, top } }).
+// Without them the rounded boxes are laid out but not painted.
+export async function buildPdfDefinition(document, spans = null) {
   const kind = document?.kind || 'notes'
   let definition
   if (kind === 'cv') {
     const cv = document.cv || {}
-    definition = cvContent(cv, await pdfImage(cv.photo), columnsSpan)
+    definition = cvContent(cv, await pdfPhoto(cv.photo))
   } else if (kind === 'application') {
     // Link widths are measured with the app's DM Sans, so the weights must be loaded first.
     await Promise.all(['400 10pt "DM Sans"', '700 10pt "DM Sans"'].map((font) => window.document.fonts?.load(font)))
     definition = applicationContent(document)
   } else if (kind === 'letter') definition = letterContent(document)
   else definition = notesContent(document)
+  const { rounded = [], ...layout } = definition
   return {
     pageSize: 'A4',
     language: 'fi-FI',
     info: { title: pdfTitle(document), creator: 'DuuniCheck' },
-    ...definition,
+    ...layout,
+    background: spans ? roundedBackground(rounded, spans) : undefined,
     // .print-document: color #252331.
     defaultStyle: { font: 'DMSans', fontSize: 10, color: '#252331' },
   }
@@ -824,18 +1009,20 @@ export async function buildPdfDefinition(document, columnsSpan = null) {
 
 // Returns the finished PDF as a File for navigator.share().
 export async function createPrintPdf(document) {
-  let span = null
-  const render = async (columnsSpan) => {
-    const definition = await buildPdfDefinition(document, columnsSpan)
-    // Called after layout for every node; records where the CV columns ended up. Never adds a break.
+  const spans = {}
+  const render = async (measured) => {
+    const definition = await buildPdfDefinition(document, measured)
+    // Called after layout for every node; records where the markers of the rounded boxes ended up.
+    // Never adds a break.
     definition.pageBreakBefore = (node) => {
-      if (node.id === CV_COLUMNS_ID) span = { pages: node.pageNumbers, top: node.startPosition.top }
+      if (node.id?.startsWith(ROUNDED_ID)) spans[node.id] = { page: node.startPosition.pageNumber, top: node.startPosition.top }
       return false
     }
     return pdfMake.createPdf(definition).getBlob()
   }
   let blob = await render(null)
-  // A CV whose columns continue over a page break is made again with the column backgrounds.
-  if (span?.pages.length > 1) blob = await render(span)
+  // A document with rounded boxes is made again with their backgrounds and borders. The background
+  // does not change the layout, so the boxes are where the first rendering measured them.
+  if (Object.keys(spans).length) blob = await render(spans)
   return new File([blob], pdfFileName(document), { type: 'application/pdf' })
 }
