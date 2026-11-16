@@ -66,27 +66,20 @@ function CvPrint({ cv }) {
         <div>
           <h1>{cv.fullName}</h1>
           {cv.title && <p className="cv-print-title">{cv.title}</p>}
-          {cv.summary && <p className="cv-print-summary">{cv.summary}</p>}
+          {(cv.email || cv.phone) && (
+            <p className="cv-print-contact" aria-label="Yhteystiedot">
+              {cv.email && <a href={`mailto:${cv.email}`}>{cv.email}</a>}
+              {cv.email && cv.phone && <span aria-hidden="true"> · </span>}
+              {cv.phone && <a href={`tel:${cv.phone.replace(/[^+\d]/g, '')}`}>{cv.phone}</a>}
+            </p>
+          )}
         </div>
         {cv.photo && <img className="cv-print-photo" src={cv.photo} alt="" />}
       </header>
-      {(cv.email || cv.phone) && (
-        <section className="cv-print-contact" aria-label="Yhteystiedot">
-          <h2>Yhteystiedot</h2>
-          <div>
-            {cv.email && (
-              <p>
-                <span>Sähköposti</span>
-                <a href={`mailto:${cv.email}`}>{cv.email}</a>
-              </p>
-            )}
-            {cv.phone && (
-              <p>
-                <span>Puhelin</span>
-                <a href={`tel:${cv.phone.replace(/[^+\d]/g, '')}`}>{cv.phone}</a>
-              </p>
-            )}
-          </div>
+      {cv.summary && (
+        <section className="print-section cv-print-profile">
+          <h2>Profiili</h2>
+          <p>{cv.summary}</p>
         </section>
       )}
       <div className="cv-print-columns">

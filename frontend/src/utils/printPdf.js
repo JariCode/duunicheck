@@ -303,24 +303,87 @@ function replaceLetterFields(text, { job, cv }) {
 
 /* ---------------------------------- CV ---------------------------------- */
 
-// .print-cv: 8pt / 1.32, padding 10mm 12mm.
-const CV_PAGE_X = mm(12)
-const CV_PAGE_Y = mm(10)
 // @page { margin: 0 }: the document's top padding is only on the first page, and a page that
 // continues the document starts at the top edge of the paper, as in Chrome's print.
 const NO_PAGE_MARGIN_Y = 0
 const A4_HEIGHT = 841.89
 const NO_BORDER = { top: [0, null], right: [0, null], bottom: [0, null], left: [0, null] }
-// List items are not paragraphs, so they keep the document colour #252331.
-const CV_ITEM = { size: 7.2, lineHeight: 1.25, color: '#252331' }
 
-// .print-cv .print-section h2: 8.2pt / 1.1, border-bottom 0.8pt #9273b2, padding-bottom 0.8mm,
-// margin-bottom 1.3mm.
-function cvSectionHeading(title) {
-  return box(text(title, { size: 8.2, lineHeight: 1.1, weight: 700, color: '#493267' }), {
-    padding: [0, 0, mm(0.8), 0],
+// Every size and gap of the CV, the same values as the .print-cv rules of PrintSheet.css (keep the two
+// in sync). Font sizes in pt, lengths in mm. Font sizes, line heights, paddings and the photo are
+// fixed; the values under `gaps` are multiplied by the gap scale, like calc(... * var(--cv-gap)).
+const CV_STYLE = {
+  // .print-document.print-cv: 8.5pt / 1.35, padding 10mm 12mm.
+  pageX: 12,
+  pageY: 10,
+  // .cv-print-hero: padding-bottom 5mm, gap 8mm; name 20pt / 1.05; title 10.5pt / 1.3, margin-top
+  // 1.2mm; contact line 8.5pt / 1.35, margin-top 2mm; photo 27 x 34 mm.
+  heroBottom: 5,
+  heroGap: 8,
+  name: { size: 20, lineHeight: 1.05 },
+  title: { size: 10.5, lineHeight: 1.3, top: 1.2 },
+  contact: { size: 8.5, lineHeight: 1.35, top: 2 },
+  photo: { width: 27, height: 34 },
+  // .print-section h2: 9.5pt / 1.15, padding-bottom 0.8mm.
+  heading: { size: 9.5, lineHeight: 1.15, paddingBottom: 0.8 },
+  // p and li: 8.5pt / 1.35.
+  text: { size: 8.5, lineHeight: 1.35 },
+  // .cv-experience-list h3: 9pt / 1.25, margin-bottom 0.6mm.
+  job: { size: 9, lineHeight: 1.25, bottom: 0.6 },
+  // .print-links: 8pt / 1.3, gap 1.6mm between links, 0.3mm between label and address.
+  link: { size: 8, lineHeight: 1.3, gap: 1.6, inner: 0.3 },
+  // .cv-print-columns: 55mm sidebar, column-gap 7mm, padding 4mm; lists: padding-left 3.5mm,
+  // li padding-left 0.3mm, sidebar rows 0.7mm apart, main column lists in two columns 6mm apart.
+  sidebar: 55,
+  columnGap: 7,
+  columnPadding: 4,
+  listIndent: 3.5,
+  itemIndent: 0.3,
+  sidebarRowGap: 0.7,
+  listColumnGap: 6,
+  gaps: {
+    // Under the header (.cv-print-hero margin-bottom) and under the Profiili section.
+    afterHero: 4,
+    afterProfile: 4,
+    // Between sections: sidebar 3.5mm; main column 4mm (also after the last one).
+    sidebarSection: 3.5,
+    mainSection: 4,
+    // Between a section heading and its content (h2 margin-bottom).
+    heading: 1.6,
+    // Between jobs (.cv-experience-list gap) and between the rows of the two-column lists.
+    job: 2.4,
+    listRow: 0.5,
+  },
+}
+// The gap scale runs from 0.6 to 1.8 in steps of 0.1; 1 is the default.
+const GAP_STEPS = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8]
+// A CV that fits on one page keeps this much free space at the bottom of the page.
+const FIT_MARGIN = mm(3)
+
+const CV_PAGE_X = mm(CV_STYLE.pageX)
+const CV_PAGE_Y = mm(CV_STYLE.pageY)
+// List items are not paragraphs, so they keep the document colour #252331.
+const CV_ITEM = { ...CV_STYLE.text, color: '#252331' }
+// .print-cv .print-section p: #393642.
+const CV_TEXT = { ...CV_STYLE.text, color: '#393642' }
+const CV_SIDEBAR = mm(CV_STYLE.sidebar)
+const CV_COLUMN_GAP = mm(CV_STYLE.columnGap)
+const CV_COLUMN_PADDING = mm(CV_STYLE.columnPadding)
+// Width of the main column's content box.
+const CV_MAIN_CONTENT = PAGE_WIDTH - 2 * CV_PAGE_X - CV_SIDEBAR - CV_COLUMN_GAP - 2 * CV_COLUMN_PADDING
+const CV_COLUMNS_ID = `${ROUNDED_ID}columns`
+
+// The gaps of CV_STYLE in pt for one gap scale.
+function cvGaps(scale) {
+  return Object.fromEntries(Object.entries(CV_STYLE.gaps).map(([name, value]) => [name, mm(value * scale)]))
+}
+
+// .print-cv .print-section h2: border-bottom 0.8pt #9273b2.
+function cvSectionHeading(title, gaps) {
+  return box(text(title, { ...CV_STYLE.heading, weight: 700, color: '#493267' }), {
+    padding: [0, 0, mm(CV_STYLE.heading.paddingBottom), 0],
     border: { bottom: [0.8, '#9273b2'] },
-    margin: [0, 0, 0, mm(1.3)],
+    margin: [0, 0, 0, gaps.heading],
   })
 }
 
@@ -331,10 +394,9 @@ function bulletItems(value) {
     .filter(Boolean)
 }
 
-// A list with padding-left 3.5mm and li padding-left 0.3mm. The marker is Chrome's outside disc:
-// diameter 0.3125em, about 1.44em before the text, centred on the first line. `gap` is the grid gap
-// between items (0.45mm in the sidebar; the two-column lists in the main column have none).
-function cvList(items, { indent = mm(3.5) + mm(0.3), gap = 0 } = {}) {
+// A list with the list and item indents of CV_STYLE. The marker is Chrome's outside disc: diameter
+// 0.3125em, about 1.44em before the text, centred on the first line. `gap` is the space between items.
+function cvList(items, { indent = mm(CV_STYLE.listIndent + CV_STYLE.itemIndent), gap = 0 } = {}) {
   const lineBox = CV_ITEM.size * CV_ITEM.lineHeight
   const radius = (CV_ITEM.size * 0.3125) / 2
   return {
@@ -361,25 +423,56 @@ function cvList(items, { indent = mm(3.5) + mm(0.3), gap = 0 } = {}) {
   }
 }
 
-// In the main column the list is split into two CSS columns (column-gap 6mm) filled top to bottom.
-// The list's 3.5mm padding is only on the left of the first column, so the second column's markers
-// sit in the gap: each half is the column plus 3.5mm, and the gap between them is 6mm - 3.5mm.
-function cvBulletSection(title, value, { twoColumns = false } = {}) {
-  const items = bulletItems(value)
-  if (!items.length) return null
-  const half = Math.ceil(items.length / 2)
-  return {
-    stack: [
-      cvSectionHeading(title),
-      twoColumns
-        ? { columns: [cvList(items.slice(0, half)), cvList(items.slice(half))], columnGap: mm(6) - mm(3.5) }
-        : cvList(items, { gap: mm(0.45) }),
-    ],
-    unbreakable: true,
+// Number of lines a list item takes in the given width, wrapped at spaces like the browser does.
+function lineCount(content, width) {
+  let lines = 1
+  let line = ''
+  for (const word of content.split(/\s+/)) {
+    const candidate = line ? `${line} ${word}` : word
+    if (line && textWidth(candidate, CV_ITEM.size) > width) {
+      lines += 1
+      line = word
+    } else line = candidate
   }
+  return lines
 }
 
-function cvExperience(value) {
+// CSS column-fill: balance makes the columns as even as possible, and an item is never split
+// (break-inside: avoid): the first column takes items up to the lowest height that leaves the rest
+// no taller. Each item counts its wrapped lines plus the row gap under it.
+function balancedSplit(items, width, rowGap) {
+  const heights = items.map((item) => lineCount(item, width) * CV_ITEM.size * CV_ITEM.lineHeight + rowGap)
+  const total = heights.reduce((sum, height) => sum + height, 0)
+  let best = { split: Math.ceil(items.length / 2), height: Infinity }
+  let first = 0
+  heights.forEach((height, index) => {
+    first += height
+    const tallest = Math.max(first, total - first)
+    if (tallest <= best.height + 0.01) best = { split: index + 1, height: tallest }
+  })
+  return best.split
+}
+
+// In the main column the list is split into two CSS columns filled top to bottom. The list's padding
+// is only on the left of the first column, so the second column's markers sit in the gap: each half
+// is the column plus the list indent, and the gap between them is the column gap minus that indent.
+function cvBulletSection(title, value, gaps, { twoColumns = false } = {}) {
+  const items = bulletItems(value)
+  if (!items.length) return null
+  let list
+  if (twoColumns) {
+    // The text width in one CSS column: (content - list indent - column gap) / 2 - item indent.
+    const width = (CV_MAIN_CONTENT - mm(CV_STYLE.listIndent + CV_STYLE.listColumnGap)) / 2 - mm(CV_STYLE.itemIndent)
+    const half = balancedSplit(items, width, gaps.listRow)
+    list = {
+      columns: [cvList(items.slice(0, half), { gap: gaps.listRow }), cvList(items.slice(half), { gap: gaps.listRow })],
+      columnGap: mm(CV_STYLE.listColumnGap - CV_STYLE.listIndent),
+    }
+  } else list = cvList(items, { gap: mm(CV_STYLE.sidebarRowGap) })
+  return { stack: [cvSectionHeading(title, gaps), list], unbreakable: true }
+}
+
+function cvExperience(value, gaps) {
   const entries = String(value || '')
     .split(/\n\s*\n/)
     .map((entry) => entry.trim())
@@ -392,21 +485,22 @@ function cvExperience(value) {
       .filter(Boolean)
     return {
       stack: [
-        text(heading, { size: 7.6, lineHeight: 1.18, weight: 700, color: '#30233e', margin: [0, 0, 0, mm(0.5)] }),
-        details.length > 0 && text(details.join('\n'), { size: 7.1, lineHeight: 1.22, color: '#393642' }),
+        text(heading, { ...CV_STYLE.job, weight: 700, color: '#30233e', margin: [0, 0, 0, mm(CV_STYLE.job.bottom)] }),
+        details.length > 0 && text(details.join('\n'), CV_TEXT),
       ].filter(Boolean),
       unbreakable: true,
-      // .cv-experience-list { gap: 1.8mm }
-      margin: [0, 0, 0, index < entries.length - 1 ? mm(1.8) : 0],
+      margin: [0, 0, 0, index < entries.length - 1 ? gaps.job : 0],
     }
   })
   // The heading stays on the same page as the first entry.
-  return { stack: [{ stack: [cvSectionHeading('Työkokemus'), articles[0]], unbreakable: true }, ...articles.slice(1)] }
+  return {
+    stack: [{ stack: [cvSectionHeading('Työkokemus', gaps), articles[0]], unbreakable: true }, ...articles.slice(1)],
+  }
 }
 
 // Sections stacked with the given bottom margin. In the sidebar the last one has none
 // (:last-child); in the main column `.print-cv .cv-print-main .print-section` comes later in
-// PrintSheet.css with the same specificity, so the last section keeps its 2.8mm.
+// PrintSheet.css with the same specificity, so the last section keeps its margin.
 function sectionStack(sections, gap, { lastMargin = 0 } = {}) {
   const present = sections.filter(Boolean)
   present.forEach((section, index) => {
@@ -415,162 +509,178 @@ function sectionStack(sections, gap, { lastMargin = 0 } = {}) {
   return { stack: present }
 }
 
-function cvContent(cv, photo) {
+function cvContent(cv, photo, scale = 1) {
   const links = profileLinks(cv)
   const rounded = []
-  const heroTextWidth = PAGE_WIDTH - 2 * CV_PAGE_X - (photo ? mm(27) + mm(8) : 0)
+  const gaps = cvGaps(scale)
+  const photoWidth = mm(CV_STYLE.photo.width)
 
-  // .cv-print-hero: grid (1fr auto), gap 8mm, centred; padding 10mm 12mm 5mm; border-bottom 1mm.
+  // .cv-print-hero: grid (1fr auto), centred, border-bottom 1mm. Name and title, then email and
+  // phone on one line separated by a middle dot.
+  const contactLine = [
+    cv.email && { text: cv.email, link: `mailto:${cv.email}`, color: '#302440' },
+    cv.email && cv.phone && { text: ' · ', color: '#9273b2' },
+    cv.phone && { text: cv.phone, link: `tel:${cv.phone.replace(/[^+\d]/g, '')}`, color: '#302440' },
+  ].filter(Boolean)
   const heroText = {
     stack: [
-      text(cv.fullName || '', { size: 23, lineHeight: 1.05, weight: 700, color: '#242037', letterSpacing: px(-0.8) }),
-      cv.title && text(cv.title, { size: 10, lineHeight: 1.32, weight: 700, color: '#67468f', margin: [0, mm(1.5), 0, 0] }),
-      // max-width: 138mm, as a right margin in the text column.
-      cv.summary &&
-        text(cv.summary, {
-          size: 8,
-          lineHeight: 1.32,
-          color: '#484451',
-          margin: [0, mm(2), Math.max(0, heroTextWidth - mm(138)), 0],
-        }),
+      text(cv.fullName || '', { ...CV_STYLE.name, weight: 700, color: '#242037', letterSpacing: px(-0.8) }),
+      cv.title &&
+        text(cv.title, { ...CV_STYLE.title, weight: 700, color: '#67468f', margin: [0, mm(CV_STYLE.title.top), 0, 0] }),
+      contactLine.length > 0 &&
+        text(contactLine, { ...CV_STYLE.contact, color: '#484451', margin: [0, mm(CV_STYLE.contact.top), 0, 0] }),
     ].filter(Boolean),
     verticalAlignment: 'middle',
   }
   const heroCells = [heroText]
   if (photo) {
-    // 27 x 34 mm; object-fit: cover and the 1.5mm border-radius are already in the image (pdfPhoto).
-    heroCells.push({ image: photo, width: mm(27), height: mm(34), verticalAlignment: 'middle' })
+    // object-fit: cover and the 1.5mm border-radius are already in the image (pdfPhoto).
+    heroCells.push({ image: photo, width: photoWidth, height: mm(CV_STYLE.photo.height), verticalAlignment: 'middle' })
   }
   // The band reaches the page edges, so it cancels the page margins. The bottom border is one
   // rectangle, because per-cell table lines leave a visible seam where the cells meet.
   const hero = {
     stack: [
       {
-        table: { widths: photo ? ['*', mm(27)] : ['*'], body: [heroCells] },
+        table: { widths: photo ? ['*', photoWidth] : ['*'], body: [heroCells] },
         layout: {
           ...noLines,
           fillColor: () => '#f2eff8',
-          paddingLeft: (index) => (index === 0 ? CV_PAGE_X : mm(8)),
+          paddingLeft: (index) => (index === 0 ? CV_PAGE_X : mm(CV_STYLE.heroGap)),
           paddingRight: (index, node) => (index === node.table.widths.length - 1 ? CV_PAGE_X : 0),
           paddingTop: () => CV_PAGE_Y,
-          paddingBottom: () => mm(5),
+          paddingBottom: () => mm(CV_STYLE.heroBottom),
         },
       },
       { canvas: [{ type: 'rect', x: 0, y: 0, w: PAGE_WIDTH, h: borderWidth(mm(1)), color: '#7954aa' }] },
     ],
-    margin: [-CV_PAGE_X, 0, -CV_PAGE_X, mm(4)],
+    margin: [-CV_PAGE_X, 0, -CV_PAGE_X, gaps.afterHero],
     unbreakable: true,
   }
 
-  // .cv-print-contact: grid (auto 1fr), gap 1.5mm 6mm, padding 2.5mm 3.5mm, border 1px #dcd2e8,
-  // border-left 1.5mm #7954aa, border-radius 2mm, background #f8f6fb, margin-bottom 3mm. Each item:
-  // label 6pt/800 uppercase, gap 0.5mm, value 7.2pt/700.
-  const contactItem = (label, value, link) => ({
-    width: 'auto',
-    stack: [
-      text(label.toUpperCase(), { size: 6, lineHeight: 1.32, weight: 800, color: '#7550a8', letterSpacing: px(0.6) }),
-      text(value, { size: 7.2, lineHeight: 1.32, weight: 700, color: '#302440', link, margin: [0, mm(0.5), 0, 0] }),
-    ],
-  })
-  const contactItems = [
-    cv.email && contactItem('Sähköposti', cv.email, `mailto:${cv.email}`),
-    cv.phone && contactItem('Puhelin', cv.phone, `tel:${cv.phone.replace(/[^+\d]/g, '')}`),
-  ].filter(Boolean)
-  const contact = contactItems.length
-    ? roundedBox(
-        rounded,
-        {
-          table: {
-            widths: ['auto', '*'],
-            body: [
-              [
-                { ...text('Yhteystiedot', { size: 8, lineHeight: 1.32, weight: 700, color: '#493267' }), verticalAlignment: 'middle' },
-                { columns: contactItems, columnGap: mm(6), verticalAlignment: 'middle' },
-              ],
-            ],
-          },
-          layout: { ...noLines, paddingLeft: (index) => (index === 1 ? mm(6) : 0) },
-        },
-        {
-          padding: [mm(2.5), mm(3.5), mm(2.5), mm(3.5)],
-          border: {
-            top: [px(1), '#dcd2e8'],
-            right: [px(1), '#dcd2e8'],
-            bottom: [px(1), '#dcd2e8'],
-            left: [mm(1.5), '#7954aa'],
-          },
-          fill: '#f8f6fb',
-          margin: [0, 0, 0, mm(3)],
-          x: CV_PAGE_X,
-          width: PAGE_WIDTH - 2 * CV_PAGE_X,
-        },
-      )
-    : null
+  // .cv-print-profile: the summary as a full-width section under the header.
+  const profile = cv.summary && {
+    stack: [cvSectionHeading('Profiili', gaps), text(cv.summary, CV_TEXT)],
+    margin: [0, 0, 0, gaps.afterProfile],
+    unbreakable: true,
+  }
 
-  // .print-links: gap 1mm; label 7pt/700, link 6.7pt, line-height 1.2, gap 0.2mm.
+  const { link } = CV_STYLE
   const linkList = {
     stack: links.map(([label, url], index) => ({
       stack: [
-        text(label, { size: 7, lineHeight: 1.2, weight: 700, color: '#393340' }),
-        text(displayUrl(url), { size: 6.7, lineHeight: 1.2, color: '#4f3b70', link: url, margin: [0, mm(0.2), 0, 0] }),
+        text(label, { size: link.size, lineHeight: link.lineHeight, weight: 700, color: '#393340' }),
+        text(displayUrl(url), {
+          size: link.size,
+          lineHeight: link.lineHeight,
+          color: '#4f3b70',
+          link: url,
+          margin: [0, mm(link.inner), 0, 0],
+        }),
       ],
-      margin: [0, 0, 0, index < links.length - 1 ? mm(1) : 0],
+      margin: [0, 0, 0, index < links.length - 1 ? mm(link.gap) : 0],
     })),
   }
 
-  // Section gaps: 2.4mm in the sidebar, 2.8mm in the main column.
   const sidebar = sectionStack(
     [
-      cvBulletSection('IT-taidot', cv.skills),
-      cvBulletSection('Kielitaito', cv.languages),
-      links.length > 0 && { stack: [cvSectionHeading('Linkit'), linkList], unbreakable: true },
+      cvBulletSection('IT-taidot', cv.skills, gaps),
+      cvBulletSection('Kielitaito', cv.languages, gaps),
+      links.length > 0 && { stack: [cvSectionHeading('Linkit', gaps), linkList], unbreakable: true },
     ],
-    mm(2.4),
+    gaps.sidebarSection,
   )
   const main = sectionStack(
     [
-      cvExperience(cv.experience),
-      cvBulletSection('Koulutus', cv.education, { twoColumns: true }),
-      cvBulletSection('Sertifikaatit', cv.certificates, { twoColumns: true }),
-      cvBulletSection('Kurssit', cv.courses, { twoColumns: true }),
+      cvExperience(cv.experience, gaps),
+      cvBulletSection('Koulutus', cv.education, gaps, { twoColumns: true }),
+      cvBulletSection('Sertifikaatit', cv.certificates, gaps, { twoColumns: true }),
+      cvBulletSection('Kurssit', cv.courses, gaps, { twoColumns: true }),
       cv.hobbies && {
-        stack: [cvSectionHeading('Harrastukset'), text(cv.hobbies, { ...CV_ITEM, color: '#393642' })],
+        stack: [cvSectionHeading('Harrastukset', gaps), text(cv.hobbies, CV_TEXT)],
         unbreakable: true,
       },
     ],
-    mm(2.8),
-    { lastMargin: mm(2.8) },
+    gaps.mainSection,
+    { lastMargin: gaps.mainSection },
   )
 
-  // .cv-print-columns: 53mm sidebar (padding 4mm, #f6f4f9), column-gap 7mm, main column
-  // (padding 4mm, #fbf9fd), both with border-radius 2mm. Both columns are as tall as the taller one.
-  // The top and bottom padding are margins of the content, so a page that continues the columns
-  // starts at the top edge without padding, like Chrome's sliced boxes. The backgrounds are painted
-  // by roundedBackground, also down to the bottom edge of a page where the columns continue.
-  sidebar.margin = [0, mm(4), 0, mm(4)]
-  main.margin = [0, mm(4), 0, mm(4)]
-  const columnsId = `${ROUNDED_ID}columns`
+  // .cv-print-columns: sidebar (#f6f4f9) and main column (#fbf9fd), both with padding and
+  // border-radius 2mm. Both columns are as tall as the taller one. The top and bottom padding are
+  // margins of the content, so a page that continues the columns starts at the top edge without
+  // padding, like Chrome's sliced boxes. The backgrounds are painted by roundedBackground, also down
+  // to the bottom edge of a page where the columns continue.
+  sidebar.margin = [0, CV_COLUMN_PADDING, 0, CV_COLUMN_PADDING]
+  main.margin = [0, CV_COLUMN_PADDING, 0, CV_COLUMN_PADDING]
+  const mainX = CV_PAGE_X + CV_SIDEBAR + CV_COLUMN_GAP
   rounded.push(
-    { id: columnsId, x: CV_PAGE_X, width: mm(53), fill: '#f6f4f9', border: NO_BORDER },
-    { id: columnsId, x: CV_PAGE_X + mm(60), width: PAGE_WIDTH - 2 * CV_PAGE_X - mm(60), fill: '#fbf9fd', border: NO_BORDER },
+    { id: CV_COLUMNS_ID, x: CV_PAGE_X, width: CV_SIDEBAR, fill: '#f6f4f9', border: NO_BORDER },
+    { id: CV_COLUMNS_ID, x: mainX, width: PAGE_WIDTH - CV_PAGE_X - mainX, fill: '#fbf9fd', border: NO_BORDER },
   )
-  const columns = measuredBlock(columnsId, {
+  const columns = measuredBlock(CV_COLUMNS_ID, {
     table: {
-      widths: [mm(53) - mm(8), mm(7), '*'],
+      widths: [CV_SIDEBAR - 2 * CV_COLUMN_PADDING, CV_COLUMN_GAP, '*'],
       body: [[sidebar, { text: '' }, main]],
     },
     layout: {
       ...noLines,
-      paddingLeft: (column) => (column === 1 ? 0 : mm(4)),
-      paddingRight: (column) => (column === 1 ? 0 : mm(4)),
+      paddingLeft: (column) => (column === 1 ? 0 : CV_COLUMN_PADDING),
+      paddingRight: (column) => (column === 1 ? 0 : CV_COLUMN_PADDING),
     },
   })
 
   return {
     pageMargins: [CV_PAGE_X, NO_PAGE_MARGIN_Y, CV_PAGE_X, NO_PAGE_MARGIN_Y],
-    content: [hero, contact, columns].filter(Boolean),
+    content: [hero, profile, columns].filter(Boolean),
     rounded,
   }
+}
+
+// Chrome's text can be up to about 0.7% wider than pdfmake's, so a line near the edge may wrap one
+// word earlier in Chrome. The measuring layout adds this much spacing per character, so the CV is
+// measured slightly wider and taller than either print; the chosen scale then fits both.
+const MEASURE_CHARACTER_SPACING = 0.03
+
+// Where the CV ends with the given gap scale: lays it out with pdfmake and reads the position of the
+// marker at the bottom of the columns ({ page, top } in pt).
+async function cvEnd(cv, photo, scale) {
+  let end = null
+  const definition = {
+    pageSize: 'A4',
+    ...cvContent(cv, photo, scale),
+    defaultStyle: { font: 'DMSans', fontSize: 10, color: '#252331', characterSpacing: MEASURE_CHARACTER_SPACING },
+  }
+  delete definition.rounded
+  definition.pageBreakBefore = (node) => {
+    if (node.id === `${CV_COLUMNS_ID}-end`) end = { page: node.startPosition.pageNumber, top: node.startPosition.top }
+    return false
+  }
+  await pdfMake.createPdf(definition).getBlob()
+  return end
+}
+
+// The gap scale of a CV, the same for the PDF and for Chrome's print (App.jsx sets it as --cv-gap
+// before window.print()): the largest step with which the CV ends at least 3mm above the bottom of
+// the first page. A CV that does not fit on one page even with the smallest gaps gets 1 and
+// continues on the next page.
+export async function cvGapScale(cv = {}) {
+  await window.document.fonts?.load(`400 ${CV_ITEM.size}pt "DM Sans"`)
+  const photo = await pdfPhoto(cv.photo)
+  const fits = async (scale) => {
+    const end = await cvEnd(cv, photo, scale)
+    return Boolean(end) && end.page === 1 && end.top <= A4_HEIGHT - FIT_MARGIN
+  }
+  if (!(await fits(GAP_STEPS[0]))) return 1
+  // The CV only gets taller as the gaps grow, so the largest fitting step is found by bisection.
+  let low = 0
+  let high = GAP_STEPS.length - 1
+  if (await fits(GAP_STEPS[high])) return GAP_STEPS[high]
+  while (high - low > 1) {
+    const middle = Math.floor((low + high) / 2)
+    if (await fits(GAP_STEPS[middle])) low = middle
+    else high = middle
+  }
+  return GAP_STEPS[low]
 }
 
 /* ------------------------------ Hakemus ------------------------------ */
@@ -982,13 +1092,15 @@ export function pdfTitle(document) {
 }
 
 // spans: where the markers of the rounded boxes were in a previous rendering ({ [id]: { page, top } }).
-// Without them the rounded boxes are laid out but not painted.
-export async function buildPdfDefinition(document, spans = null) {
+// Without them the rounded boxes are laid out but not painted. gapScale: the CV's gap scale (cvGapScale).
+export async function buildPdfDefinition(document, spans = null, gapScale = 1) {
   const kind = document?.kind || 'notes'
   let definition
   if (kind === 'cv') {
     const cv = document.cv || {}
-    definition = cvContent(cv, await pdfPhoto(cv.photo))
+    // The two-column lists are balanced with widths measured in the app's DM Sans.
+    await window.document.fonts?.load(`400 ${CV_ITEM.size}pt "DM Sans"`)
+    definition = cvContent(cv, await pdfPhoto(cv.photo), gapScale)
   } else if (kind === 'application') {
     // Link widths are measured with the app's DM Sans, so the weights must be loaded first.
     await Promise.all(['400 10pt "DM Sans"', '700 10pt "DM Sans"'].map((font) => window.document.fonts?.load(font)))
@@ -1010,8 +1122,9 @@ export async function buildPdfDefinition(document, spans = null) {
 // Returns the finished PDF as a File for navigator.share().
 export async function createPrintPdf(document) {
   const spans = {}
+  const gapScale = document?.kind === 'cv' ? await cvGapScale(document.cv || {}) : 1
   const render = async (measured) => {
-    const definition = await buildPdfDefinition(document, measured)
+    const definition = await buildPdfDefinition(document, measured, gapScale)
     // Called after layout for every node; records where the markers of the rounded boxes ended up.
     // Never adds a break.
     definition.pageBreakBefore = (node) => {

@@ -280,10 +280,30 @@ export default function App() {
 
   useEffect(() => {
     if (!printDocument) return undefined
+    let current = true
+    let timer = null
     const afterPrint = () => setPrintDocument(null)
     window.addEventListener('afterprint', afterPrint)
-    const timer = window.setTimeout(() => window.print(), 180)
+    // A CV gets the gap scale that keeps it on one page when possible, the same one its PDF gets.
+    // It is set on the print document as --cv-gap (PrintSheet.css); nothing changes on screen.
+    const prepare =
+      printDocument.kind === 'cv'
+        ? import('./utils/printPdf.js')
+            .then(({ cvGapScale }) => cvGapScale(printDocument.cv))
+            .catch((reason) => {
+              console.error('CV gap scale failed', reason)
+              return 1
+            })
+        : Promise.resolve(null)
+    prepare.then((gapScale) => {
+      if (!current) return
+      const sheet = window.document.querySelector('.print-document')
+      if (gapScale === null) sheet?.style.removeProperty('--cv-gap')
+      else sheet?.style.setProperty('--cv-gap', String(gapScale))
+      timer = window.setTimeout(() => window.print(), 180)
+    })
     return () => {
+      current = false
       window.clearTimeout(timer)
       window.removeEventListener('afterprint', afterPrint)
     }

@@ -94,59 +94,12 @@
     font-size: 13pt;
     font-weight: 700;
   }
-  .cv-print-summary {
-    max-width: 125mm;
-    margin: 4mm 0 0;
-    color: #484451;
-    white-space: pre-wrap;
-  }
   .cv-print-photo {
     width: 32mm;
     height: 40mm;
     border: 1px solid #d5cbe4;
     border-radius: 2mm;
     object-fit: cover;
-  }
-  .cv-print-contact {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 2mm 8mm;
-    margin: 0 0 4mm;
-    padding: 3mm 4mm;
-    border: 1px solid #dcd2e8;
-    border-left: 1.5mm solid #7954aa;
-    border-radius: 2mm;
-    background: #f8f6fb;
-    color: #393642;
-  }
-  .cv-print-contact h2 {
-    margin: 0;
-    color: #493267;
-    font-size: 8.5pt;
-  }
-  .cv-print-contact > div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2mm 8mm;
-  }
-  .cv-print-contact p {
-    display: grid;
-    gap: 0.5mm;
-    margin: 0;
-    font-size: 8pt;
-  }
-  .cv-print-contact p span {
-    color: #7550a8;
-    font-size: 6.5pt;
-    font-weight: 800;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-  }
-  .cv-print-contact a {
-    color: #302440;
-    font-weight: 700;
-    text-decoration: none;
   }
   .cv-print-columns {
     display: grid;
@@ -283,33 +236,47 @@
 }
 
 @media print {
+  /* Font sizes and line heights are fixed. Only the gaps between sections, between a heading and its
+     content and between the rows of the work history, education, certificates and courses scale with
+     --cv-gap (0.6-1.8, default 1). Before printing a CV, the app sets the largest value that keeps it
+     on one page (utils/printPdf.js cvGapScale; the PDF uses the same values, see CV_STYLE there). */
   .print-document.print-cv {
+    --cv-gap: 1;
     height: 297mm;
     padding: 10mm 12mm;
-    font-size: 8pt;
-    line-height: 1.32;
+    font-size: 8.5pt;
+    line-height: 1.35;
   }
   .print-cv .cv-print-hero {
     min-height: 0;
-    margin: -10mm -12mm 4mm;
+    margin: -10mm -12mm calc(4mm * var(--cv-gap));
     padding: 10mm 12mm 5mm;
     gap: 8mm;
     border-bottom: 1mm solid #7954aa;
     background: #f2eff8;
   }
   .print-cv .cv-print-hero h1 {
-    font-size: 23pt;
+    font-size: 20pt;
     line-height: 1.05;
   }
   .print-cv .cv-print-title {
-    margin-top: 1.5mm;
-    font-size: 10pt;
+    margin-top: 1.2mm;
+    font-size: 10.5pt;
+    line-height: 1.3;
   }
-  .print-cv .cv-print-summary {
-    max-width: 138mm;
-    margin-top: 2mm;
-    font-size: 8pt;
-    line-height: 1.32;
+  /* Email and phone on one line under the name and title, separated by a middle dot. */
+  .print-cv .cv-print-contact {
+    margin: 2mm 0 0;
+    color: #484451;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+  .print-cv .cv-print-contact a {
+    color: #302440;
+    text-decoration: none;
+  }
+  .print-cv .cv-print-contact span {
+    color: #9273b2;
   }
   .print-cv .cv-print-photo {
     width: 27mm;
@@ -317,26 +284,13 @@
     border: 0;
     border-radius: 1.5mm;
   }
-  .print-cv .cv-print-contact {
-    gap: 1.5mm 6mm;
-    margin: 0 0 3mm;
-    padding: 2.5mm 3.5mm;
-  }
-  .print-cv .cv-print-contact h2 {
-    font-size: 8pt;
-  }
-  .print-cv .cv-print-contact > div {
-    gap: 1.5mm 6mm;
-  }
-  .print-cv .cv-print-contact p {
-    font-size: 7.2pt;
-  }
-  .print-cv .cv-print-contact p span {
-    font-size: 6pt;
+  /* The summary as a full-width section between the header and the columns. */
+  .print-cv .print-section.cv-print-profile {
+    margin: 0 0 calc(4mm * var(--cv-gap));
   }
   .print-cv .cv-print-columns {
     display: grid !important;
-    grid-template-columns: 53mm minmax(0, 1fr) !important;
+    grid-template-columns: 55mm minmax(0, 1fr) !important;
     column-gap: 7mm;
     row-gap: 0;
     align-items: stretch;
@@ -364,24 +318,24 @@
     background: #fbf9fd;
   }
   .print-cv .print-section {
-    margin: 0 0 2.4mm;
+    margin: 0 0 calc(3.5mm * var(--cv-gap));
     break-inside: avoid;
   }
   .print-cv .print-section h2 {
-    margin: 0 0 1.3mm;
+    margin: 0 0 calc(1.6mm * var(--cv-gap));
     padding-bottom: 0.8mm;
     border-bottom: 0.8pt solid #9273b2;
-    font-size: 8.2pt;
-    line-height: 1.1;
+    font-size: 9.5pt;
+    line-height: 1.15;
   }
   .print-cv .print-section p,
   .print-cv .cv-list-section li {
-    font-size: 7.2pt;
-    line-height: 1.25;
+    font-size: 8.5pt;
+    line-height: 1.35;
   }
   .print-cv .cv-list-section ul {
     display: grid;
-    gap: 0.45mm;
+    gap: 0.7mm;
     margin: 0;
     padding-left: 3.5mm;
   }
@@ -390,8 +344,12 @@
     columns: 2;
     column-gap: 6mm;
     column-fill: balance;
-    margin: 0;
+    margin: 0 0 calc(-0.5mm * var(--cv-gap));
     padding-left: 3.5mm;
+  }
+  /* Row gap of the two-column lists; the list's negative margin cancels it after the last row. */
+  .print-cv .cv-print-main .cv-list-section li {
+    padding-bottom: calc(0.5mm * var(--cv-gap));
   }
   .print-cv .cv-list-section li {
     padding-left: 0.3mm;
@@ -401,36 +359,44 @@
     color: #7550a8;
   }
   .print-cv .cv-print-main .print-section {
-    margin-bottom: 2.8mm;
+    margin-bottom: calc(4mm * var(--cv-gap));
+  }
+  /* A long work history may continue on the next page between two jobs; the heading stays with the
+     first job. Without this the whole section, and with it the columns, moved to the next page. */
+  .print-cv .print-section.cv-experience {
+    break-inside: auto;
+  }
+  .print-cv .cv-experience h2 {
+    break-after: avoid;
   }
   .print-cv .cv-experience-list {
     display: grid;
-    gap: 1.8mm;
+    gap: calc(2.4mm * var(--cv-gap));
   }
   .print-cv .cv-experience-list article {
     break-inside: avoid;
   }
   .print-cv .cv-experience-list h3 {
-    margin: 0 0 0.5mm;
+    margin: 0 0 0.6mm;
     color: #30233e;
-    font-size: 7.6pt;
-    line-height: 1.18;
+    font-size: 9pt;
+    line-height: 1.25;
   }
   .print-cv .cv-experience-list p {
-    font-size: 7.1pt;
-    line-height: 1.22;
+    font-size: 8.5pt;
+    line-height: 1.35;
     white-space: pre-wrap;
   }
   .print-cv .print-links {
-    gap: 1mm;
+    gap: 1.6mm;
   }
   .print-cv .print-links li {
-    gap: 0.2mm;
-    font-size: 7pt;
-    line-height: 1.2;
+    gap: 0.3mm;
+    font-size: 8pt;
+    line-height: 1.3;
   }
   .print-cv .print-links a {
-    font-size: 6.7pt;
+    font-size: 8pt;
   }
 
   .print-application .letter-titlebar {
