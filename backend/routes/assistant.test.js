@@ -10,15 +10,12 @@ import { Conversation } from '../models/Conversation.js'
 import { ConversationMessage } from '../models/ConversationMessage.js'
 import { Cv } from '../models/Cv.js'
 import { Template } from '../models/Template.js'
-import {
-  assistant,
-  cvContextText,
-  helsinkiDate,
-  historyCharLimit,
-  historyMessageLimit,
-  incompleteNotice,
-} from './assistant.js'
-import { conversations as conversationsRouter } from './conversations.js'
+
+// The AI rate limit (20 per hour) is read when the routes are loaded; this file sends more requests.
+process.env.RATE_LIMIT_AI = '1000'
+const { assistant, cvContextText, helsinkiDate, historyCharLimit, historyMessageLimit, incompleteNotice } =
+  await import('./assistant.js')
+const { conversations: conversationsRouter } = await import('./conversations.js')
 
 const userId = 'a'.repeat(24)
 const applicationId = 'b'.repeat(24)
@@ -459,4 +456,83 @@ test('contact details are removed from earlier assistant replies, the user messa
   const reply = history[1].content
   for (const value of [cv.email, cv.phone, 'Meikäläinen']) assert.ok(!reply.includes(value), `reply contains ${value}`)
   assert.match(reply, /\[poistettu\]/u)
+})
+
+const asJson = (reply, letter) => JSON.stringify({ reply, letter })
+const letterText = 'Hei,\n\nHaen Frontend-kehittäjän tehtävää.\n\nYstävällisin terveisin,\n[Nimesi]\n[Yhteystietosi]'
+
+test('structured output: the reply and the letter are returned separately and the letter is saved with the reply', async () => {
+  messages = []
+  saved = []
+  createMock.mock.mockImplementationOnce(async (body) => {
+    sent.push(body)
+    return { status: 'completed', output_text: asJson(`Tässä uusi kirje:\n\n${letterText}`, letterText) }
+  })
+  sent = []
+  const response = await postSuggest('Kirjoita uusi hakukirje')
+  assert.equal(response.status, 200)
+  const body = await response.json()
+  assert.equal(body.suggestion, `Tässä uusi kirje:\n\n${letterText}`)
+  assert.equal(body.letter, letterText)
+  assert.equal(sent[0].text.format.type, 'json_schema')
+  assert.equal(sent[0].text.format.strict, true)
+  assert.deepEqual(sent[0].text.format.schema.required, ['reply', 'letter'])
+  assert.match(sent[0].instructions, /letter täytetään vain, kun käyttäjä pyytää hakukirjettä/u)
+  assert.match(sent[0].instructions, /\[Nimesi\].*\[Yhteystietosi\]/u)
+  const reply = saved.find((row) => row.role === 'assistant')
+  assert.equal(reply.content, body.suggestion)
+  assert.equal(reply.letter, letterText)
+  assert.equal(reply.source, 'ai')
+})
+
+test('structured output: no letter when the reply has none', async () => {
+  saved = []
+  createMock.mock.mockImplementationOnce(async () => ({ status: 'completed', output_text: asJson('CV sopii ilmoitukseen hyvin.', '') }))
+  const body = await (await postSuggest('Arvioi CV')).json()
+  assert.equal(body.suggestion, 'CV sopii ilmoitukseen hyvin.')
+  assert.equal(body.letter, '')
+  assert.ok(!('letter' in saved.find((row) => row.role === 'assistant')))
+})
+
+test('a cut-off reply never offers a letter', async () => {
+  createMock.mock.mockImplementationOnce(async () => ({ status: 'incomplete', output_text: asJson('Kirje:', letterText) }))
+  let body = await (await postSuggest('Kirjoita hakukirje')).json()
+  assert.equal(body.letter, '')
+  assert.equal(body.suggestion, `Kirje:\n\n${incompleteNotice}`)
+  // Usually the JSON itself is cut off: the reply text so far is shown with the notice.
+  createMock.mock.mockImplementationOnce(async () => ({
+    status: 'incomplete',
+    output_text: '{"reply":"Arvio:\\n- Vahvuus: \\"testaus\\"\\n- Kehitettävää: kiel\\u00e4t ja',
+  }))
+  body = await (await postSuggest('Arvioi ja kirjoita kirje')).json()
+  assert.equal(body.letter, '')
+  assert.equal(body.suggestion, `Arvio:\n- Vahvuus: "testaus"\n- Kehitettävää: kielät ja\n\n${incompleteNotice}`)
+})
+
+test('text that is not the expected JSON is shown as the reply with no letter', async () => {
+  createMock.mock.mockImplementationOnce(async () => ({ status: 'completed', output_text: 'Pelkkää tekstiä ilman JSONia.' }))
+  let body = await (await postSuggest()).json()
+  assert.deepEqual([body.suggestion, body.letter], ['Pelkkää tekstiä ilman JSONia.', ''])
+  createMock.mock.mockImplementationOnce(async () => ({ status: 'completed', output_text: '{"answer":"väärä kenttä"}' }))
+  body = await (await postSuggest()).json()
+  assert.deepEqual([body.suggestion, body.letter], ['{"answer":"väärä kenttä"}', ''])
+})
+
+test('a letter longer than a template body is not offered', async () => {
+  createMock.mock.mockImplementationOnce(async () => ({ status: 'completed', output_text: asJson('Pitkä kirje', 'x'.repeat(20_001)) }))
+  const body = await (await postSuggest('Kirjoita hakukirje')).json()
+  assert.equal(body.letter, '')
+})
+
+test('only the reply goes to the history, never the separate letter', async () => {
+  messages = [
+    message('conversation-own', userId, 'user', 'Kirjoita hakukirje'),
+    { ...message('conversation-own', userId, 'assistant', 'Tässä kirje.'), letter: 'ERILLINEN-KIRJE-KENTTÄ' },
+  ]
+  const { history } = await suggest('Lyhennä kirjettä')
+  assert.deepEqual(history, [
+    { role: 'user', content: 'Kirjoita hakukirje' },
+    { role: 'assistant', content: 'Tässä kirje.' },
+  ])
+  assert.ok(!JSON.stringify(sent[0]).includes('ERILLINEN-KIRJE-KENTTÄ'))
 })

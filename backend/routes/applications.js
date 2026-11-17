@@ -1,7 +1,8 @@
 import { Application } from '../models/Application.js'
 import { Conversation } from '../models/Conversation.js'
 import { ConversationMessage } from '../models/ConversationMessage.js'
-import { applicationSchema, bulkDeleteSchema, parseBody } from '../utils/sanitize.js'
+import { serialize } from '../models/serialize.js'
+import { applicationSchema, applicationTemplateSchema, bulkDeleteSchema, mongoIdParam, parseBody } from '../utils/sanitize.js'
 import { FileAsset } from '../models/FileAsset.js'
 import { Cv } from '../models/Cv.js'
 import { Template } from '../models/Template.js'
@@ -107,6 +108,34 @@ export const applications = createOwnedResourceRouter({
       return 'Valittu hakemustiedosto ei ole hakemustiedostojen kirjastosta.'
     return null
   },
+})
+
+// Makes one of the user's own templates the application's cover letter and changes nothing else:
+// unlike PUT it does not send the other fields, so the stored application text, notes, files and
+// events stay exactly as they are. The old template is not touched. Used when an AI cover letter is
+// saved as a new template. Like the full validation, an application with attached cover letter
+// files cannot also have a template.
+applications.patch('/:id/template', async (req, res) => {
+  if (!mongoIdParam(req.params.id)) return res.status(400).json({ error: 'Virheellinen tunniste.' })
+  const result = parseBody(applicationTemplateSchema, req.body)
+  if (!result.success) return res.status(400).json({ error: 'Virheellinen hakemuspohjan tunniste.' })
+  const application = await Application.findOne({ _id: req.params.id, userId: req.dbUserId })
+    .select('applicationFileIds')
+    .lean()
+  if (!application) return res.status(404).json({ error: 'Hakemusta ei löytynyt.' })
+  if (application.applicationFileIds?.length)
+    return res.status(409).json({
+      error: 'Hakemukseen on liitetty hakukirjetiedosto, joten hakemuspohjaa ei voi valita sen rinnalle.',
+    })
+  if (!(await ownedExists(Template, result.data.templateId, req.dbUserId)))
+    return res.status(400).json({ error: 'Valittua hakemuspohjaa ei löydy tältä käyttäjätililtä.' })
+  const updated = await Application.findOneAndUpdate(
+    { _id: req.params.id, userId: req.dbUserId },
+    { $set: { templateId: result.data.templateId } },
+    { returnDocument: 'after', runValidators: true },
+  )
+  if (!updated) return res.status(404).json({ error: 'Hakemusta ei löytynyt.' })
+  return res.json(serialize(updated))
 })
 
 // Deletes several of the user's own applications and their conversations in one transaction.

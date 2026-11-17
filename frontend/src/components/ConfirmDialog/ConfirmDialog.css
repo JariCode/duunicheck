@@ -86,3 +86,32 @@
     width: 100%;
   }
 }
+/* Extra content of a confirmation: a choice and notes or warnings. Text colours come from the theme. */
+.confirm-option {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.confirm-option input {
+  flex: none;
+  margin: 2px 0 0;
+  accent-color: #caff45;
+}
+.confirm-option.is-disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.confirm-dialog .confirm-note {
+  margin-top: 8px;
+}
+.confirm-dialog .confirm-warning {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-left: 3px solid #ffb547;
+  border-radius: 6px;
+  background: #ffb5471f;
+}

@@ -214,6 +214,9 @@ export const importTableSchema = z
 export const importRemapSchema = z.object({ table: importTableSchema }).strict()
 
 const objectId = z.string().regex(/^[a-f\d]{24}$/i)
+// Sets only the application's cover letter template (PATCH /applications/:id/template).
+export const applicationTemplateSchema = z.object({ templateId: objectId }).strict()
+
 export const bulkDeleteSchema = z
   .object({
     ids: z

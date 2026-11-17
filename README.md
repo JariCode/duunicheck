@@ -40,7 +40,20 @@ Attached PDF, DOCX and TXT files are read with the same isolated reader as the f
 
 **Data minimisation:** before the request is sent, `backend/utils/redactContactDetails.js` replaces contact details in every document text with `[poistettu]`: email addresses, phone numbers, postal addresses, web addresses, the user's name and the contact details saved in the user's CVs and templates. The name is taken from the Clerk profile, the CVs and templates and the email address, and it is also detected at the start of a document and in a signature. Technology names such as ASP.NET and ordinary words are kept. The user's own message and the pasted job posting are sent as they are. The model is instructed not to write the user's name or contact details and to use `[Nimesi]` and `[Yhteystietosi]` instead. Detection is pattern based, so the privacy policy tells the user to check a file before selecting it.
 
-Answers can be up to 4,000 tokens long; if an answer is cut short, a notice asks the user to request a continuation. Answers are rendered from Markdown into React elements without HTML, and only http(s) links become links.
+Answers can be up to 12,000 tokens long; if an answer is cut short, a notice asks the user to request a continuation. Answers are rendered from Markdown into React elements without HTML, and only http(s) links become links.
+
+### Saving a suggested cover letter as a new template
+
+The model answers with structured output (`reply` and `letter`). `letter` is filled only when the user asks for a cover letter or an edit of one: the letter alone, from the greeting to the signature, without Markdown. A reply that was cut off, a reply that is not the expected JSON and a letter longer than a template body (20,000 characters) never offer a letter. The letter is saved with the reply in the conversation (`ConversationMessage.letter`), so the button is still there when the conversation is loaded again; only the reply is sent back to OpenAI as history.
+
+While "AI saa ehdottaa muutoksia" is selected, a reply with a letter has the button **Tallenna uudeksi hakukirjeeksi**. After the user confirms, the letter is saved as a new template through the normal `POST /api/templates` (same validation, 100-template limit). The user's existing templates, the application's text and its files are never changed or deleted.
+
+- **Name:** `<company> · <role> (AI pp.kk.vvvv)` with the Finnish date, shortened to 120 characters; " 2", " 3" and so on is added if the name is taken.
+- **Name and contact details:** copied into the new template from the application's current template, otherwise from its app CV. This happens in the browser only and nothing of it is sent to OpenAI. The letter print and PDF show the template's name, email and phone in the header and its links at the bottom, so `[Yhteystietosi]` is removed from the letter and `[Nimesi]` becomes `{{nimi}}`, which the print fills with the template's name.
+- **Use for this application** (on by default): `PATCH /api/applications/:id/template` sets only the application's `templateId`; the old template stays as it is. An application with an attached cover letter file cannot also have a template, so there the choice is off and the file stays attached.
+- Places still marked in square brackets (for example `[Kuvaa…]`) are counted in the confirmation, and the template can be completed on the CV & pohjat page.
+
+The privacy policy did not change: nothing new is sent to OpenAI.
 
 ### Prefilled application from a job posting
 
@@ -171,6 +184,13 @@ Backend unit tests:
 ```powershell
 cd backend
 node --test
+```
+
+Frontend unit tests (plain modules without the browser):
+
+```powershell
+cd frontend
+node --test src/utils
 ```
 
 The automated Robot Framework tests live in a separate repository, [duunicheck-tests](https://github.com/JariCode/duunicheck-tests).

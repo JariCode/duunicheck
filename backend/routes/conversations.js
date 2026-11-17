@@ -99,6 +99,7 @@ conversations.get('/:applicationId', async (req, res) => {
       id: String(message._id),
       role: message.role,
       content: message.content,
+      ...(message.letter ? { letter: message.letter } : {}),
       createdAt: message.createdAt,
     })),
   })

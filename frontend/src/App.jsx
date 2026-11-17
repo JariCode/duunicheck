@@ -18,6 +18,7 @@ import { createAssistantChatState, hasPendingChatWork } from './pages/AssistantP
 import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import PrintPdfDialog from './components/ConfirmDialog/PrintPdfDialog'
 import { printTarget } from './utils/printTarget'
+import { letterTemplate } from './utils/letterTemplate'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
 
 const pages = {
@@ -377,6 +378,25 @@ export default function App() {
     const setter = kind === 'cv' ? setCvs : setTemplates
     setter((all) => (item.id ? all.map((entry) => (entry.id === item.id ? saved : entry)) : [saved, ...all]))
     setApiError('')
+  }
+  // Saves an AI cover letter as a new template (never changing the user's existing templates) and,
+  // when asked, makes it this application's cover letter. Only the template id of the application
+  // changes (PATCH): its text, notes and files stay as they are, and the old template is kept.
+  async function saveLetterTemplate({ job, letter, useForApplication }) {
+    const draft = letterTemplate({ job, letter, templates, cvs })
+    const template = await apiRequest(getToken, '/templates', { method: 'POST', body: draft })
+    setTemplates((all) => [template, ...all])
+    if (!useForApplication) return { template, applied: false }
+    try {
+      const updated = await apiRequest(getToken, `/applications/${job.id}/template`, {
+        method: 'PATCH',
+        body: { templateId: template.id },
+      })
+      setJobs((all) => all.map((item) => (item.id === job.id ? { ...item, templateId: updated.templateId } : item)))
+      return { template, applied: true }
+    } catch (error) {
+      return { template, applied: false, applyError: error.message }
+    }
   }
   async function deleteMaterial(kind, id) {
     const path = kind === 'cv' ? '/cvs' : '/templates'
@@ -864,6 +884,7 @@ export default function App() {
                 ])
               }
               onApplicationsDeleted={removeDeletedJobs}
+              onSaveLetter={saveLetterTemplate}
             />
           )}
         </div>

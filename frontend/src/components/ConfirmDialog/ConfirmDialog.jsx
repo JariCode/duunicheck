@@ -6,9 +6,14 @@ export default function ConfirmDialog({
   title,
   description,
   confirmLabel = 'Poista',
+  // 'danger' for deletions (the default), 'primary' for confirming a save.
+  confirmTone = 'danger',
+  busyLabel = 'Poistetaan…',
   busy = false,
   onConfirm,
   onCancel,
+  // Optional extra content under the description, such as a choice or a warning.
+  children = null,
 }) {
   // Focus starts on Peruuta, so Enter never confirms a deletion by accident.
   const panelRef = useDialog({ open, onClose: onCancel, canClose: !busy })
@@ -34,12 +39,18 @@ export default function ConfirmDialog({
         <span className="confirm-kicker">VAHVISTA TOIMINTO</span>
         <h2 id="confirm-dialog-title">{title}</h2>
         <p id="confirm-dialog-description">{description}</p>
+        {children}
         <div className="confirm-actions">
           <button className="confirm-cancel" type="button" onClick={onCancel} disabled={busy}>
             Peruuta
           </button>
-          <button className="confirm-danger" type="button" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Poistetaan…' : confirmLabel}
+          <button
+            className={confirmTone === 'primary' ? 'confirm-primary' : 'confirm-danger'}
+            type="button"
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? busyLabel : confirmLabel}
           </button>
         </div>
       </section>

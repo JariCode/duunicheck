@@ -12,6 +12,8 @@ const conversationMessageSchema = new mongoose.Schema(
     // application and the answer DuuniCheck built from its data (/conversations/:id/answer). Only
     // 'ai' messages are sent to OpenAI as history; messages saved before this field have none.
     source: { type: String, enum: ['ai', 'local'] },
+    // A cover letter on its own, when an AI reply contains one; the user can save it as a new template.
+    letter: { type: String, maxlength: 20_000 },
   },
   { timestamps: { createdAt: true, updatedAt: false }, strict: 'throw', versionKey: false },
 )

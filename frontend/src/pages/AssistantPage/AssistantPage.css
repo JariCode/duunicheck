@@ -466,3 +466,18 @@
 .assistant-message .markdown-text {
   color: #f0e4f6;
 }
+/* "Save as a new cover letter" under an AI reply that contains a complete letter. */
+.assistant-letter-actions {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin: 8px 0 6px;
+}
+.assistant-letter-actions .add-button {
+  padding: 7px 12px;
+  font-size: 11px;
+}
+.assistant-message .assistant-letter-error {
+  display: block;
+  color: #ff9cbc;
+}

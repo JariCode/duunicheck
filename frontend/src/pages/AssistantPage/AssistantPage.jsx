@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/react'
 import { apiRequest, uploadImportFile } from '../../api'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
 import MarkdownText from '../../components/MarkdownText/MarkdownText'
+import { letterTemplate, maxTemplates, pendingPlaceholders } from '../../utils/letterTemplate'
 import DeleteApplicationsMessage from './DeleteApplicationsMessage'
 import ImportApplicationsMessage from './ImportApplicationsMessage'
 import { buildImportRows, checkImportFile, importAccept, rowSavable } from './importRows'
@@ -162,6 +163,7 @@ export default function AssistantPage({
   onSelectJob,
   onApplicationCreated,
   onApplicationsDeleted,
+  onSaveLetter,
 }) {
   const { getToken } = useAuth()
   const [jobId, setJobId] = useState(initialJobId || '')
@@ -299,6 +301,67 @@ export default function AssistantPage({
     const frame = window.requestAnimationFrame(scrollToLatest)
     return () => window.cancelAnimationFrame(frame)
   }, [historyLoading, jobId, lastMessageId])
+
+  // Saving an AI cover letter as a new template; nothing is saved before the user confirms it.
+  const [pendingLetter, setPendingLetter] = useState(null)
+  const [letterBusy, setLetterBusy] = useState(false)
+  // The save button is offered only for a reply with a complete letter, for the selected application,
+  // while the user allows the AI to suggest changes.
+  const canSaveLetter = (message) => Boolean(message.letter && job && context.allowSuggestions && onSaveLetter)
+
+  function requestSaveLetter(message) {
+    if (!job) return
+    if (templates.length >= maxTemplates) {
+      updateMessage(message.id, {
+        letterError: `Hakukirjettä ei voitu tallentaa: sinulla on jo ${maxTemplates} hakemuspohjaa, mikä on enimmäismäärä. Poista vanhoja pohjia CV & pohjat -sivulla ja yritä uudelleen.`,
+      })
+      return
+    }
+    const draft = letterTemplate({ job, letter: message.letter, templates, cvs })
+    const canApply = !(job.applicationFileIds || []).length
+    setPendingLetter({
+      messageId: message.id,
+      letter: message.letter,
+      jobId: job.id,
+      name: draft.name,
+      placeholders: pendingPlaceholders(draft.body).length,
+      canApply,
+      useForApplication: canApply,
+    })
+  }
+
+  async function confirmSaveLetter() {
+    if (!pendingLetter || letterBusy) return
+    const { messageId, letter, jobId: letterJobId, useForApplication } = pendingLetter
+    const target = jobs.find((item) => String(item.id) === String(letterJobId))
+    if (!target) {
+      setPendingLetter(null)
+      return
+    }
+    setLetterBusy(true)
+    try {
+      const result = await onSaveLetter({ job: target, letter, useForApplication })
+      const message = messages.find((item) => item.id === messageId)
+      const saved = [
+        `Hakukirje tallennettu pohjaksi ${result.template.name}.`,
+        result.applied && 'Se on nyt tämän hakemuksen hakukirje.',
+      ]
+        .filter(Boolean)
+        .join(' ')
+      updateMessage(messageId, {
+        letterSaves: [...(message?.letterSaves || []), saved],
+        letterError: result.applyError
+          ? `Pohja tallennettiin, mutta hakemuksen hakukirjettä ei voitu vaihtaa: ${result.applyError}`
+          : '',
+      })
+      setPendingLetter(null)
+    } catch (saveError) {
+      updateMessage(messageId, { letterError: `Hakukirjettä ei voitu tallentaa: ${saveError.message}` })
+      setPendingLetter(null)
+    } finally {
+      setLetterBusy(false)
+    }
+  }
 
   const closeMessage = (id) => setMessages((all) => all.filter((item) => item.id !== id))
   const updateMessage = (id, patch) =>
@@ -671,6 +734,8 @@ export default function AssistantPage({
           content: answer,
           // Shown with this answer only: which attached texts were shortened or could not be read.
           notices: localQuestion ? [] : result.notices || [],
+          // A complete cover letter in the reply, which the user can save as a new template.
+          letter: localQuestion ? '' : result.letter || '',
         },
       ])
       setDraft('')
@@ -753,8 +818,29 @@ export default function AssistantPage({
                       {notice}
                     </small>
                   ))}
+                  {message.role === 'assistant' && canSaveLetter(message) && (
+                    <div className="assistant-letter-actions">
+                      <button type="button" className="add-button" onClick={() => requestSaveLetter(message)}>
+                        Tallenna uudeksi hakukirjeeksi
+                      </button>
+                      {message.letterSaves?.map((saved) => (
+                        <small className="assistant-notice" role="status" key={saved}>
+                          {saved}
+                        </small>
+                      ))}
+                      {message.letterError && (
+                        <small className="assistant-letter-error" role="alert">
+                          {message.letterError}
+                        </small>
+                      )}
+                    </div>
+                  )}
                   {message.role === 'assistant' && (
-                    <small>Voit kopioida ehdotuksen ja hyväksyä muokkauksen itse hakemuksessa.</small>
+                    <small>
+                      {canSaveLetter(message)
+                        ? 'Tarkista kirje ja tallenna se uudeksi hakukirjeeksi painikkeella.'
+                        : 'Voit kopioida ehdotuksen ja hyväksyä muokkauksen itse hakemuksessa.'}
+                    </small>
                   )}
                 </article>
               ),
@@ -1071,6 +1157,49 @@ export default function AssistantPage({
           </p>
         </aside>
       </div>
+      <ConfirmDialog
+        open={Boolean(pendingLetter)}
+        title="Tallennetaanko uusi hakukirje?"
+        description={
+          pendingLetter
+            ? `Kirje tallennetaan uudeksi hakemuspohjaksi nimellä "${pendingLetter.name}". Omat pohjasi pysyvät ennallaan.`
+            : ''
+        }
+        confirmLabel="Tallenna"
+        confirmTone="primary"
+        busyLabel="Tallennetaan…"
+        busy={letterBusy}
+        onConfirm={confirmSaveLetter}
+        onCancel={() => setPendingLetter(null)}
+      >
+        {pendingLetter && (
+          <>
+            <label className={`confirm-option${pendingLetter.canApply ? '' : ' is-disabled'}`}>
+              <input
+                type="checkbox"
+                checked={pendingLetter.useForApplication}
+                disabled={!pendingLetter.canApply || letterBusy}
+                onChange={(event) =>
+                  setPendingLetter((current) => current && { ...current, useForApplication: event.target.checked })
+                }
+              />
+              <span>Käytä tätä hakukirjeenä tässä hakemuksessa</span>
+            </label>
+            {!pendingLetter.canApply && (
+              <p className="confirm-note">
+                Hakemukseen on liitetty hakukirjetiedosto, joten pohjaa ei voi valita sen rinnalle. Tiedosto pysyy
+                liitettynä, ja uuden pohjan löydät CV &amp; pohjat -sivulta.
+              </p>
+            )}
+            {pendingLetter.placeholders > 0 && (
+              <p className="confirm-warning" role="note">
+                Kirjeessä on vielä täydennettäviä kohtia hakasulkeissa ({pendingLetter.placeholders} kpl). Voit täydentää
+                ne CV &amp; pohjat -sivulla.
+              </p>
+            )}
+          </>
+        )}
+      </ConfirmDialog>
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         title={pendingDelete?.title || ''}
