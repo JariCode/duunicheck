@@ -30,7 +30,7 @@ The AI assistant reads the selected application from DuuniCheck's own database. 
 For suggestions (`POST /api/assistant/suggest`), the server sends OpenAI the user's message and only the context items the user selects in the context column. CV and cover letter are off by default, and an item is disabled when the application has nothing to send for it.
 
 - **Job posting:** text the user pastes into the context column. Postings are never fetched from links.
-- **CV:** the CV made in DuuniCheck (title, summary, skills, experience and education, never the photo) and/or the text of a CV file attached to the application.
+- **CV:** the CV made in DuuniCheck (title, summary, skills, work experience, education, certificates, courses and languages, each under its own Finnish heading; never the name, contact details, links, hobbies or photo) and/or the text of a CV file attached to the application. The instructions also tell the model today's date in Finland, so it can tell past dates (for example a completed degree) from future ones.
 - **Cover letter:** the cover letter template, the application's own text and the text of attached application files.
 - **Notes:** the application's notes.
 

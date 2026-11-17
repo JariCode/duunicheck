@@ -1,4 +1,6 @@
+// Käyttöehdot (legalUpdated) and tietosuojaseloste (privacyUpdated) are updated separately.
 export const legalUpdated = '9. marraskuuta 2026'
+export const privacyUpdated = '17. marraskuuta 2026'
 export const controllerName = 'JariCode (jaricode.fi)'
 
 const configuredEmail = import.meta.env.VITE_SUPPORT_EMAIL?.trim() || ''

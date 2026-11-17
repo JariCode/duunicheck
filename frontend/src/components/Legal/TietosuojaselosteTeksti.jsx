@@ -1,4 +1,4 @@
-import { controllerName, legalUpdated, providers, supportEmail, supportText } from '../../legal/legalConfig.js'
+import { controllerName, privacyUpdated, providers, supportEmail, supportText } from '../../legal/legalConfig.js'
 
 const rights = [
   'pyytää pääsyä itseäsi koskeviin tietoihin',
@@ -12,7 +12,7 @@ const rights = [
 export default function TietosuojaselosteTeksti() {
   return (
     <article className="legal-copy">
-      <p className="legal-updated">Päivitetty viimeksi: {legalUpdated}</p>
+      <p className="legal-updated">Päivitetty viimeksi: {privacyUpdated}</p>
 
       <h2>1. Rekisterinpitäjä ja yhteystiedot</h2>
       <p>
@@ -115,8 +115,9 @@ export default function TietosuojaselosteTeksti() {
       <p>
         OpenAI:lle lähetetään avustajalle kirjoittamasi viesti ja vain erikseen valitsemasi konteksti. Konteksti voi
         sisältää hakemuksen yrityksen ja tehtävän, ilmoitustekstin, hakemuspohjan tekstin, hakemuksen muistiinpanot sekä
-        hakemuksen hakemustekstin. Sovelluksessa luodusta CV:stä lähetetään vain otsikko, yhteenveto, taidot, kokemus ja
-        koulutus, ei CV-kuvaa.
+        hakemuksen hakemustekstin. Sovelluksessa luodusta CV:stä lähetetään vain ammattinimike, profiili, taidot,
+        työkokemus, koulutus, sertifikaatit, kurssit ja kielitaito. Nimeä, yhteystietoja, linkkejä, harrastuksia eikä
+        CV-kuvaa lähetetä.
       </p>
       <p>
         Jos valitset CV:n tai hakukirjeen ja hakemukseen on liitetty CV-tiedosto tai hakemustiedostoja, OpenAI:lle
