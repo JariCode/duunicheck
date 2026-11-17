@@ -18,6 +18,7 @@ import {
   historyMessageLimit,
   incompleteNotice,
 } from './assistant.js'
+import { conversations as conversationsRouter } from './conversations.js'
 
 const userId = 'a'.repeat(24)
 const applicationId = 'b'.repeat(24)
@@ -61,15 +62,19 @@ const conversations = [
   { _id: 'conversation-other-user', userId: otherUserId, applicationId },
 ]
 let messages = []
+let saved = []
 let clock = 0
-const message = (conversationId, owner, role, content) => ({
+// source: 'ai' (an AI suggestion, the default), 'local' (a local answer) or null (saved before the field).
+const message = (conversationId, owner, role, content, source = 'ai') => ({
   _id: `m${++clock}`,
   conversationId,
   userId: owner,
   role,
   content,
+  ...(source ? { source } : {}),
   createdAt: new Date(Date.UTC(2026, 10, 17, 8, 0, clock)),
 })
+const applicationNotes = 'Soita rekrytoijalle Maija Mallikkaalle, maija.mallikas@example.com, 040 765 4321.'
 const matches = (doc, filter) => Object.entries(filter).every(([key, value]) => String(doc[key]) === String(value))
 function query(rows) {
   const chain = {
@@ -96,7 +101,16 @@ before(async () => {
     return { status: 'completed', output_text: 'Ehdotus.' }
   })
   mock.method(Application, 'findOne', () => ({
-    lean: async () => ({ _id: applicationId, userId, role: 'Frontend-kehittäjä', company: 'Esimerkki Oy', cvId }),
+    lean: async () => ({
+      _id: applicationId,
+      userId,
+      role: 'Frontend-kehittäjä',
+      company: 'Esimerkki Oy',
+      status: 'Lähetetty',
+      link: 'https://tyopaikat.example.com/ilmoitus/123',
+      notes: applicationNotes,
+      cvId,
+    }),
   }))
   mock.method(Cv, 'findOne', () => ({ lean: async () => cv }))
   mock.method(Cv, 'find', () => ({ select: () => ({ lean: async () => [cv] }) }))
@@ -114,7 +128,10 @@ before(async () => {
   })
   mock.method(Conversation, 'findOneAndUpdate', async () => ({ _id: 'conversation-own' }))
   mock.method(ConversationMessage, 'find', (filter) => query(messages.filter((row) => matches(row, filter))))
-  mock.method(ConversationMessage, 'insertMany', async () => [])
+  mock.method(ConversationMessage, 'insertMany', async (rows) => {
+    saved.push(...rows)
+    return rows
+  })
 
   const app = express()
   app.use(express.json())
@@ -124,6 +141,7 @@ before(async () => {
     next()
   })
   app.use('/assistant', assistant)
+  app.use('/conversations', conversationsRouter)
   await new Promise((resolve) => {
     server = app.listen(0, '127.0.0.1', resolve)
   })
@@ -218,9 +236,9 @@ test('cvContextText leaves out empty fields', () => {
   assert.equal(cvContextText({ fullName: 'Matti Meikäläinen', hobbies: 'Suunnistus' }), '')
 })
 
-test('suggestions wait up to 120 s for OpenAI and are not retried', async () => {
+test('suggestions wait up to 240 s for OpenAI and are not retried', async () => {
   await suggest()
-  assert.deepEqual(clientOptions, { timeout: 120_000, maxRetries: 0 })
+  assert.deepEqual(clientOptions, { timeout: 240_000, maxRetries: 0 })
 })
 
 test('a timed-out OpenAI request returns 504 with a Finnish message and logs only the error name', async () => {
@@ -361,4 +379,84 @@ test('a reply cut off by the length limit is still saved and shown with the noti
   const response = await postSuggest()
   assert.equal(response.status, 200)
   assert.equal((await response.json()).suggestion, `Hakukirjeen alku\n\n${incompleteNotice}`)
+})
+
+test('local answers built from the application data are never sent to OpenAI', async () => {
+  // A local answer to a notes question contains the notes, the posting link and contact details.
+  messages = [
+    message('conversation-own', userId, 'user', 'Mitä muistiinpanoja hakemuksessa on?', 'local'),
+    message(
+      'conversation-own',
+      userId,
+      'assistant',
+      `Frontend-kehittäjä · Esimerkki Oy\nIlmoitus: https://tyopaikat.example.com/ilmoitus/123\nMuistiinpanot: ${applicationNotes}`,
+      'local',
+    ),
+    message('conversation-own', userId, 'user', 'Kirjoita hakukirje'),
+    message('conversation-own', userId, 'assistant', 'Hakukirjeen luonnos'),
+  ]
+  const { history } = await suggest()
+  assert.deepEqual(history, [
+    { role: 'user', content: 'Kirjoita hakukirje' },
+    { role: 'assistant', content: 'Hakukirjeen luonnos' },
+  ])
+  const request = JSON.stringify(sent[0])
+  for (const value of ['Mitä muistiinpanoja', 'Muistiinpanot:', 'Maija', 'maija.mallikas', '040 765 4321', 'tyopaikat.example.com']) {
+    assert.ok(!request.includes(value), `request contains ${value}`)
+  }
+})
+
+test('messages saved before the source field are not sent', async () => {
+  messages = [
+    message('conversation-own', userId, 'user', 'Vanha kysymys ilman lähdettä', null),
+    message('conversation-own', userId, 'assistant', 'Vanha vastaus ilman lähdettä', null),
+  ]
+  const { history } = await suggest()
+  assert.deepEqual(history, [])
+  assert.ok(!JSON.stringify(sent[0]).includes('ilman lähdettä'))
+})
+
+test("/suggest saves its messages with source 'ai' and /answer with source 'local'", async () => {
+  messages = []
+  saved = []
+  await suggest('Arvioi hakukirje')
+  assert.deepEqual(
+    saved.map(({ role, source }) => ({ role, source })),
+    [
+      { role: 'user', source: 'ai' },
+      { role: 'assistant', source: 'ai' },
+    ],
+  )
+  saved = []
+  const response = await fetch(`${baseUrl}/conversations/${applicationId}/answer`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ message: 'Mitä muistiinpanoja hakemuksessa on?' }),
+  })
+  assert.equal(response.status, 200)
+  assert.match((await response.json()).answer, /Muistiinpanot: Soita rekrytoijalle/u)
+  assert.deepEqual(
+    saved.map(({ role, source }) => ({ role, source })),
+    [
+      { role: 'user', source: 'local' },
+      { role: 'assistant', source: 'local' },
+    ],
+  )
+})
+
+test('contact details are removed from earlier assistant replies, the user messages are sent as they are', async () => {
+  messages = [
+    message('conversation-own', userId, 'user', 'Lisää yhteystietoni: soita 040 111 2222'),
+    message(
+      'conversation-own',
+      userId,
+      'assistant',
+      `Ystävällisin terveisin,\nMatti Meikäläinen\n${cv.email}\n${cv.phone}`,
+    ),
+  ]
+  const { history } = await suggest()
+  assert.equal(history[0].content, 'Lisää yhteystietoni: soita 040 111 2222')
+  const reply = history[1].content
+  for (const value of [cv.email, cv.phone, 'Meikäläinen']) assert.ok(!reply.includes(value), `reply contains ${value}`)
+  assert.match(reply, /\[poistettu\]/u)
 })

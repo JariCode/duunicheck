@@ -37,7 +37,8 @@ export const assistant = Router()
 const openAiClient = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000, maxRetries: 1 })
 // Suggestions can be long (a review of the CV and cover letter against the posting plus a new cover
 // letter), so they get more time. No retry: a second attempt would double the wait and the cost.
-const suggestClient = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 120_000, maxRetries: 0 })
+// 240 s covers a full 12 000-token reply at the usual 50-100 tokens per second.
+const suggestClient = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 240_000, maxRetries: 0 })
 
 // The SDK's errors keep the generic name "Error"; their class name tells a timeout from a lost connection.
 const errorName = (error) =>
@@ -121,15 +122,18 @@ export const historyMessageLimit = 6
 export const historyCharLimit = 12_000
 export const incompleteNotice = 'Vastaus jäi kesken pituusrajan vuoksi. Pyydä jatkoa tai lyhyempi vastaus.'
 
-// The latest messages of the user's own conversation about this application (local answers
-// included, they are saved in the same conversation), as Responses API input messages in
-// chronological order. The newest messages fill the budget first; a message that no longer fits
-// whole is cut from its start, so the end of an interrupted reply is always there to continue from.
-// The "cut off" notice is removed from assistant replies, it is not part of the reply.
-export async function conversationHistory(userId, applicationId) {
+// The latest AI messages of the user's own conversation about this application, as Responses API
+// input messages in chronological order. Only messages saved by /suggest (source 'ai') are used:
+// local answers built from the application's data (notes, application text, posting link) and
+// older messages without a source are never sent. The newest messages fill the budget first; a
+// message that no longer fits whole is cut from its start, so the end of an interrupted reply is
+// always there to continue from. The "cut off" notice is removed from assistant replies, and the
+// replies are redacted like the other documents (`known`, see userContactDetails); the user's own
+// messages are sent as they are, like the new message.
+export async function conversationHistory(userId, applicationId, known) {
   const conversation = await Conversation.findOne({ userId, applicationId }).select('_id').lean()
   if (!conversation) return []
-  const latest = await ConversationMessage.find({ userId, conversationId: conversation._id })
+  const latest = await ConversationMessage.find({ userId, conversationId: conversation._id, source: 'ai' })
     .sort({ createdAt: -1, _id: -1 })
     .limit(historyMessageLimit)
     .select('role content')
@@ -139,7 +143,10 @@ export async function conversationHistory(userId, applicationId) {
   for (const { role, content } of latest) {
     if (left <= 0) break
     let text = String(content || '')
-    if (role === 'assistant' && text.endsWith(incompleteNotice)) text = text.slice(0, -incompleteNotice.length)
+    if (role === 'assistant') {
+      if (text.endsWith(incompleteNotice)) text = text.slice(0, -incompleteNotice.length)
+      ;[text] = redactDocuments([text], known)
+    }
     text = text.trim()
     if (!text) continue
     if (text.length > left) {
@@ -227,7 +234,7 @@ assistant.post('/suggest', aiLimiter, async (req, res) => {
     .join('\n\n')
 
   // The latest messages of this application's own conversation, so the model can continue it.
-  const history = await conversationHistory(req.dbUserId, application._id)
+  const history = await conversationHistory(req.dbUserId, application._id, known)
 
   let response
   try {
@@ -281,8 +288,8 @@ assistant.post('/suggest', aiLimiter, async (req, res) => {
       if (!conversation) throw error
     }
     await ConversationMessage.insertMany([
-      { userId: req.dbUserId, conversationId: conversation._id, role: 'user', content: message },
-      { userId: req.dbUserId, conversationId: conversation._id, role: 'assistant', content: suggestion },
+      { userId: req.dbUserId, conversationId: conversation._id, role: 'user', content: message, source: 'ai' },
+      { userId: req.dbUserId, conversationId: conversation._id, role: 'assistant', content: suggestion, source: 'ai' },
     ])
     return res.json({ suggestion, notices })
   } catch (error) {

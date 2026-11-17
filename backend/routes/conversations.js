@@ -53,8 +53,9 @@ async function saveConversationPair({ userId, applicationId, question, answer })
     if (!conversation) throw error
   }
   await ConversationMessage.insertMany([
-    { userId, conversationId: conversation._id, role: 'user', content: question },
-    { userId, conversationId: conversation._id, role: 'assistant', content: answer },
+    // Local answers are built from the application's data (notes too) and are never sent to OpenAI.
+    { userId, conversationId: conversation._id, role: 'user', content: question, source: 'local' },
+    { userId, conversationId: conversation._id, role: 'assistant', content: answer, source: 'local' },
   ])
 }
 
