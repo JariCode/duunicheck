@@ -71,7 +71,7 @@ app.use(
       if (!origin || origins.includes(origin)) return callback(null, true)
       return callback(null, false)
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     maxAge: 600,
   }),

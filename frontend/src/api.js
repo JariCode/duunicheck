@@ -46,9 +46,19 @@ async function requestError(response) {
   return new Error((payload.error || `Pyyntö epäonnistui (${response.status}).`) + fieldHint)
 }
 
+// fetch rejects only when no response arrives (network down, server unreachable, request blocked
+// by CORS). The browser's own message ("Failed to fetch") is replaced with a Finnish one.
+async function apiFetch(path, options) {
+  try {
+    return await fetch(`${API_URL}/api${path}`, options)
+  } catch {
+    throw new Error('Palvelimeen ei saatu yhteyttä. Tarkista verkkoyhteys ja yritä uudelleen.')
+  }
+}
+
 export async function apiRequest(getToken, path, { method = 'GET', body } = {}) {
   const token = await authToken(getToken)
-  const response = await fetch(`${API_URL}/api${path}`, {
+  const response = await apiFetch(path, {
     method,
     headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
     ...(body ? { body: JSON.stringify(body) } : {}),
@@ -62,7 +72,7 @@ export async function uploadMaterialFile(getToken, category, file) {
   const body = new FormData()
   body.append('category', category)
   body.append('file', file)
-  const response = await fetch(`${API_URL}/api/files`, {
+  const response = await apiFetch('/files', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body,
@@ -76,7 +86,7 @@ export async function uploadImportFile(getToken, file) {
   const token = await authToken(getToken)
   const body = new FormData()
   body.append('file', file)
-  const response = await fetch(`${API_URL}/api/assistant/import-applications`, {
+  const response = await apiFetch('/assistant/import-applications', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body,
@@ -87,7 +97,7 @@ export async function uploadImportFile(getToken, file) {
 
 export async function downloadMaterialFile(getToken, file) {
   const token = await authToken(getToken)
-  const response = await fetch(`${API_URL}/api/files/${encodeURIComponent(file.id)}/download`, {
+  const response = await apiFetch(`/files/${encodeURIComponent(file.id)}/download`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!response.ok) throw await requestError(response)
