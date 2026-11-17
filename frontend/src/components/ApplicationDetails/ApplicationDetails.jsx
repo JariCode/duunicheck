@@ -220,6 +220,9 @@ export default function ApplicationDetails({
                           value={eventDraft.type}
                           onChange={(e) => setEventDraft({ ...eventDraft, type: e.target.value })}
                         >
+                          {/* An old type that is no longer offered (such as "Hakemus jätetty") is kept
+                              as the selected option, so saving an edit does not change it unnoticed. */}
+                          {!eventTypes.includes(eventDraft.type) && <option>{eventDraft.type}</option>}
                           {eventTypes.map((type) => (
                             <option key={type}>{type}</option>
                           ))}

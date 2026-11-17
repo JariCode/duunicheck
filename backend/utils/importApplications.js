@@ -3,9 +3,9 @@
 // dropping the whole row. Nothing here saves anything.
 import { applicationSchema, applicationStatuses, eventSchema } from './sanitize.js'
 
-// Event types the application already uses (ApplicationDetails event list).
+// Event types the application offers for new events (frontend utils.js eventTypes). The AI import
+// may only use these, so a sent application becomes "Lähetetty", never the old "Hakemus jätetty".
 export const importEventTypes = [
-  'Hakemus jätetty',
   'Lähetetty',
   'Vastaus saatu',
   'Haastattelu sovittu',

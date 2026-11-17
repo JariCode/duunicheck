@@ -1,8 +1,9 @@
 export const stages = ['Kiinnostava', 'Lähetetty', 'Haastattelu sovittu', 'Hyväksytty', 'Hylätty']
 export const normalizeStage = (status) =>
   ({ 'Odottaa vastausta': 'Lähetetty', Haastattelu: 'Haastattelu sovittu', Tarjous: 'Lähetetty' })[status] || status
+// Event types offered for new events. "Hakemus jätetty" meant the same as "Lähetetty" and is no
+// longer offered, but old events of that type stay as they are and still count as sent (sentTypes).
 export const eventTypes = [
-  'Hakemus jätetty',
   'Lähetetty',
   'Vastaus saatu',
   'Haastattelu sovittu',
