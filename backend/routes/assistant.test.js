@@ -41,11 +41,14 @@ const cv = {
 let server
 let baseUrl
 let sent = []
+let createMock
+let clientOptions = null
 
 before(async () => {
   process.env.OPENAI_API_KEY = 'test-key-not-used'
-  mock.method(OpenAI.Responses.prototype, 'create', async (body) => {
+  createMock = mock.method(OpenAI.Responses.prototype, 'create', async function create(body) {
     sent.push(body)
+    clientOptions = { timeout: this._client.timeout, maxRetries: this._client.maxRetries }
     return { status: 'completed', output_text: 'Ehdotus.' }
   })
   mock.method(Application, 'findOne', () => ({
@@ -82,6 +85,20 @@ after(() => {
   server?.close()
   mock.restoreAll()
 })
+
+const postingText = 'Edellytämme kielitaitoa ja testauskursseja.'
+const userMessage = 'Vertaa CV:tä ilmoitukseen.'
+
+function postSuggest() {
+  return fetch(`${baseUrl}/assistant/suggest`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      message: userMessage,
+      context: { applicationId, includePosting: true, postingText, includeCv: true, allowSuggestions: true },
+    }),
+  })
+}
 
 async function suggest() {
   sent = []
@@ -157,4 +174,48 @@ test('helsinkiDate uses the Finnish day, also when UTC is still on the previous 
 test('cvContextText leaves out empty fields', () => {
   assert.equal(cvContextText({ title: 'Kehittäjä', summary: '  ', courses: 'Kurssi A' }), 'Ammattinimike: Kehittäjä\n\nKurssit: Kurssi A')
   assert.equal(cvContextText({ fullName: 'Matti Meikäläinen', hobbies: 'Suunnistus' }), '')
+})
+
+test('suggestions wait up to 120 s for OpenAI and are not retried', async () => {
+  await suggest()
+  assert.deepEqual(clientOptions, { timeout: 120_000, maxRetries: 0 })
+})
+
+test('a timed-out OpenAI request returns 504 with a Finnish message and logs only the error name', async () => {
+  createMock.mock.mockImplementationOnce(async () => {
+    throw new OpenAI.APIConnectionTimeoutError()
+  })
+  const logged = mock.method(console, 'error', () => {})
+  try {
+    const response = await postSuggest()
+    assert.equal(response.status, 504)
+    const body = await response.json()
+    assert.match(body.error, /^AI-vastaus kesti liian kauan\. Yritä uudelleen tai pyydä lyhyempi vastaus/u)
+    const calls = logged.mock.calls.filter((call) => call.arguments[0] === 'OpenAI assistant request failed')
+    assert.equal(calls.length, 1)
+    const details = calls[0].arguments[1]
+    assert.equal(details.name, 'APIConnectionTimeoutError')
+    const text = JSON.stringify(logged.mock.calls.map((call) => call.arguments))
+    for (const content of [userMessage, postingText, 'Request timed out', 'Relaatiotietokannat', cv.email]) {
+      assert.ok(!text.includes(content), `log contains ${content}`)
+    }
+  } finally {
+    logged.mock.restore()
+  }
+})
+
+test('other connection errors still return 502 and log their own name', async () => {
+  createMock.mock.mockImplementationOnce(async () => {
+    throw new OpenAI.APIConnectionError({ message: 'socket hang up' })
+  })
+  const logged = mock.method(console, 'error', () => {})
+  try {
+    const response = await postSuggest()
+    assert.equal(response.status, 502)
+    const details = logged.mock.calls.find((call) => call.arguments[0] === 'OpenAI assistant request failed').arguments[1]
+    assert.equal(details.name, 'APIConnectionError')
+    assert.ok(!JSON.stringify(logged.mock.calls.map((call) => call.arguments)).includes('socket hang up'))
+  } finally {
+    logged.mock.restore()
+  }
 })

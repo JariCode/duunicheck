@@ -35,16 +35,30 @@ import { knownContactDetails, redactDocuments } from '../utils/redactContactDeta
 export const assistant = Router()
 
 const openAiClient = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000, maxRetries: 1 })
+// Suggestions can be long (a review of the CV and cover letter against the posting plus a new cover
+// letter), so they get more time. No retry: a second attempt would double the wait and the cost.
+const suggestClient = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 120_000, maxRetries: 0 })
 
-// Maps OpenAI failures to safe Finnish messages; only status and codes are logged.
+// The SDK's errors keep the generic name "Error"; their class name tells a timeout from a lost connection.
+const errorName = (error) =>
+  String((error?.name && error.name !== 'Error' ? error.name : error?.constructor?.name) || 'Error').slice(0, 100)
+
+// Maps OpenAI failures to safe Finnish messages; only the error name, status and codes are logged,
+// never the message text or the request content.
 function sendAiError(res, error, logLabel) {
   const status = Number(error?.status) || 0
   const code = String(error?.code || error?.type || '')
   console.error(logLabel, {
+    name: errorName(error),
     status,
     code: code.slice(0, 100),
     requestId: typeof error?.request_id === 'string' ? error.request_id.slice(0, 100) : undefined,
   })
+  if (error instanceof OpenAI.APIConnectionTimeoutError)
+    return res.status(504).json({
+      error:
+        'AI-vastaus kesti liian kauan. Yritä uudelleen tai pyydä lyhyempi vastaus, esimerkiksi ensin pelkkä arvio ja sitten hakukirje erikseen.',
+    })
   if (status === 401 || status === 403)
     return res
       .status(502)
@@ -107,7 +121,7 @@ assistant.post('/suggest', aiLimiter, async (req, res) => {
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'AI-palvelua ei ole vielä määritetty.' })
 
   const { context, message } = result.data
-  const client = openAiClient()
+  const client = suggestClient()
   const application = await Application.findOne({ _id: context.applicationId, userId: req.dbUserId }).lean()
   if (!application) return res.status(404).json({ error: 'Hakemusta ei löytynyt.' })
   const [cv, template] = await Promise.all([
