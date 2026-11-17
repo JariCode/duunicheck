@@ -236,7 +236,7 @@ function ApplicationPrint({ document }) {
 // "Tulosta yhteenveto / PDF": everything about one application (utils/applicationSummary.js builds the
 // values, the PDF draws the same ones). Empty sections are left out.
 function ApplicationSummaryPrint({ document }) {
-  const { title, subtitle, printed, facts = [], attachments = [], events = [], notes } = document
+  const { title, subtitle, printed, facts = [], attachments = [], events = [], notes, applicationText } = document
   return (
     <>
       <header className="letter-titlebar">HAKEMUS</header>
@@ -324,6 +324,12 @@ function ApplicationSummaryPrint({ document }) {
         <section className="summary-section summary-notes">
           <h2>Muistiinpanot</h2>
           <p>{notes}</p>
+        </section>
+      )}
+      {applicationText && (
+        <section className="summary-section summary-notes">
+          <h2>Vanha hakemusteksti</h2>
+          <p>{applicationText}</p>
         </section>
       )}
     </>

@@ -19,6 +19,7 @@ import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import PrintPdfDialog from './components/ConfirmDialog/PrintPdfDialog'
 import { printTarget } from './utils/printTarget'
 import { letterTemplate } from './utils/letterTemplate'
+import { applicationTextState, savedApplicationText } from './utils/applicationText.js'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
 
 const pages = {
@@ -78,8 +79,9 @@ const formForJob = (job) => ({
   templateId: job.templateId || '',
   cvFileId: job.cvId ? '' : job.cvFileId || '',
   applicationFileIds: job.templateId ? [] : job.applicationFileIds || [],
-  applicationText: '',
-  notes: job.notes || job.applicationText || '',
+  // The value a save sends back (see utils/applicationText.js); the form has no field for it.
+  applicationText: job.applicationText || '',
+  notes: job.notes || '',
   status: normalizeStage(job.status),
   added: job.added || today(),
   respondedAt: job.respondedAt || firstResponseDate(job.events),
@@ -233,10 +235,10 @@ export default function App() {
             const events = normalizeRejectedEvents(job.events || [], status, respondedAt)
             return {
               ...job,
-              applicationText: '',
               // Kept for the AI chat, which shows whether the application has a cover letter text.
               hasApplicationText: Boolean(job.applicationText?.trim()),
-              notes: job.notes || job.applicationText || '',
+              // The old application text is moved into the notes when it fits, otherwise kept as is.
+              ...applicationTextState(job),
               status,
               respondedAt,
               events,
@@ -360,6 +362,7 @@ export default function App() {
     ]
     const data = Object.fromEntries(fields.map((field) => [field, job[field] ?? '']))
     data.applicationFileIds = Array.isArray(job.applicationFileIds) ? job.applicationFileIds : []
+    data.applicationText = savedApplicationText(job)
     data.events = Array.isArray(job.events)
       ? job.events.map(({ id, type, date, note }) => ({ id, type, date, note: note ?? '' }))
       : []
@@ -874,7 +877,7 @@ export default function App() {
                   {
                     ...created,
                     hasApplicationText: Boolean(created.applicationText?.trim()),
-                    notes: created.notes || '',
+                    ...applicationTextState(created),
                     status: normalizeStage(created.status),
                     events: created.events || [],
                     initial: created.company?.[0]?.toUpperCase() || '?',

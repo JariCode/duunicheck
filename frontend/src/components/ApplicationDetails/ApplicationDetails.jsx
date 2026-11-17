@@ -186,6 +186,13 @@ export default function ApplicationDetails({
             <p>{job.notes}</p>
           </section>
         )}
+        {/* Read-only: an old application text too long to move into the notes (utils/applicationText.js). */}
+        {job.applicationText && (
+          <section className="detail-copy">
+            <h3>Vanha hakemusteksti</h3>
+            <p>{job.applicationText}</p>
+          </section>
+        )}
         <section className="history">
           <div className="section-heading">
             <div>

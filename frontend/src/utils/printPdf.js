@@ -932,7 +932,7 @@ function summaryTable(columns, rows, header = null) {
 }
 
 function applicationSummaryContent(document) {
-  const { title = '', subtitle = '', printed = '', facts = [], attachments = [], events = [], notes = '' } = document
+  const { title = '', subtitle = '', printed = '', facts = [], attachments = [], events = [], notes = '', applicationText = '' } = document
   // The same title bar as the cover letter, with "HAKEMUS".
   const titlebar = {
     table: {
@@ -1027,11 +1027,13 @@ function applicationSummaryContent(document) {
   // .summary-notes p: 10pt / 1.55 #393642, line breaks kept. Without text()'s baseline shift: pdfmake
   // would need that extra space at the bottom of the page too, and break long notes one line
   // earlier than Chrome (the text is drawn about 0.3mm higher instead).
-  if (notes)
-    section('Muistiinpanot', {
-      ...text(notes, { size: 10, lineHeight: 1.55, color: '#393642', preserveLeadingSpaces: true }),
-      margin: [0, 0, 0, 0],
-    })
+  const notesText = (value) => ({
+    ...text(value, { size: 10, lineHeight: 1.55, color: '#393642', preserveLeadingSpaces: true }),
+    margin: [0, 0, 0, 0],
+  })
+  if (notes) section('Muistiinpanot', notesText(notes))
+  // An old application text too long for the notes: the same style as the notes.
+  if (applicationText) section('Vanha hakemusteksti', notesText(applicationText))
 
   return {
     // .print-document: padding 17mm 18mm; the first page starts with the title bar at the top edge.

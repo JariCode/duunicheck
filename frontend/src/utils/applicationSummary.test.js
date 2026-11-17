@@ -105,3 +105,10 @@ test('a link that is not http(s) is left out', () => {
   const summary = applicationSummaryDocument({ company: 'A', role: 'B', status: 'Kiinnostava', link: 'javascript:alert(1)', events: [] }, { date })
   assert.ok(!summary.facts.some((fact) => fact.label === 'Ilmoituksen linkki'))
 })
+
+test('an old application text kept apart from the notes gets a section of its own', () => {
+  const summary = applicationSummaryDocument({ ...full, applicationText: '  Vanha teksti\nrivi 2 ' }, { cvs, templates, files, date })
+  assert.equal(summary.notes, 'Rivi 1\nRivi 2')
+  assert.equal(summary.applicationText, 'Vanha teksti\nrivi 2')
+  assert.equal(applicationSummaryDocument(full, { date }).applicationText, '')
+})

@@ -69,9 +69,11 @@ export function applicationSummaryDocument(job, { cvs = [], templates = [], file
   const events = [...(job.events || [])]
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.id) - Number(a.id))
     .map((event) => ({ date: summaryDate(event.date), type: text(event.type), note: text(event.note) }))
-  // The notes as the app shows them: the app keeps the old application text (applicationText) only as
-  // the notes when there are none (App.jsx), so it has no section of its own.
+  // The notes as the app shows them (an old application text that fits is already moved into them).
   const notes = text(job.notes)
+  // An old application text too long for the notes, shown read-only in the details view
+  // (utils/applicationText.js): printed as a section of its own after the notes.
+  const applicationText = text(job.applicationText)
   return {
     kind: 'applicationSummary',
     title: text(job.role),
@@ -81,6 +83,7 @@ export function applicationSummaryDocument(job, { cvs = [], templates = [], file
     attachments: attachments(job, { cvs, templates, files }),
     events,
     notes,
+    applicationText,
     // For the PDF file name and title.
     job: { company: text(job.company), role: text(job.role) },
   }
