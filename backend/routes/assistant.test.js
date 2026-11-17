@@ -97,8 +97,8 @@ before(async () => {
     clientOptions = { timeout: this._client.timeout, maxRetries: this._client.maxRetries }
     return { status: 'completed', output_text: 'Ehdotus.' }
   })
-  mock.method(Application, 'findOne', () => ({
-    lean: async () => ({
+  mock.method(Application, 'findOne', () => {
+    const found = {
       _id: applicationId,
       userId,
       role: 'Frontend-kehittäjä',
@@ -107,8 +107,9 @@ before(async () => {
       link: 'https://tyopaikat.example.com/ilmoitus/123',
       notes: applicationNotes,
       cvId,
-    }),
-  }))
+    }
+    return { select: () => ({ lean: async () => found }), lean: async () => found }
+  })
   mock.method(Cv, 'findOne', () => ({ lean: async () => cv }))
   mock.method(Cv, 'find', () => ({ select: () => ({ lean: async () => [cv] }) }))
   mock.method(Template, 'find', () => ({ select: () => ({ lean: async () => [] }) }))
@@ -535,4 +536,41 @@ test('only the reply goes to the history, never the separate letter', async () =
     { role: 'assistant', content: 'Tässä kirje.' },
   ])
   assert.ok(!JSON.stringify(sent[0]).includes('ERILLINEN-KIRJE-KENTTÄ'))
+})
+
+test('the loaded conversation tells which answers were local, so they can be sent to the AI', async () => {
+  messages = [
+    message('conversation-own', userId, 'user', 'Mikä on hakemuksen tila?', 'local'),
+    message('conversation-own', userId, 'assistant', 'Tila: Lähetetty', 'local'),
+    message('conversation-own', userId, 'user', 'Kirjoita hakukirje'),
+    message('conversation-own', userId, 'assistant', 'Kirje'),
+  ]
+  const response = await fetch(`${baseUrl}/conversations/${applicationId}`)
+  assert.equal(response.status, 200)
+  const { messages: loaded } = await response.json()
+  assert.deepEqual(
+    loaded.map(({ role, source }) => [role, source]),
+    [
+      ['user', 'local'],
+      ['assistant', 'local'],
+      ['user', 'ai'],
+      ['assistant', 'ai'],
+    ],
+  )
+})
+
+test('the local answer adds the event history and notes only when the words are asked for', async () => {
+  const ask = async (text) => {
+    const response = await fetch(`${baseUrl}/conversations/${applicationId}/answer`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    })
+    return (await response.json()).answer
+  }
+  assert.match(await ask('Näytä tapahtumahistoria'), /Tapahtumahistoria:/u)
+  assert.match(await ask('Mitä muistiinpanoissa lukee?'), /Muistiinpanot:/u)
+  // "tehtävässä" or a word that only contains "vastaus" in the middle adds nothing.
+  const plain = await ask('Mikä on tila tehtävässä ja kokonaisvastaus?')
+  assert.doesNotMatch(plain, /Tapahtumahistoria:|Muistiinpanot:/u)
 })

@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/react'
 import { apiRequest, uploadImportFile } from '../../api'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
 import MarkdownText from '../../components/MarkdownText/MarkdownText'
+import { isApplicationInfoQuestion } from '../../utils/applicationQuestion'
 import { letterTemplate, maxTemplates, pendingPlaceholders } from '../../utils/letterTemplate'
 import DeleteApplicationsMessage from './DeleteApplicationsMessage'
 import ImportApplicationsMessage from './ImportApplicationsMessage'
@@ -139,17 +140,6 @@ function describeCoverLetter(template, hasApplicationText, coverLetterFiles) {
   if (parts.length === 1 && fileCount === 1) return `Hakukirje · ${coverLetterFiles[0].name}`
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} ja ${parts.at(-1)}` : parts[0]
   return `Hakukirje · ${list}`
-}
-
-function isApplicationInfoQuestion(value) {
-  const asksForFacts =
-    /(tila|tilanne|vaihe|status|milloin|päivä|lähetetty|lähetyspäivä|vastaus|vastannut|haastattel|tapahtum|historia|muistut|seuraava|yritys|tehtävä|muistiinpano)/i.test(
-      value,
-    )
-  const asksAboutTheSelectedApplication = /(mitä|kerro|näytä|listaa).*(hakemuks|hausta|valitusta)/i.test(value)
-  const asksForApplicationDetails =
-    /(tiedot|tietoja)/i.test(value) && /(hakemuks|hausta|valitusta|tästä|tästä hausta)/i.test(value)
-  return asksForFacts || asksAboutTheSelectedApplication || asksForApplicationDetails
 }
 
 export default function AssistantPage({
@@ -361,6 +351,12 @@ export default function AssistantPage({
     } finally {
       setLetterBusy(false)
     }
+  }
+
+  // The user's message that a local answer replied to: the user message just before it.
+  const localQuestionBefore = (index) => {
+    const question = visibleMessages[index - 1]
+    return question?.role === 'user' ? question.content : ''
   }
 
   const closeMessage = (id) => setMessages((all) => all.filter((item) => item.id !== id))
@@ -695,8 +691,14 @@ export default function AssistantPage({
       if (postingTextValue && !sending && !historyLoading) await sendPostingDraft(postingTextValue)
       return
     }
-    const selectedMessage = draft.trim()
-    const localQuestion = isApplicationInfoQuestion(selectedMessage)
+    await sendChatMessage(draft.trim())
+  }
+
+  // Sends a chat message about the selected application. A short question about the application's
+  // own data is answered locally (no AI); everything else goes to the AI assistant. `toAi` sends the
+  // message to the AI even if it looks like a local question ("Lähetä AI:lle" under a local answer).
+  async function sendChatMessage(selectedMessage, { toAi = false } = {}) {
+    const localQuestion = !toAi && isApplicationInfoQuestion(selectedMessage)
     if (!job || (!localQuestion && !context.allowSuggestions) || !selectedMessage || sending || historyLoading) return
     setSending(true)
     setError('')
@@ -736,9 +738,11 @@ export default function AssistantPage({
           notices: localQuestion ? [] : result.notices || [],
           // A complete cover letter in the reply, which the user can save as a new template.
           letter: localQuestion ? '' : result.letter || '',
+          // A local answer can be sent to the AI instead if the message was meant for it.
+          source: localQuestion ? 'local' : 'ai',
         },
       ])
-      setDraft('')
+      if (!toAi) setDraft('')
     } catch (sendError) {
       setError(sendError.message)
     } finally {
@@ -835,7 +839,20 @@ export default function AssistantPage({
                       )}
                     </div>
                   )}
-                  {message.role === 'assistant' && (
+                  {message.role === 'assistant' && message.source === 'local' && context.allowSuggestions && job && (
+                    <div className="assistant-letter-actions">
+                      <small>Vastaus haettiin hakemuksen tiedoista. Jos tarkoitit viestin työparille, lähetä se AI:lle.</small>
+                      <button
+                        type="button"
+                        className="add-button"
+                        disabled={sending || historyLoading || !localQuestionBefore(index)}
+                        onClick={() => sendChatMessage(localQuestionBefore(index), { toAi: true })}
+                      >
+                        Lähetä AI:lle
+                      </button>
+                    </div>
+                  )}
+                  {message.role === 'assistant' && message.source !== 'local' && (
                     <small>
                       {canSaveLetter(message)
                         ? 'Tarkista kirje ja tallenna se uudeksi hakukirjeeksi painikkeella.'
@@ -948,7 +965,7 @@ export default function AssistantPage({
                   : postingDraftMode
                     ? !draft.trim() || sending || historyLoading
                     : !job ||
-                      (!context.allowSuggestions && !isApplicationInfoQuestion(draft)) ||
+                      (!context.allowSuggestions && !isApplicationInfoQuestion(draft.trim())) ||
                       !draft.trim() ||
                       sending ||
                       historyLoading

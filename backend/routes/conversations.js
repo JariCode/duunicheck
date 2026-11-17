@@ -17,8 +17,10 @@ function buildApplicationAnswer(application, message) {
   const events = [...(application.events || [])].sort((a, b) =>
     String(a.date || '').localeCompare(String(b.date || '')),
   )
-  const askedForHistory = /(historia|tapahtum|haastattel|vastaus|vastannut)/i.test(lowerMessage)
-  const askedForNotes = /(muistiinpano|muistiinpanot|merkintä|merkinnät)/i.test(lowerMessage)
+  // Words are matched from the start of a word (\b does not know ä and ö), like the frontend's
+  // isApplicationInfoQuestion, so for example "vastaus" inside another word does not count.
+  const askedForHistory = /(?<![\p{L}\p{N}])(historia|tapahtum|haastattel|vastaus|vastann)/iu.test(lowerMessage)
+  const askedForNotes = /(?<![\p{L}\p{N}])(muistiinpano|merkintä|merkinnä)/iu.test(lowerMessage)
   const lines = [
     `${application.role} · ${application.company}`,
     `Tila: ${application.status}`,
@@ -100,6 +102,8 @@ conversations.get('/:applicationId', async (req, res) => {
       role: message.role,
       content: message.content,
       ...(message.letter ? { letter: message.letter } : {}),
+      // A local answer (built from the application's data) can be sent to the AI from the chat.
+      ...(message.source ? { source: message.source } : {}),
       createdAt: message.createdAt,
     })),
   })
