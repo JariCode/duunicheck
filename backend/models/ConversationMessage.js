@@ -5,8 +5,9 @@ const conversationMessageSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     conversationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation', required: true },
     role: { type: String, required: true, enum: ['user', 'assistant'] },
-    // A complete cover letter with reasoning (up to 4000 output tokens) fits comfortably.
-    content: { type: String, required: true, maxlength: 30_000 },
+    // A suggestion has at most 12 000 output tokens (reasoning included), which in Finnish text is
+    // well under 60 000 characters.
+    content: { type: String, required: true, maxlength: 60_000 },
   },
   { timestamps: { createdAt: true, updatedAt: false }, strict: 'throw', versionKey: false },
 )

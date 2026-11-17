@@ -10,7 +10,14 @@ import { Conversation } from '../models/Conversation.js'
 import { ConversationMessage } from '../models/ConversationMessage.js'
 import { Cv } from '../models/Cv.js'
 import { Template } from '../models/Template.js'
-import { assistant, cvContextText, helsinkiDate } from './assistant.js'
+import {
+  assistant,
+  cvContextText,
+  helsinkiDate,
+  historyCharLimit,
+  historyMessageLimit,
+  incompleteNotice,
+} from './assistant.js'
 
 const userId = 'a'.repeat(24)
 const applicationId = 'b'.repeat(24)
@@ -44,6 +51,43 @@ let sent = []
 let createMock
 let clientOptions = null
 
+// In-memory conversations and messages. The mocked queries apply the filter the route gives them,
+// so a missing userId or conversation condition would let other users' messages through.
+const otherUserId = 'f'.repeat(24)
+const otherApplicationId = 'e'.repeat(24)
+const conversations = [
+  { _id: 'conversation-own', userId, applicationId },
+  { _id: 'conversation-other-application', userId, applicationId: otherApplicationId },
+  { _id: 'conversation-other-user', userId: otherUserId, applicationId },
+]
+let messages = []
+let clock = 0
+const message = (conversationId, owner, role, content) => ({
+  _id: `m${++clock}`,
+  conversationId,
+  userId: owner,
+  role,
+  content,
+  createdAt: new Date(Date.UTC(2026, 10, 17, 8, 0, clock)),
+})
+const matches = (doc, filter) => Object.entries(filter).every(([key, value]) => String(doc[key]) === String(value))
+function query(rows) {
+  const chain = {
+    sort(order) {
+      const [[key, direction]] = Object.entries(order)
+      rows = [...rows].sort((a, b) => (a[key] < b[key] ? -direction : a[key] > b[key] ? direction : 0))
+      return chain
+    },
+    limit(count) {
+      rows = rows.slice(0, count)
+      return chain
+    },
+    select: () => chain,
+    lean: async () => rows,
+  }
+  return chain
+}
+
 before(async () => {
   process.env.OPENAI_API_KEY = 'test-key-not-used'
   createMock = mock.method(OpenAI.Responses.prototype, 'create', async function create(body) {
@@ -64,7 +108,12 @@ before(async () => {
     emailAddresses: [{ emailAddress: cv.email }],
     phoneNumbers: [],
   }))
-  mock.method(Conversation, 'findOneAndUpdate', async () => ({ _id: 'd'.repeat(24) }))
+  mock.method(Conversation, 'findOne', (filter) => {
+    const found = conversations.find((conversation) => matches(conversation, filter)) || null
+    return { select: () => ({ lean: async () => found }), lean: async () => found }
+  })
+  mock.method(Conversation, 'findOneAndUpdate', async () => ({ _id: 'conversation-own' }))
+  mock.method(ConversationMessage, 'find', (filter) => query(messages.filter((row) => matches(row, filter))))
   mock.method(ConversationMessage, 'insertMany', async () => [])
 
   const app = express()
@@ -89,36 +138,29 @@ after(() => {
 const postingText = 'Edellytämme kielitaitoa ja testauskursseja.'
 const userMessage = 'Vertaa CV:tä ilmoitukseen.'
 
-function postSuggest() {
+function postSuggest(text = userMessage) {
   return fetch(`${baseUrl}/assistant/suggest`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      message: userMessage,
+      message: text,
       context: { applicationId, includePosting: true, postingText, includeCv: true, allowSuggestions: true },
     }),
   })
 }
 
-async function suggest() {
+// Sends a suggestion request and returns what reached OpenAI: the request body, the history messages
+// before the new request and the new request's text as `input`.
+async function suggest(text = userMessage) {
   sent = []
-  const response = await fetch(`${baseUrl}/assistant/suggest`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      message: 'Vertaa CV:tä ilmoitukseen.',
-      context: {
-        applicationId,
-        includePosting: true,
-        postingText: 'Edellytämme kielitaitoa ja testauskursseja.',
-        includeCv: true,
-        allowSuggestions: true,
-      },
-    }),
-  })
+  const response = await postSuggest(text)
   assert.equal(response.status, 200)
   assert.equal(sent.length, 1)
-  return sent[0]
+  const body = sent[0]
+  assert.ok(Array.isArray(body.input))
+  const last = body.input.at(-1)
+  assert.equal(last.role, 'user')
+  return { ...body, history: body.input.slice(0, -1), input: last.content }
 }
 
 test('sends courses, certificates and languages from the CV under their headings', async () => {
@@ -218,4 +260,105 @@ test('other connection errors still return 502 and log their own name', async ()
   } finally {
     logged.mock.restore()
   }
+})
+
+test('the reply can be 12 000 tokens long', async () => {
+  messages = []
+  const { max_output_tokens: limit } = await suggest()
+  assert.equal(limit, 12_000)
+})
+
+test('sends the latest messages of the conversation as role messages before the new request', async () => {
+  messages = [
+    message('conversation-own', userId, 'user', 'Ensimmäinen kysymys'),
+    message('conversation-own', userId, 'assistant', 'Ensimmäinen vastaus'),
+    message('conversation-own', userId, 'user', 'Toinen kysymys'),
+    message('conversation-own', userId, 'assistant', 'Toinen vastaus'),
+    message('conversation-own', userId, 'user', 'Kolmas kysymys'),
+    message('conversation-own', userId, 'assistant', 'Kolmas vastaus'),
+    message('conversation-own', userId, 'user', 'Neljäs kysymys'),
+    message('conversation-own', userId, 'assistant', 'Neljäs vastaus'),
+  ]
+  const { history, input, instructions } = await suggest('jatka')
+  assert.equal(historyMessageLimit, 6)
+  assert.deepEqual(history, [
+    { role: 'user', content: 'Toinen kysymys' },
+    { role: 'assistant', content: 'Toinen vastaus' },
+    { role: 'user', content: 'Kolmas kysymys' },
+    { role: 'assistant', content: 'Kolmas vastaus' },
+    { role: 'user', content: 'Neljäs kysymys' },
+    { role: 'assistant', content: 'Neljäs vastaus' },
+  ])
+  assert.match(input, /Käyttäjän pyyntö:\njatka$/u)
+  assert.ok(!input.includes('Neljäs vastaus'), 'history is not mixed into the selected context')
+  assert.match(instructions, /keskusteluhistoriaa/u)
+  assert.match(instructions, /jatka edellistä vastaustasi täsmälleen siitä, mihin se jäi\. Älä toista sen alkua\./u)
+})
+
+test('history stays within 12 000 characters, newest first, and keeps the end of a long reply', async () => {
+  // 10 000+ characters: with the 5 011 characters of the two newest messages it no longer fits whole.
+  const longReply = `${'Alku. '.repeat(1700)}Hakukirjeen loppu, josta jatketaan.`
+  messages = [
+    message('conversation-own', userId, 'user', 'Vanha kysymys'),
+    message('conversation-own', userId, 'user', 'Kirjoita hakukirje'),
+    message('conversation-own', userId, 'assistant', longReply),
+    message('conversation-own', userId, 'user', 'Tarkista CV'),
+    message('conversation-own', userId, 'assistant', 'x'.repeat(5000)),
+  ]
+  const { history } = await suggest('jatka')
+  const total = history.reduce((sum, item) => sum + item.content.length, 0)
+  assert.ok(total <= historyCharLimit, `history has ${total} characters`)
+  // The two newest fit whole; the long reply is cut from its start so its end is kept; older ones are left out.
+  assert.deepEqual(
+    history.map((item) => item.role),
+    ['assistant', 'user', 'assistant'],
+  )
+  assert.equal(history[2].content, 'x'.repeat(5000))
+  assert.equal(history[1].content, 'Tarkista CV')
+  assert.ok(history[0].content.startsWith('[…] '))
+  assert.ok(history[0].content.endsWith('Hakukirjeen loppu, josta jatketaan.'))
+  assert.ok(!history.some((item) => item.content.includes('Vanha kysymys')))
+})
+
+test("never sends another user's or another application's messages", async () => {
+  messages = [
+    message('conversation-other-user', otherUserId, 'user', 'Toisen käyttäjän salainen kysymys'),
+    message('conversation-own', otherUserId, 'assistant', 'Väärän käyttäjän viesti oikeassa keskustelussa'),
+    message('conversation-other-application', userId, 'user', 'Toisen hakemuksen kysymys'),
+    message('conversation-own', userId, 'user', 'Oma kysymys'),
+    message('conversation-own', userId, 'assistant', 'Oma vastaus'),
+  ]
+  const { history, input } = await suggest()
+  assert.deepEqual(history, [
+    { role: 'user', content: 'Oma kysymys' },
+    { role: 'assistant', content: 'Oma vastaus' },
+  ])
+  for (const foreign of ['Toisen käyttäjän', 'Väärän käyttäjän', 'Toisen hakemuksen']) {
+    assert.ok(!JSON.stringify(sent[0]).includes(foreign), `request contains "${foreign}"`)
+    assert.ok(!input.includes(foreign))
+  }
+})
+
+test('the cut-off notice is not sent as part of the history', async () => {
+  messages = [
+    message('conversation-own', userId, 'user', 'Kirjoita hakukirje'),
+    message('conversation-own', userId, 'assistant', `Hyvä vastaanottaja,\nhakukirje jatkuu…\n\n${incompleteNotice}`),
+    message('conversation-own', userId, 'user', 'Mitä taitoja?'),
+    message('conversation-own', userId, 'assistant', incompleteNotice),
+  ]
+  const { history } = await suggest('jatka')
+  assert.deepEqual(history, [
+    { role: 'user', content: 'Kirjoita hakukirje' },
+    { role: 'assistant', content: 'Hyvä vastaanottaja,\nhakukirje jatkuu…' },
+    { role: 'user', content: 'Mitä taitoja?' },
+  ])
+  assert.ok(!JSON.stringify(history).includes('Vastaus jäi kesken'))
+})
+
+test('a reply cut off by the length limit is still saved and shown with the notice', async () => {
+  messages = []
+  createMock.mock.mockImplementationOnce(async () => ({ status: 'incomplete', output_text: 'Hakukirjeen alku' }))
+  const response = await postSuggest()
+  assert.equal(response.status, 200)
+  assert.equal((await response.json()).suggestion, `Hakukirjeen alku\n\n${incompleteNotice}`)
 })

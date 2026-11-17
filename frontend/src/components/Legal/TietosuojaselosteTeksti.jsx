@@ -117,7 +117,8 @@ export default function TietosuojaselosteTeksti() {
         sisältää hakemuksen yrityksen ja tehtävän, ilmoitustekstin, hakemuspohjan tekstin, hakemuksen muistiinpanot sekä
         hakemuksen hakemustekstin. Sovelluksessa luodusta CV:stä lähetetään vain ammattinimike, profiili, taidot,
         työkokemus, koulutus, sertifikaatit, kurssit ja kielitaito. Nimeä, yhteystietoja, linkkejä, harrastuksia eikä
-        CV-kuvaa lähetetä.
+        CV-kuvaa lähetetä. Lisäksi lähetetään saman hakemuksen keskustelun viimeisimmät viestit (enintään 6), jotta
+        avustaja voi jatkaa keskustelua, esimerkiksi kesken jääneen vastauksen.
       </p>
       <p>
         Jos valitset CV:n tai hakukirjeen ja hakemukseen on liitetty CV-tiedosto tai hakemustiedostoja, OpenAI:lle
