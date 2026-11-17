@@ -879,6 +879,167 @@ function applicationContent(document) {
   }
 }
 
+/* --------------------------- Hakemuksen yhteenveto --------------------------- */
+
+// "Tulosta yhteenveto / PDF": the application summary built by utils/applicationSummary.js. Sizes and
+// colours are those of the .print-applicationSummary rules in PrintSheet.css.
+const SUMMARY_HEADING_ID = 'summary-heading-'
+// .summary-section h2: 11pt / 1.2, padding-bottom 1.5mm, border-bottom 1.4pt. createPrintPdf moves a
+// heading to the next page when nothing of its section follows it on the page (break-after: avoid).
+const SUMMARY_HEADING_HEIGHT = 11 * 1.2 + mm(1.5) + borderWidth(1.4)
+const SUMMARY_CELL = { size: 9.5, lineHeight: 1.45, color: '#302d37' }
+
+function summaryHeading(title, index) {
+  return box(text(title, { size: 11, lineHeight: 1.2, weight: 700, color: '#493267' }), {
+    padding: [0, 0, mm(1.5), 0],
+    border: { bottom: [1.4, '#7550a8'] },
+    margin: [0, 0, 0, mm(2.5)],
+    id: `${SUMMARY_HEADING_ID}${index}`,
+  })
+}
+
+// .summary-table: table-layout fixed, cells 9.5pt / 1.45 with padding 1.6mm 3mm 1.6mm 0 (the last
+// column without right padding) and border-bottom 1px #ece7f2; a row never breaks across pages.
+// `columns` are the CSS column widths in mm (null = the rest); pdfmake widths exclude the padding.
+function summaryTable(columns, rows, header = null) {
+  const last = columns.length - 1
+  const body = header
+    ? [
+        header.map((label) =>
+          text(label.toUpperCase(), { size: 7.5, lineHeight: 1.45, weight: 800, color: '#7550a8', letterSpacing: px(1) }),
+        ),
+        ...rows,
+      ]
+    : rows
+  return {
+    table: {
+      widths: columns.map((width, index) => (width === null ? '*' : mm(width) - (index === last ? 0 : mm(3)))),
+      body,
+      dontBreakRows: true,
+      ...(header ? { headerRows: 1, keepWithHeaderRows: 1 } : {}),
+    },
+    layout: {
+      hLineWidth: (index) => (index === 0 ? 0 : borderWidth(px(1))),
+      // .summary-events thead th: border-bottom-color #cfc2dd.
+      hLineColor: (index) => (header && index === 1 ? '#cfc2dd' : '#ece7f2'),
+      vLineWidth: () => 0,
+      paddingLeft: () => 0,
+      paddingRight: (index) => (index === last ? 0 : mm(3)),
+      paddingTop: (row) => (header && row === 0 ? 0 : mm(1.6)),
+      paddingBottom: (row) => (header && row === 0 ? mm(1.2) : mm(1.6)),
+    },
+  }
+}
+
+function applicationSummaryContent(document) {
+  const { title = '', subtitle = '', printed = '', facts = [], attachments = [], events = [], notes = '' } = document
+  // The same title bar as the cover letter, with "HAKEMUS".
+  const titlebar = {
+    table: {
+      widths: ['*'],
+      body: [
+        [
+          text('HAKEMUS', {
+            size: 15,
+            lineHeight: 1.55,
+            weight: 800,
+            color: '#ffffff',
+            letterSpacing: px(2),
+            alignment: 'center',
+            // CSS also counts the spacing after the last letter when centring.
+            margin: [0, 0, px(2), 0],
+          }),
+        ],
+      ],
+    },
+    layout: {
+      ...noLines,
+      fillColor: () => '#30263b',
+      paddingLeft: () => LETTER_PAGE_X,
+      paddingRight: () => LETTER_PAGE_X,
+      paddingTop: () => mm(5),
+      paddingBottom: () => mm(5),
+    },
+    margin: [-LETTER_PAGE_X, 0, -LETTER_PAGE_X, mm(6)],
+  }
+  // .summary-header: the role 23pt and company · place 11pt/700 on the left, "Tulostettu …" 8.5pt on
+  // the right, both at the bottom; padding-bottom 5mm, border-bottom 1px #ded9e7, margin-bottom 6mm.
+  const header = box(
+    {
+      table: {
+        widths: ['*', 'auto'],
+        body: [
+          [
+            {
+              stack: [
+                text(title, { size: 23, lineHeight: 1.08, weight: 700, color: '#242037', letterSpacing: px(-0.8) }),
+                subtitle && text(subtitle, { size: 11, lineHeight: 1.55, weight: 700, color: '#67468f', margin: [0, mm(1), 0, 0] }),
+              ].filter(Boolean),
+              verticalAlignment: 'bottom',
+            },
+            { ...text(printed, { size: 8.5, lineHeight: 1.55, color: '#686372' }), verticalAlignment: 'bottom' },
+          ],
+        ],
+      },
+      layout: { ...noLines, paddingLeft: (index) => (index === 1 ? mm(10) : 0) },
+    },
+    { padding: [0, 0, mm(5), 0], border: { bottom: [px(1), '#ded9e7'] }, margin: [0, 0, 0, mm(6)] },
+  )
+
+  const label = (value, color = '#67468f') => text(value, { ...SUMMARY_CELL, weight: 700, color })
+  const sections = []
+  const section = (heading, content) =>
+    sections.push({ stack: [summaryHeading(heading, sections.length), content], margin: [0, 0, 0, mm(7)] })
+  if (facts.length)
+    section(
+      'Perustiedot',
+      summaryTable(
+        [45, null],
+        facts.map(({ label: name, value, href }) => [
+          label(name),
+          href
+            ? text(value.replace(/^https?:\/\//, ''), { ...SUMMARY_CELL, color: '#4f3b70', link: href })
+            : text(value, SUMMARY_CELL),
+        ]),
+      ),
+    )
+  if (attachments.length)
+    section(
+      'Liitteet',
+      summaryTable(
+        [45, null],
+        attachments.map((item) =>
+          item.missing
+            ? [label('Poistettu', '#8a8394'), text(item.missing, { ...SUMMARY_CELL, color: '#8a8394' })]
+            : [label(item.label), text(item.value, SUMMARY_CELL)],
+        ),
+      ),
+    )
+  if (events.length)
+    section(
+      'Tapahtumahistoria',
+      summaryTable(
+        [28, 50, null],
+        events.map((event) => [text(event.date, SUMMARY_CELL), text(event.type, SUMMARY_CELL), text(event.note, SUMMARY_CELL)]),
+        ['Päivä', 'Tapahtuma', 'Lisätieto'],
+      ),
+    )
+  // .summary-notes p: 10pt / 1.55 #393642, line breaks kept. Without text()'s baseline shift: pdfmake
+  // would need that extra space at the bottom of the page too, and break long notes one line
+  // earlier than Chrome (the text is drawn about 0.3mm higher instead).
+  if (notes)
+    section('Muistiinpanot', {
+      ...text(notes, { size: 10, lineHeight: 1.55, color: '#393642', preserveLeadingSpaces: true }),
+      margin: [0, 0, 0, 0],
+    })
+
+  return {
+    // .print-document: padding 17mm 18mm; the first page starts with the title bar at the top edge.
+    pageMargins: [LETTER_PAGE_X, NO_PAGE_MARGIN_Y, LETTER_PAGE_X, NO_PAGE_MARGIN_Y],
+    content: [titlebar, header, ...sections],
+  }
+}
+
 /* --------------------------- Kirje, muistiinpanot --------------------------- */
 
 function letterContent(document) {
@@ -1017,6 +1178,8 @@ export function pdfFileName(document) {
   if (kind === 'cv') return named('CV', document.cv?.fullName || document.title)
   if (kind === 'application') return named('Hakemus', document.job?.company || document.cv?.fullName)
   if (kind === 'letter') return named('Kirje', document.title)
+  if (kind === 'applicationSummary')
+    return named('Hakemus', [document.job?.company, document.job?.role].filter(Boolean).join(' '))
   return named('Muistiinpanot', String(document?.title || '').replace(/^Muistiinpanot\s*·?\s*/, ''))
 }
 
@@ -1024,6 +1187,7 @@ export function pdfTitle(document) {
   const kind = document?.kind || 'notes'
   if (kind === 'cv') return document.cv?.fullName ? `CV – ${document.cv.fullName}` : 'CV'
   if (kind === 'application') return document.job?.company ? `Hakemus – ${document.job.company}` : 'Hakemus'
+  if (kind === 'applicationSummary') return document.job?.company ? `Hakemus – ${document.job.company}` : 'Hakemus'
   return document?.title || 'DuuniCheck'
 }
 
@@ -1041,6 +1205,10 @@ export async function buildPdfDefinition(document, spans = null, gapScale = 1) {
     // Link widths are measured with the app's DM Sans, so the weights must be loaded first.
     await Promise.all(['400 10pt "DM Sans"', '700 10pt "DM Sans"'].map((font) => window.document.fonts?.load(font)))
     definition = applicationContent(document)
+  } else if (kind === 'applicationSummary') {
+    // Long words in the cells are wrapped with the app's DM Sans, so the weights must be loaded first.
+    await Promise.all(['400 10pt "DM Sans"', '700 10pt "DM Sans"'].map((font) => window.document.fonts?.load(font)))
+    definition = applicationSummaryContent(document)
   } else if (kind === 'letter') definition = letterContent(document)
   else definition = notesContent(document)
   const { rounded = [], ...layout } = definition
@@ -1062,9 +1230,14 @@ export async function createPrintPdf(document) {
   const render = async (measured) => {
     const definition = await buildPdfDefinition(document, measured, gapScale)
     // Called after layout for every node; records where the markers of the rounded boxes ended up.
-    // Never adds a break.
-    definition.pageBreakBefore = (node) => {
+    // The only break it adds: an application summary section heading that would end a page with
+    // nothing of its section under it moves to the next page (break-after: avoid in PrintSheet.css).
+    definition.pageBreakBefore = (node, nodes) => {
       if (node.id?.startsWith(ROUNDED_ID)) spans[node.id] = { page: node.startPosition.pageNumber, top: node.startPosition.top }
+      if (node.id?.startsWith(SUMMARY_HEADING_ID)) {
+        const bottom = node.startPosition.top + SUMMARY_HEADING_HEIGHT
+        return !nodes.getFollowingNodesOnPage().some((next) => next.startPosition.top >= bottom - 0.5)
+      }
       return false
     }
     return pdfMake.createPdf(definition).getBlob()

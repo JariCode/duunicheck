@@ -489,6 +489,119 @@
   }
 }
 
+/* "Tulosta yhteenveto / PDF": the application summary (PrintSheet ApplicationSummaryPrint). The PDF
+   (utils/printPdf.js applicationSummaryContent) uses the same sizes and colours. */
+@media print {
+  .print-applicationSummary .letter-titlebar {
+    margin: -17mm -18mm 6mm;
+    padding: 5mm 18mm;
+    background: #30263b;
+    color: #fff;
+    text-align: center;
+    font-size: 15pt;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+  .print-applicationSummary .summary-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10mm;
+    margin: 0 0 6mm;
+    padding: 0 0 5mm;
+    border-bottom: 1px solid #ded9e7;
+  }
+  .print-applicationSummary .summary-header h1 {
+    font-size: 23pt;
+  }
+  .print-applicationSummary .summary-header p {
+    margin: 1mm 0 0;
+    color: #67468f;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+  .print-applicationSummary .summary-header small {
+    color: #686372;
+    font-size: 8.5pt;
+    white-space: nowrap;
+  }
+  .print-applicationSummary .summary-section {
+    margin: 0 0 7mm;
+  }
+  /* A heading never stays alone at the bottom of a page. */
+  .print-applicationSummary .summary-section h2 {
+    margin: 0 0 2.5mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 1.4pt solid #7550a8;
+    color: #493267;
+    font-size: 11pt;
+    line-height: 1.2;
+    break-after: avoid;
+  }
+  .print-applicationSummary .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 9.5pt;
+    line-height: 1.45;
+  }
+  .print-applicationSummary .summary-table th,
+  .print-applicationSummary .summary-table td {
+    padding: 1.6mm 3mm 1.6mm 0;
+    border-bottom: 1px solid #ece7f2;
+    color: #302d37;
+    font-weight: 400;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+  .print-applicationSummary .summary-table th:last-child,
+  .print-applicationSummary .summary-table td:last-child {
+    padding-right: 0;
+  }
+  /* A table row never breaks across pages. */
+  .print-applicationSummary .summary-table tr {
+    break-inside: avoid;
+  }
+  .print-applicationSummary .summary-facts th {
+    color: #67468f;
+    font-weight: 700;
+  }
+  .print-applicationSummary .summary-label-col {
+    width: 45mm;
+  }
+  .print-applicationSummary .summary-date-col {
+    width: 28mm;
+  }
+  .print-applicationSummary .summary-type-col {
+    width: 50mm;
+  }
+  .print-applicationSummary .summary-events thead th {
+    padding-top: 0;
+    padding-bottom: 1.2mm;
+    border-bottom-color: #cfc2dd;
+    color: #7550a8;
+    font-size: 7.5pt;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .print-applicationSummary .summary-table a {
+    color: #4f3b70;
+    text-decoration: none;
+  }
+  .print-applicationSummary .summary-missing th,
+  .print-applicationSummary .summary-missing td {
+    color: #8a8394;
+  }
+  .print-applicationSummary .summary-notes p {
+    margin: 0;
+    color: #393642;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Safari on iPhone and iPad (WebKit) only; Chrome, Edge and Firefox do not support this font keyword
    and skip the block. Safari and the Dock app on a Mac print a PDF instead (utils/printTarget.js).
    Above, the page wrappers are at least 297mm (min-height, 100vh) and .print-document is stretched

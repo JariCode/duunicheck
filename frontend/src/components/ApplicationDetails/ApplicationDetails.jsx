@@ -3,6 +3,7 @@ import { dateLabel, eventTypes, safeHttpUrl, today, tone } from '../../utils'
 import { useState } from 'react'
 import DateField from '../DateField/DateField'
 import { useDialog } from '../../utils/useDialog.js'
+import { applicationSummaryDocument } from '../../utils/applicationSummary.js'
 export default function ApplicationDetails({
   job,
   cvs,
@@ -72,24 +73,8 @@ export default function ApplicationDetails({
         : template,
       body: template.body,
     })
-  const printApplication = () =>
-    onPrint({
-      kind: 'application',
-      job: { company: job.company, role: job.role, place: job.place },
-      cv: cv
-        ? {
-            ...cv,
-            fullName: template?.fullName || cv.fullName,
-            email: template?.email || cv.email,
-            phone: template?.phone || cv.phone,
-            linkedin: template?.linkedin || cv.linkedin,
-            github: template?.github || cv.github,
-            portfolio: template?.portfolio || cv.portfolio,
-            website: template?.website || cv.website,
-          }
-        : template || {},
-      body: template?.body || '',
-    })
+  // The application summary: everything about this application, not a cover letter.
+  const printApplication = () => onPrint(applicationSummaryDocument(job, { cvs, templates, files }))
   async function addEvent(e) {
     e.preventDefault()
     if (!event.type || eventBusy) return
@@ -182,7 +167,7 @@ export default function ApplicationDetails({
           ))}
         </div>
         <div className="detail-print-actions">
-          <button onClick={printApplication}>Tulosta hakemus / PDF</button>
+          <button onClick={printApplication}>Tulosta yhteenveto / PDF</button>
           <button
             onClick={() =>
               onPrint({

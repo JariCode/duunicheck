@@ -233,6 +233,103 @@ function ApplicationPrint({ document }) {
   )
 }
 
+// "Tulosta yhteenveto / PDF": everything about one application (utils/applicationSummary.js builds the
+// values, the PDF draws the same ones). Empty sections are left out.
+function ApplicationSummaryPrint({ document }) {
+  const { title, subtitle, printed, facts = [], attachments = [], events = [], notes } = document
+  return (
+    <>
+      <header className="letter-titlebar">HAKEMUS</header>
+      <header className="summary-header">
+        <div>
+          <h1>{title}</h1>
+          {subtitle && <p>{subtitle}</p>}
+        </div>
+        <small>{printed}</small>
+      </header>
+      {facts.length > 0 && (
+        <section className="summary-section">
+          <h2>Perustiedot</h2>
+          <table className="summary-table summary-facts">
+            <colgroup>
+              <col className="summary-label-col" />
+              <col />
+            </colgroup>
+            <tbody>
+              {facts.map(({ label, value, href }) => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  <td>{href ? <a href={href}>{value.replace(/^https?:\/\//, '')}</a> : value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+      {attachments.length > 0 && (
+        <section className="summary-section">
+          <h2>Liitteet</h2>
+          <table className="summary-table summary-facts">
+            <colgroup>
+              <col className="summary-label-col" />
+              <col />
+            </colgroup>
+            <tbody>
+              {attachments.map((item, index) =>
+                item.missing ? (
+                  <tr key={`missing-${index}`} className="summary-missing">
+                    <th scope="row">Poistettu</th>
+                    <td>{item.missing}</td>
+                  </tr>
+                ) : (
+                  <tr key={`${item.label}-${index}`}>
+                    <th scope="row">{item.label}</th>
+                    <td>{item.value}</td>
+                  </tr>
+                ),
+              )}
+            </tbody>
+          </table>
+        </section>
+      )}
+      {events.length > 0 && (
+        <section className="summary-section">
+          <h2>Tapahtumahistoria</h2>
+          <table className="summary-table summary-events">
+            <colgroup>
+              <col className="summary-date-col" />
+              <col className="summary-type-col" />
+              <col />
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">Päivä</th>
+                <th scope="col">Tapahtuma</th>
+                <th scope="col">Lisätieto</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event, index) => (
+                <tr key={index}>
+                  <td>{event.date}</td>
+                  <td>{event.type}</td>
+                  <td>{event.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+      {notes && (
+        <section className="summary-section summary-notes">
+          <h2>Muistiinpanot</h2>
+          <p>{notes}</p>
+        </section>
+      )}
+    </>
+  )
+}
+
 export default function PrintSheet({ document }) {
   if (!document) return null
   const kind = document.kind || 'notes'
@@ -242,6 +339,8 @@ export default function PrintSheet({ document }) {
         <CvPrint cv={document.cv} />
       ) : kind === 'application' ? (
         <ApplicationPrint document={document} />
+      ) : kind === 'applicationSummary' ? (
+        <ApplicationSummaryPrint document={document} />
       ) : kind === 'letter' ? (
         <div className="letter-body">{document.body}</div>
       ) : (

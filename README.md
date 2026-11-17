@@ -9,6 +9,7 @@ DuuniCheck keeps job applications, their events, reminders, CV versions and cove
 - Progress timeline and a calendar with reminders
 - CV library, editing and printing of CV versions, and cover letter templates
 - JPG, PNG or WebP photo on the CV; CV and application printouts are formatted for saving as PDF
+- Application summary print ("Tulosta yhteenveto / PDF" in the application details, titled HAKEMUS): the basic details, attachment names, event history (newest first) and notes of one application, with empty sections left out
 - Printing in the iOS home screen app and in Safari or the Dock app on a Mac: the document is made into a PDF on the device; on iOS it opens in the share sheet (Print, Save to Files), on a Mac it opens with its print dialog
 - Application-specific notes and attached CV or cover letter files
 - AI chat with conversation history stored on the server; answers are shown with safe formatting (headings, bold text and lists)
