@@ -163,27 +163,17 @@ function ApplicationPrint({ document }) {
           <h1>{cv.fullName}</h1>
           {cv.title && <p>{cv.title}</p>}
         </div>
+        {/* Email, phone and the date under them. The company is named in the letter and the role
+            in its heading, so there is no separate recipient box. */}
         <ul>
           {contact.map((item) => (
             <li key={item}>{item}</li>
           ))}
+          <li className="letter-date">
+            <time>{date}</time>
+          </li>
         </ul>
       </header>
-      {(job.company || job.place || job.role || !job) && (
-        <div className="letter-address-row">
-          {(job.company || job.place) && (
-            <div className="letter-recipient">
-              <span className="letter-label">Vastaanottaja</span>
-              {job.company && <strong>{job.company}</strong>}
-              {job.place && <span>{job.place}</span>}
-            </div>
-          )}
-          <time>
-            <span className="letter-label">Päiväys</span>
-            {date}
-          </time>
-        </div>
-      )}
       <section className="letter-content">
         {job.role && (
           <>

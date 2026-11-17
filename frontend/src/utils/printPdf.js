@@ -116,11 +116,10 @@ function box(content, { padding = [0, 0, 0, 0], border = {}, fill, margin = [0, 
 
 /* --------------------------- Pyöristetyt laatikot --------------------------- */
 
-// border-radius 2mm: the CV contact box and columns and the letter's address row. pdfmake's table
-// fills and lines are square, so a rounded box lays out its content in a table without fill or
-// lines (the border widths are added to the padding, so the size stays the same) between two
-// zero-size markers. The first rendering measures where the markers are (see createPrintPdf), and
-// the second paints the background and borders underneath as rounded shapes (roundedBackground).
+// border-radius 2mm: the CV columns. pdfmake's table fills are square, so a rounded box lays out its
+// content between two zero-size markers (measuredBlock). The first rendering measures where the
+// markers are (see createPrintPdf), and the second paints the background (and any borders)
+// underneath as rounded shapes (roundedBackground).
 const BOX_RADIUS = mm(2)
 const ROUNDED_ID = 'rounded-'
 // Points per quarter circle; at 2mm the segments are far below the printer's resolution.
@@ -133,27 +132,6 @@ const marker = (id) => ({ id, canvas: [{ type: 'rect', x: 0, y: 0, w: 0, h: 0, c
 // (its first page, in case the content moved on to the next page) and `${id}-end` the bottom.
 function measuredBlock(id, content, { margin = [0, 0, 0, 0], ...rest } = {}) {
   return { stack: [marker(id), { ...content, id: `${id}-body` }, marker(`${id}-end`)], margin, ...rest }
-}
-
-// A CSS box with border-radius 2mm. `rounded` collects what roundedBackground paints: the box's
-// left edge and width on the page (x, width), background and borders.
-function roundedBox(rounded, content, { padding = [0, 0, 0, 0], border = {}, fill, x, width, ...rest }) {
-  const id = `${ROUNDED_ID}${rounded.length}`
-  const sides = Object.fromEntries(
-    ['top', 'right', 'bottom', 'left'].map((name) => {
-      const [size, color] = border[name] || [0, null]
-      return [name, [borderWidth(size), color]]
-    }),
-  )
-  rounded.push({ id, x, width, fill, border: sides })
-  const [top, right, bottom, left] = padding
-  return measuredBlock(
-    id,
-    box(content, {
-      padding: [top + sides.top[0], right + sides.right[0], bottom + sides.bottom[0], left + sides.left[0]],
-    }),
-    rest,
-  )
 }
 
 // Outline of a rectangle with elliptical corners [rx, ry] (top-left, top-right, bottom-right,
@@ -741,7 +719,6 @@ function applicationContent(document) {
   const hasClosing = /(ystävällisin terveisin|ystävällisin|terveisin|parhain terveisin)/i.test(letterBody)
   const paragraphs = letterParagraphs(letterBody)
   const contentWidth = PAGE_WIDTH - 2 * LETTER_PAGE_X
-  const rounded = []
 
   // .letter-titlebar: full width, padding 5mm 18mm, #30263b, 15pt/800, letter-spacing 2px,
   // margin-bottom 6mm.
@@ -774,8 +751,9 @@ function applicationContent(document) {
     margin: [-LETTER_PAGE_X, 0, -LETTER_PAGE_X, mm(6)],
   }
 
-  // .letter-sender: name 23pt/700 and title 10pt/700 on the left, contact lines 8.5pt on the right
-  // (gap 1.5mm), centred vertically; padding-bottom 5mm, border-bottom 1px #ded9e7.
+  // .letter-sender: name 23pt/700 and title 10pt/700 on the left, contact lines and the date under
+  // them 8.5pt on the right (gap 1.5mm), centred vertically; padding-bottom 5mm, border-bottom 1px
+  // #ded9e7. There is no recipient box: the company is named in the letter and the role in its heading.
   const sender = box(
     {
       table: {
@@ -790,7 +768,7 @@ function applicationContent(document) {
               verticalAlignment: 'middle',
             },
             {
-              stack: contact.map((item, index) =>
+              stack: [...contact, date].map((item, index) =>
                 text(item, {
                   size: 8.5,
                   lineHeight: 1.55,
@@ -808,53 +786,6 @@ function applicationContent(document) {
     },
     { padding: [0, 0, mm(5), 0], border: { bottom: [px(1), '#ded9e7'] } },
   )
-
-  // .letter-address-row: recipient on the left, date on the right, centred vertically; margin
-  // 6mm 0 8mm, padding 4mm 5mm, border 1px #e2d9ec, border-left 2mm #7954aa, border-radius 2mm,
-  // background #f8f6fb.
-  const recipient = (job.company || job.place) && {
-    stack: [
-      // .letter-recipient is a grid with gap 1mm.
-      letterLabel('Vastaanottaja', { margin: [0, 0, 0, mm(1.5) + mm(1)] }),
-      job.company && text(job.company, { size: 11, lineHeight: 1.55, weight: 700, color: '#393642' }),
-      job.place && text(job.place, { size: 10, lineHeight: 1.55, color: '#393642', margin: [0, job.company ? mm(1) : 0, 0, 0] }),
-    ].filter(Boolean),
-    verticalAlignment: 'middle',
-  }
-  // With only the date in the row it sits on the left, as in the flex row of the print view.
-  const dateAlignment = recipient ? 'right' : 'left'
-  const dateBlock = {
-    stack: [
-      letterLabel('Päiväys', { alignment: dateAlignment }),
-      text(date, { size: 8.5, lineHeight: 1.55, color: '#63596d', alignment: dateAlignment }),
-    ],
-    verticalAlignment: 'middle',
-  }
-  const addressRow =
-    (job.company || job.place || job.role || !job) &&
-    roundedBox(
-      rounded,
-      {
-        table: {
-          widths: recipient ? ['*', 'auto'] : ['*'],
-          body: [recipient ? [recipient, dateBlock] : [dateBlock]],
-        },
-        layout: { ...noLines, paddingLeft: (index) => (index === 1 ? mm(10) : 0) },
-      },
-      {
-        padding: [mm(4), mm(5), mm(4), mm(5)],
-        border: {
-          top: [px(1), '#e2d9ec'],
-          right: [px(1), '#e2d9ec'],
-          bottom: [px(1), '#e2d9ec'],
-          left: [mm(2), '#7954aa'],
-        },
-        fill: '#f8f6fb',
-        margin: [0, mm(6), 0, mm(8)],
-        x: LETTER_PAGE_X,
-        width: contentWidth,
-      },
-    )
 
   // .letter-content h2: 17pt/700, line-height 1.2, padding-bottom 2mm, border-bottom 1pt #cfc2dd,
   // margin-bottom 5mm.
@@ -938,8 +869,13 @@ function applicationContent(document) {
 
   return {
     pageMargins: [LETTER_PAGE_X, NO_PAGE_MARGIN_Y, LETTER_PAGE_X, NO_PAGE_MARGIN_Y],
-    content: [titlebar, sender, addressRow, ...(role || []), { stack: bodyBlocks }, linksFooter].filter(Boolean),
-    rounded,
+    content: [
+      titlebar,
+      sender,
+      // .print-application .letter-content: margin-top 6mm under the header line.
+      { stack: [...(role || []), { stack: bodyBlocks }], margin: [0, mm(6), 0, 0] },
+      linksFooter,
+    ].filter(Boolean),
   }
 }
 
