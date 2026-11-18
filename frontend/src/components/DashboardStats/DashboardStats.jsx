@@ -198,8 +198,6 @@ export default function DashboardStats({ jobs, onOpenJob }) {
               ))
             })()}
           </div>
-            {!jobs.some((job) => job.nextDate) && <small>Lisää muistutuspäivä hakemuksen tietoihin.</small>}
-          </div>
         </section>
       </div>
     </>
