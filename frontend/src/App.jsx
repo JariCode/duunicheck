@@ -18,6 +18,7 @@ import { createAssistantChatState, hasPendingChatWork } from './pages/AssistantP
 import ConfirmDialog from './components/ConfirmDialog/ConfirmDialog'
 import PrintPdfDialog from './components/ConfirmDialog/PrintPdfDialog'
 import { printTarget } from './utils/printTarget'
+import { printPageTitle } from './utils/printFileName'
 import { letterTemplate } from './utils/letterTemplate'
 import { applicationTextState, savedApplicationText } from './utils/applicationText.js'
 import { firstResponseDate, makeEvent, normalizeStage, responseTypes, safeHttpUrl, stages, today } from './utils'
@@ -285,7 +286,16 @@ export default function App() {
     if (!printDocument) return undefined
     let current = true
     let timer = null
-    const afterPrint = () => setPrintDocument(null)
+    // Chrome, Edge and Firefox name the saved PDF after the page title, so the title is the file
+    // name while printing and is set back when printing ends.
+    const pageTitle = window.document.title
+    const restoreTitle = () => {
+      window.document.title = pageTitle
+    }
+    const afterPrint = () => {
+      restoreTitle()
+      setPrintDocument(null)
+    }
     window.addEventListener('afterprint', afterPrint)
     // A CV gets the gap scale that keeps it on one page when possible, the same one its PDF gets.
     // It is set on the print document as --cv-gap (PrintSheet.css); nothing changes on screen.
@@ -303,12 +313,14 @@ export default function App() {
       const sheet = window.document.querySelector('.print-document')
       if (gapScale === null) sheet?.style.removeProperty('--cv-gap')
       else sheet?.style.setProperty('--cv-gap', String(gapScale))
+      window.document.title = printPageTitle(printDocument)
       timer = window.setTimeout(() => window.print(), 180)
     })
     return () => {
       current = false
       window.clearTimeout(timer)
       window.removeEventListener('afterprint', afterPrint)
+      restoreTitle()
     }
   }, [printDocument])
 

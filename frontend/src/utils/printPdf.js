@@ -10,6 +10,8 @@ import dmSans400 from '@expo-google-fonts/dm-sans/400Regular/DMSans_400Regular.t
 import dmSans700 from '@expo-google-fonts/dm-sans/700Bold/DMSans_700Bold.ttf?inline'
 import dmSans800 from '@expo-google-fonts/dm-sans/800ExtraBold/DMSans_800ExtraBold.ttf?inline'
 import { safeHttpUrl } from '../utils'
+import { pdfFileName } from './printFileName'
+export { pdfFileName }
 
 const pdfMake = pdfMakeModule.createPdf ? pdfMakeModule : pdfMakeModule.default
 // The only resources are the bundled fonts and the CV photo data URL, so every URL fetch is refused.
@@ -1157,34 +1159,6 @@ async function pdfPhoto(dataUrl) {
 /* ---------------------------- Tiedosto ja otsikko ---------------------------- */
 
 // Characters that are not allowed or are awkward in file names become word breaks.
-function safeFileName(value) {
-  return String(value || '')
-    .normalize('NFC')
-    .replace(/[\\/:*?"<>|#%{}^~[\]`'$&@+=,;!]/g, ' ')
-    // eslint-disable-next-line no-control-regex -- control characters are not allowed in file names
-    .replace(/[\u0000-\u001f\u007f·•–—]/g, ' ')
-    .trim()
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^[._]+|[._]+$/g, '')
-    .slice(0, 80)
-    .replace(/[._]+$/g, '')
-}
-
-export function pdfFileName(document) {
-  const kind = document?.kind || 'notes'
-  const named = (prefix, value) => {
-    const name = safeFileName(value)
-    return `${name ? `${prefix}_${name}` : prefix}.pdf`
-  }
-  if (kind === 'cv') return named('CV', document.cv?.fullName || document.title)
-  if (kind === 'application') return named('Hakemus', document.job?.company || document.cv?.fullName)
-  if (kind === 'letter') return named('Kirje', document.title)
-  if (kind === 'applicationSummary')
-    return named('Hakemus', [document.job?.company, document.job?.role].filter(Boolean).join(' '))
-  return named('Muistiinpanot', String(document?.title || '').replace(/^Muistiinpanot\s*·?\s*/, ''))
-}
-
 export function pdfTitle(document) {
   const kind = document?.kind || 'notes'
   if (kind === 'cv') return document.cv?.fullName ? `CV – ${document.cv.fullName}` : 'CV'
