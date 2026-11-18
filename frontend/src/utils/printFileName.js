@@ -21,7 +21,11 @@ export function pdfFileName(document) {
     return `${name ? `${prefix}_${name}` : prefix}.pdf`
   }
   if (kind === 'cv') return named('CV', document.cv?.fullName || document.title)
-  if (kind === 'application') return named('Hakemus', document.job?.company || document.cv?.fullName)
+  if (kind === 'application')
+    return named(
+      'Hakukirje',
+      [document.job?.company, document.job?.role].filter(Boolean).join(' ') || document.cv?.fullName,
+    )
   if (kind === 'letter') return named('Kirje', document.title)
   if (kind === 'applicationSummary')
     return named('Hakemus', [document.job?.company, document.job?.role].filter(Boolean).join(' '))

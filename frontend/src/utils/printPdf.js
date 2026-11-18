@@ -1162,7 +1162,7 @@ async function pdfPhoto(dataUrl) {
 export function pdfTitle(document) {
   const kind = document?.kind || 'notes'
   if (kind === 'cv') return document.cv?.fullName ? `CV – ${document.cv.fullName}` : 'CV'
-  if (kind === 'application') return document.job?.company ? `Hakemus – ${document.job.company}` : 'Hakemus'
+  if (kind === 'application') return document.job?.company ? `Hakukirje – ${document.job.company}` : 'Hakukirje'
   if (kind === 'applicationSummary') return document.job?.company ? `Hakemus – ${document.job.company}` : 'Hakemus'
   return document?.title || 'DuuniCheck'
 }
