@@ -1,6 +1,6 @@
 import './DashboardStats.css'
 import { useMemo } from 'react'
-import { responseTypes, sentTypes } from '../../utils'
+import { dateLabel, responseTypes, sentTypes, today } from '../../utils'
 function Metric({ label, value, foot, stamp }) {
   return (
     <article className="metric">
@@ -179,18 +179,25 @@ export default function DashboardStats({ jobs, onOpenJob }) {
           </p>
           <div className="upcoming-mini">
             <b>Seuraavaksi</b>
-            {jobs
-              .filter((job) => job.nextDate)
-              .sort((a, b) => a.nextDate.localeCompare(b.nextDate))
-              .slice(0, 2)
-              .map((job) => (
+            {(() => {
+              const todayIso = today()
+              const upcoming = jobs
+                .filter((job) => job.nextDate && job.nextDate >= todayIso)
+                .sort((a, b) => a.nextDate.localeCompare(b.nextDate))
+                .slice(0, 2)
+              if (!jobs.some((job) => job.nextDate))
+                return <small>Lisää muistutuspäivä hakemuksen tietoihin.</small>
+              if (!upcoming.length) return <small>Ei tulevia muistutuksia.</small>
+              return upcoming.map((job) => (
                 <button key={job.id} onClick={() => onOpenJob(job)}>
-                  <time>{job.nextDate}</time>
+                  <time dateTime={job.nextDate}>{dateLabel(job.nextDate)}</time>
                   <span>
                     {job.next || 'Muistutus'} · {job.company}
                   </span>
                 </button>
-              ))}
+              ))
+            })()}
+          </div>
             {!jobs.some((job) => job.nextDate) && <small>Lisää muistutuspäivä hakemuksen tietoihin.</small>}
           </div>
         </section>
